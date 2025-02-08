@@ -1,54 +1,54 @@
 package com.example.controller;
 
 import com.example.entity.Hotel;
-import com.example.repository.HotelRepository;
+import com.example.service.HotelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/hotels")
 public class HotelController {
 
     @Autowired
-    private HotelRepository hotelRepository;
+    private HotelService hotelService;
 
+    // Get all hotels
     @GetMapping
     public List<Hotel> getAllHotels() {
-        return hotelRepository.findAll();
+        return hotelService.getAllHotels();
     }
 
-    @GetMapping("/sort/price-asc")
-    public List<Hotel> getHotelsByPriceAsc() {
-        return hotelRepository.findByOrderByPricePerNightAsc();
+    // Get hotel by ID
+    @GetMapping("/{id}")
+    public Optional<Hotel> getHotelById(@PathVariable Long id) {
+        return hotelService.getHotelById(id);
     }
 
-    @GetMapping("/sort/price-desc")
-    public List<Hotel> getHotelsByPriceDesc() {
-        return hotelRepository.findByOrderByPricePerNightDesc();
+    // Create a new hotel
+    @PostMapping
+    public Hotel createHotel(@RequestBody Hotel hotel) {
+        return hotelService.saveHotel(hotel);
     }
 
-    @GetMapping("/recommendations")
-    public List<Hotel> getRecommendations(@RequestParam double userLat, @RequestParam double userLon) {
-        List<Hotel> hotels = hotelRepository.findAll();
-        return hotels.stream()
-                .sorted(Comparator.comparingDouble(h -> calculateDistance(userLat, userLon, h.getLatitude(), h.getLongitude())))
-                .limit(5) // Top 5 closest hotels
-                .collect(Collectors.toList());
+    // Update an existing hotel
+    @PutMapping("/{id}")
+    public Hotel updateHotel(@PathVariable Long id, @RequestBody Hotel hotel) {
+        hotel.setId(id); // Ensure the hotel ID is set before updating
+        return hotelService.saveHotel(hotel);
     }
 
-    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        // Haversine formula to calculate distance between two coordinates
-        final int R = 6371; // Radius of the earth in km
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; // Distance in km
+    // Delete hotel by ID
+    @DeleteMapping("/{id}")
+    public void deleteHotel(@PathVariable Long id) {
+        hotelService.deleteHotel(id);
+    }
+
+    // Search hotels by name (using 'Containing' method)
+    @GetMapping("/search")
+    public List<Hotel> searchHotelsByName(@RequestParam String name) {
+        return hotelService.findHotelsByName(name);
     }
 }

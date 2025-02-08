@@ -1,0 +1,9 @@
+package com.example.enums;
+
+public enum RoomType {
+    SINGLE,
+    DOUBLE,
+    SUITE,
+    DELUXE
+}
+
