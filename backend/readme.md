@@ -25,7 +25,7 @@ Clone the repository to your local machine using Git:
 
 ```bash
 git clone https://github.com/your-username/staymate.git
-cd staymate
+cd staymate/backend
 ```
 
 ### 2. Install dependencies
