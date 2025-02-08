@@ -48,7 +48,7 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>8.0.28</version> <!-- Ensure to use the latest version -->
+			<version>8.0.29</version> <!-- Ensure to use the latest version -->
 		</dependency>
 	</dependencies>
 
@@ -59,6 +59,15 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<mainClass>com.example.staymate.StaymateApplication</mainClass>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<mainClass>com.example.db_init.DatabaseScriptRunner</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>
