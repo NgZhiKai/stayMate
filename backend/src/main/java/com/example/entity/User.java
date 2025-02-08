@@ -1,8 +1,9 @@
 package com.example.entity;
 
-import com.example.enums.UserRole;
 import jakarta.persistence.*;
 import java.util.List;
+
+import com.example.entity.enums.UserRole;
 
 @Entity
 public class User {

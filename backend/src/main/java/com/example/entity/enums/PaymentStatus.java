@@ -1,4 +1,4 @@
-package com.example.enums;
+package com.example.entity.enums;
 
 public enum PaymentStatus {
     PENDING,

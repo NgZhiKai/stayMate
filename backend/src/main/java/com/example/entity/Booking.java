@@ -1,8 +1,9 @@
 package com.example.entity;
 
-import com.example.enums.BookingStatus;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+
+import com.example.entity.enums.BookingStatus;
 
 @Entity
 public class Booking {
@@ -28,6 +29,8 @@ public class Booking {
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status; // PENDING, CONFIRMED, CANCELLED
+
+    private LocalDate bookingDate; // New field to store the date the booking was made
 
     public Long getId() {
         return id;
@@ -93,5 +96,11 @@ public class Booking {
         this.status = status;
     }
 
-    
+    public LocalDate getBookingDate() {
+        return bookingDate;
+    }
+
+    public void setBookingDate(LocalDate bookingDate) {
+        this.bookingDate = bookingDate;
+    }
 }

@@ -1,7 +1,8 @@
 package com.example.entity;
 
-import com.example.enums.RoomStatus;
-import com.example.enums.RoomType;
+import com.example.entity.enums.RoomStatus;
+import com.example.entity.enums.RoomType;
+
 import jakarta.persistence.*;
 
 @Entity

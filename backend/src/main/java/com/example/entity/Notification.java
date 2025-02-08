@@ -1,8 +1,9 @@
 package com.example.entity;
 
-import com.example.enums.NotificationType;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
+import com.example.entity.enums.NotificationType;
 
 @Entity
 public class Notification {

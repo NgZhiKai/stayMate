@@ -1,9 +1,10 @@
 package com.example.entity;
 
-import com.example.enums.PaymentMethod;
-import com.example.enums.PaymentStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
+import com.example.entity.enums.PaymentMethod;
+import com.example.entity.enums.PaymentStatus;
 
 @Entity
 public class Payment {
