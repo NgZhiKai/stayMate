@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 import com.example.entity.enums.BookingStatus;
+import com.example.entity.room.Room;
 
 @Entity
 public class Booking {

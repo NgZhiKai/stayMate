@@ -1,6 +1,9 @@
 package com.example.service;
 
 import com.example.entity.Hotel;
+import com.example.entity.Booking;
+import com.example.entity.Review;
+import com.example.entity.room.Room;
 import com.example.repository.HotelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,5 +40,23 @@ public class HotelService {
     // Find hotels by name (Example of custom query method)
     public List<Hotel> findHotelsByName(String name) {
         return hotelRepository.findByNameContaining(name); // assuming findByNameContaining exists
+    }
+
+    // Get the list of bookings for a specific hotel
+    public List<Booking> getBookingsByHotel(Long hotelId) {
+        Optional<Hotel> hotel = hotelRepository.findById(hotelId);
+        return hotel.map(Hotel::getBookings).orElse(null);  // If hotel exists, return bookings
+    }
+
+    // Get the list of reviews for a specific hotel
+    public List<Review> getReviewsByHotel(Long hotelId) {
+        Optional<Hotel> hotel = hotelRepository.findById(hotelId);
+        return hotel.map(Hotel::getReviews).orElse(null);  // If hotel exists, return reviews
+    }
+
+    // Get the list of rooms for a specific hotel
+    public List<Room> getRoomsByHotel(Long hotelId) {
+        Optional<Hotel> hotel = hotelRepository.findById(hotelId);
+        return hotel.map(Hotel::getRooms).orElse(null);  // If hotel exists, return rooms
     }
 }

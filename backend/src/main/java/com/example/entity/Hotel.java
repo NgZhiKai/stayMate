@@ -3,6 +3,8 @@ package com.example.entity;
 import jakarta.persistence.*;
 import java.util.List;
 
+import com.example.entity.room.Room;
+
 @Entity
 public class Hotel {
     @Id
@@ -23,6 +25,11 @@ public class Hotel {
 
     @OneToMany(mappedBy = "hotel")
     private List<Review> reviews;
+
+    @OneToMany(mappedBy = "hotel")
+    private List<Booking> bookings;  // New field to hold bookings
+
+    // Getters and setters
 
     public Long getId() {
         return id;
@@ -87,5 +94,12 @@ public class Hotel {
     public void setReviews(List<Review> reviews) {
         this.reviews = reviews;
     }
-    
+
+    public List<Booking> getBookings() {
+        return bookings;
+    }
+
+    public void setBookings(List<Booking> bookings) {
+        this.bookings = bookings;
+    }
 }
