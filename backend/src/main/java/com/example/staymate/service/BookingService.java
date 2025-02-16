@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class BookingService {
 
@@ -40,4 +42,13 @@ public class BookingService {
         }
         return null;
     }
+
+    public List<Booking> getBookingsByHotel(Long hotelId) {
+        return bookingRepository.findBookingsByHotelId(hotelId);
+    }
+
+    public List<Booking> getBookingsByUser(Long userId) {
+        return bookingRepository.findBookingsByUserId(userId);
+    }
+    
 }

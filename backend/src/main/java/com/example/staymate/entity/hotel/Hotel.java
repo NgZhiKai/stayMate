@@ -17,7 +17,7 @@ public class Hotel {
     private double longitude;
 
     @OneToMany(mappedBy = "id.hotelId", cascade = CascadeType.ALL)
-    private List<Room> rooms;
+    private List<Room> rooms; 
 
     // Getters and setters
     public Long getId() {

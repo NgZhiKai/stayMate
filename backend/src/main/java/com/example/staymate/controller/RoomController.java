@@ -23,10 +23,5 @@ public class RoomController {
         hotel.setId(hotelId);
         return roomService.createRoom(hotel, roomId, roomType, pricePerNight, maxOccupancy);
     }
-
-    // Endpoint for booking a room
-    @PutMapping("/{hotelId}/{roomId}/book")
-    public Room bookRoom(@PathVariable Long hotelId, @PathVariable Long roomId) {
-        return roomService.bookRoom(hotelId, roomId);
-    }
+    
 }

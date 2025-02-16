@@ -168,5 +168,5 @@ public class HotelController {
         response.put("hotels", hotels);
         return ResponseEntity.ok(response);  // 200 OK with the list of matching hotels
     }
-    
+
 }

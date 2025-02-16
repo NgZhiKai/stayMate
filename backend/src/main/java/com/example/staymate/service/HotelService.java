@@ -46,13 +46,6 @@ public class HotelService {
         return hotelRepository.findByNameContaining(name); // assuming findByNameContaining exists
     }
 
-    // // Get the list of bookings for a specific hotel
-    // public List<Booking> getBookingsByHotel(Long hotelId) {
-    //     return hotelRepository.findById(hotelId)
-    //                          .map(Hotel::getBookings)
-    //                          .orElse(Collections.emptyList());  // If hotel exists, return bookings
-    // }
-
     // // Get the list of reviews for a specific hotel
     // public List<Review> getReviewsByHotel(Long hotelId) {
     //     return hotelRepository.findById(hotelId)

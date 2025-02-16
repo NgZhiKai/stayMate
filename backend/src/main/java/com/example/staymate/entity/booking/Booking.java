@@ -14,29 +14,29 @@ public class Booking {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne
     @JoinColumns({
-        @JoinColumn(name = "hotel_id", referencedColumnName = "hotel_id", nullable = false), 
-        @JoinColumn(name = "room_id", referencedColumnName = "room_id", nullable = false)
+        @JoinColumn(name = "hotel_id", referencedColumnName = "hotel_id"), 
+        @JoinColumn(name = "room_id", referencedColumnName = "room_id")
     })
     private Room room;
 
-    @Column(name = "check_in_date", nullable = false)
+    @Column(name = "check_in_date")
     private LocalDate checkInDate;
 
-    @Column(name = "check_out_date", nullable = false)
+    @Column(name = "check_out_date")
     private LocalDate checkOutDate;
 
-    @Column(name = "total_amount", nullable = false)
+    @Column(name = "total_amount")
     private double totalAmount;
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
 
-    @Column(name = "booking_date", nullable = false)
+    @Column(name = "booking_date")
     private LocalDate bookingDate;
 
     // Getters and setters

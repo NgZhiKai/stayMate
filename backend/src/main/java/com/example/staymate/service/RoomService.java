@@ -1,23 +1,31 @@
 package com.example.staymate.service;
 
-import com.example.staymate.entity.enums.RoomStatus;
+import com.example.staymate.entity.booking.Booking;
 import com.example.staymate.entity.enums.RoomType;
 import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.entity.room.Room;
 import com.example.staymate.entity.room.RoomId;
 import com.example.staymate.factory.RoomFactory;
+import com.example.staymate.repository.BookingRepository;
 import com.example.staymate.repository.RoomRepository;
+import com.example.staymate.exception.RoomNotFoundException;
+import com.example.staymate.exception.RoomAlreadyBookedException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Optional;
+import java.util.List;
 
 @Service
 public class RoomService {
 
     @Autowired
     private RoomRepository roomRepository;
+
+    @Autowired
+    private BookingRepository bookingRepository;
 
     // Method to create a new room
     public Room createRoom(Hotel hotel, Long roomId, RoomType roomType, double pricePerNight, int maxOccupancy) {
@@ -32,28 +40,39 @@ public class RoomService {
     }
 
     // Method to book a room
-    public Room bookRoom(Long hotelId, Long roomId) {
+    public Room bookRoom(Long hotelId, Long roomId, LocalDate checkInDate, LocalDate checkOutDate) {
         RoomId id = new RoomId(hotelId, roomId);
+    
+        // Fetch room or throw exception if not found
+        Room room = roomRepository.findById(id)
+                .orElseThrow(() -> new RoomNotFoundException("Room with ID " + roomId + " in Hotel " + hotelId + " not found."));
+    
+        // Check for overlapping bookings
+        List<Booking> overlappingBookings = bookingRepository.findOverlappingBookings(hotelId, roomId, checkInDate, checkOutDate);
+    
+        if (!overlappingBookings.isEmpty()) {
+            throw new RoomAlreadyBookedException("Room " + roomId + " in hotel " + hotelId + " is already booked for the selected dates.");
+        }
+    
+        // Book the room
+        room.book();
+    
+        // Save and return updated room
+        return roomRepository.save(room);
+    }
 
-        // Try to find the room in the database
+    public boolean isRoomAvailable(Long hotelId, Long roomId, LocalDate checkInDate, LocalDate checkOutDate) {
+        RoomId id = new RoomId(hotelId, roomId);
         Optional<Room> roomOpt = roomRepository.findById(id);
 
-        if (roomOpt.isPresent()) {
-            Room room = roomOpt.get();
-
-            // Check if the room is already booked
-            if (room.getStatus() == RoomStatus.BOOKED) {
-                throw new IllegalStateException("Room is already booked.");
-            }
-
-            // Book the room (this also updates the state)
-            room.book();
-
-            // Persist the updated room state in the database
-            return roomRepository.save(room);
-        } else {
-            // Room not found, throw a custom exception
+        // Check if room exists
+        if (roomOpt.isEmpty()) {
             throw new RuntimeException("Room with ID " + roomId + " in Hotel " + hotelId + " not found.");
         }
+
+        // Check if the room has overlapping bookings
+        List<Booking> overlappingBookings = bookingRepository.findOverlappingBookings(hotelId, roomId, checkInDate, checkOutDate);
+
+        return overlappingBookings.isEmpty(); // Room is available if no overlapping bookings exist
     }
 }

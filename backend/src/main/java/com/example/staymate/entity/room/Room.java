@@ -30,10 +30,6 @@ public abstract class Room {
     @AttributeOverride(name = "roomId", column = @Column(name = "room_id"))
     private RoomId id;  // Using composite key (hotel_id, room_id)
 
-    // @Column(name = "room_type", insertable = false, nullable = false)
-    // @Enumerated(EnumType.STRING)
-    // private RoomType roomType;
-
     @Column(name = "price_per_night")
     private double pricePerNight;
 
@@ -101,15 +97,6 @@ public abstract class Room {
     public Long getRoomId() {
         return this.getId().getRoomId();
     }
-
-
-    // public RoomType getRoomType() {
-    //     return roomType;
-    // }
-
-    // public void setRoomType(RoomType roomType) {
-    //     this.roomType = roomType;
-    // }
 
     public double getPricePerNight() {
         return pricePerNight;
