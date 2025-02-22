@@ -31,7 +31,6 @@ public class RoomController {
 
         Room newRoom = roomService.createRoom(hotel, roomId, roomType, pricePerNight, maxOccupancy);
 
-        // Create a response map with room details
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Room created successfully");
         response.put("hotelId", hotelId); // Assuming RoomId has a getRoomId method
