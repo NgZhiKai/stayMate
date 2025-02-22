@@ -1,9 +1,0 @@
-name: Java Build with Maven
-
-on:
-  push:
-  pull_request:
-
-jobs:
-  build:
-    uses: ./.github/workflows/maven-build-template.yml
