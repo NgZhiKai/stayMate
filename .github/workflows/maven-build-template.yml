@@ -1,4 +1,4 @@
-name: Java Maven Build Template
+name: Java Maven Build
 
 on:
   workflow_call:

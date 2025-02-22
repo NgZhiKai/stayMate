@@ -220,7 +220,6 @@ class BookingControllerTest {
         mockBooking.setStatus(BookingStatus.PENDING);
         when(bookingService.getBookingById(bookingId)).thenReturn(mockBooking);
 
-        // Act & Assert
         mockMvc.perform(get("/bookings/{id}", bookingId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bookingId").value(bookingId))
