@@ -1,0 +1,18 @@
+name: Java Build with Maven
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+  pull_request:
+    paths:
+      - 'backend/**'
+
+jobs:
+  build:
+    uses: ./.github/workflows/maven-build-template.yml
+    with:
+      path: 'backend'
+    steps:
+      - name: Log build start
+        run: echo "Starting backend build for ${{ github.ref }}"
