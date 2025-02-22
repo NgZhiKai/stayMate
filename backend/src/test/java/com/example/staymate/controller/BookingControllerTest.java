@@ -213,7 +213,7 @@ class BookingControllerTest {
 
     @Test
     void testGetBookingById_BookingFound() throws Exception {
-        // Arrange
+        
         Long bookingId = 1L;
         Booking mockBooking = new Booking();
         mockBooking.setId(bookingId);
