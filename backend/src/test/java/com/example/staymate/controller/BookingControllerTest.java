@@ -258,7 +258,7 @@ class BookingControllerTest {
 
     @Test
     void testCancelBooking_BookingNotFound() throws Exception {
-        // Arrange
+
         Long bookingId = 1L;
         when(bookingService.cancelBooking(bookingId)).thenReturn(null);
 

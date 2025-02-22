@@ -17,12 +17,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: run Super-Linter
-        uses: github/super-linter@v7
-        env:
-          DEFAULT_BRANCH: main
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Cache Maven dependencies
         uses: actions/cache@v3
         with:
