@@ -26,7 +26,7 @@ public class RoomController {
     public ResponseEntity<Map<String, Object>> createRoom(@PathVariable Long hotelId, @PathVariable Long roomId,
                                                         @RequestParam RoomType roomType, @RequestParam double pricePerNight,
                                                         @RequestParam int maxOccupancy) {
-        Hotel hotel = new Hotel();  // In reality, you'd probably fetch this from the database
+        Hotel hotel = new Hotel();
         hotel.setId(hotelId);
 
         // Create the room using the RoomService or Factory

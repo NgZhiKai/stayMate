@@ -61,7 +61,7 @@ jobs:
       - name: Run Controller Tests
         run: |
           cd backend
-          mvn -Dtest="src/test/java/com/example/controller/**" test
+          mvn -Dtest="src/test/java/com/example/staymate/controller/**" test
           
   deploy:
     runs-on: ubuntu-latest
