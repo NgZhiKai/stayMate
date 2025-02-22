@@ -326,11 +326,9 @@ class BookingControllerTest {
 
     @Test
     void testGetBookingsForUser_NoBookings() throws Exception {
-        // Arrange
         Long userId = 1L;
         when(bookingService.getBookingsByUser(userId)).thenReturn(Collections.emptyList());
 
-        // Act & Assert
         mockMvc.perform(get("/bookings/user/{userId}", userId))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$").isEmpty());
