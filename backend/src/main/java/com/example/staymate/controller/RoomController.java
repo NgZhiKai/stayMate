@@ -38,7 +38,6 @@ public class RoomController {
         response.put("pricePerNight", pricePerNight);
         response.put("maxOccupancy", maxOccupancy);
 
-        // Return the newly created room with a 201 Created status
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
