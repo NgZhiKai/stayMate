@@ -126,7 +126,7 @@ public class BookingController {
     public ResponseEntity<List<BookingResponseDTO>> getBookingsForHotel(@PathVariable Long hotelId) {
 
         List<BookingResponseDTO> bookings = bookingService.getBookingsByHotel(hotelId).stream()
-                .map(BookingResponseDTO::new)  // Using the constructor that automatically handles the mapping
+                .map(BookingResponseDTO::new)
                 .collect(Collectors.toList());
 
         if (bookings.isEmpty()) {
