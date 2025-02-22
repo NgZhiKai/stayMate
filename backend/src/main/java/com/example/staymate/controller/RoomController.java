@@ -33,7 +33,7 @@ public class RoomController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Room created successfully");
-        response.put("hotelId", hotelId); // Assuming RoomId has a getRoomId method
+        response.put("hotelId", hotelId);
         response.put("roomId", roomId);
         response.put("pricePerNight", pricePerNight);
         response.put("maxOccupancy", maxOccupancy);

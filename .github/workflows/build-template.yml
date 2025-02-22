@@ -1,5 +1,3 @@
-
-
 name: Java CI with Maven
 
 on:
@@ -18,10 +16,13 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
+
+    - name: Change to backend directory
+      run: cd backend
+      
     - name: Build with Maven
-      run: |
-        cd backend 
-        mvn -B package --file pom.xml
+      run: mvn -B package --file pom.xml
+      
 
   test:
     name: Running Test Cases
@@ -30,9 +31,7 @@ jobs:
 
     steps:
       - name: Run test Cases
-        run: |
-          cd backend
-          mvn test
+        run: mvn test
 
 
 
