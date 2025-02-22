@@ -304,7 +304,7 @@ class BookingControllerTest {
 
     @Test
     void testGetBookingsForUser_BookingsFound() throws Exception {
-        // Arrange
+
         Long userId = 1L;
         Long bookingId = 1L;
         BookingStatus bookingStatus= BookingStatus.CONFIRMED;
@@ -317,7 +317,6 @@ class BookingControllerTest {
         mockBookings.add(mockBooking);
         when(bookingService.getBookingsByUser(userId)).thenReturn(mockBookings);
 
-        // Act & Assert
         mockMvc.perform(get("/bookings/user/{userId}", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
