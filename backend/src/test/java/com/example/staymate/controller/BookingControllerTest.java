@@ -280,7 +280,7 @@ class BookingControllerTest {
         mockBooking.setStatus(bookingStatus);
 
         List<Booking> mockBookings = new ArrayList<>();
-        mockBookings.add(mockBooking);  // Add a mock booking for the hotel
+        mockBookings.add(mockBooking);
         when(bookingService.getBookingsByHotel(hotelId)).thenReturn(mockBookings);
 
         mockMvc.perform(get("/bookings/hotel/{hotelId}", hotelId))
