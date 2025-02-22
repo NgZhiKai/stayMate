@@ -2,6 +2,13 @@ package com.example.staymate.dto;
 
 import com.example.staymate.entity.enums.RoomType;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor  // Default constructor
+@AllArgsConstructor // Fix: Add this constructor
 public class RoomRequestDTO {
     private RoomType roomType;
     private double pricePerNight;
