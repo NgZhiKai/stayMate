@@ -270,7 +270,7 @@ class BookingControllerTest {
 
     @Test
     void testGetBookingsForHotel_BookingsFound() throws Exception {
-        // Arrange
+
         Long hotelId = 1L;
         Long bookingId = 1L;
         BookingStatus bookingStatus= BookingStatus.CONFIRMED;

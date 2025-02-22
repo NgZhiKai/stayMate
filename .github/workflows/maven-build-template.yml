@@ -18,14 +18,11 @@ jobs:
           java-version: '17'
           cache: 'maven'
 
-      - name: Install Checkstyle
-        run: |
-          wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-8.45/checkstyle-8.45-all.jar -O /usr/local/bin/checkstyle
-          chmod +x /usr/local/bin/checkstyle
-
-      - name: Run Checkstyle
-        run: |
-          checkstyle -c /google_checks.xml backend/src/main/java/**/*.java  # Example using Google checks
+      - name: run Super-Linter
+        uses: github/super-linter@v3
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache Maven dependencies
         uses: actions/cache@v3
