@@ -262,7 +262,6 @@ class BookingControllerTest {
         Long bookingId = 1L;
         when(bookingService.cancelBooking(bookingId)).thenReturn(null);
 
-        // Act & Assert
         mockMvc.perform(delete("/bookings/{id}", bookingId))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Booking not found"));
