@@ -111,7 +111,7 @@ public class BookingController {
         if (booking == null) {
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Booking not found");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response); // Booking not found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
         Map<String, Object> response = new HashMap<>();
