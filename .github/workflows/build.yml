@@ -10,4 +10,4 @@ on:
 
 jobs:
   build:
-    uses: ./.github/workflows/backend-build-template.yml
+    uses: ./.github/workflows/build-template.yml
