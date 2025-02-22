@@ -283,11 +283,10 @@ class BookingControllerTest {
         mockBookings.add(mockBooking);  // Add a mock booking for the hotel
         when(bookingService.getBookingsByHotel(hotelId)).thenReturn(mockBookings);
 
-        // Act & Assert
         mockMvc.perform(get("/bookings/hotel/{hotelId}", hotelId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0]").exists());  // Check if at least one booking is returned
+                .andExpect(jsonPath("$[0]").exists());
     }
 
     @Test
