@@ -321,7 +321,7 @@ class BookingControllerTest {
         mockMvc.perform(get("/bookings/user/{userId}", userId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0]").exists());  // Check if at least one booking is returned
+                .andExpect(jsonPath("$[0]").exists());
     }
 
     @Test
@@ -333,7 +333,7 @@ class BookingControllerTest {
         // Act & Assert
         mockMvc.perform(get("/bookings/user/{userId}", userId))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$").isEmpty());  // Check if no bookings are returned
+                .andExpect(jsonPath("$").isEmpty());
     }
 
 }
