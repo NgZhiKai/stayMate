@@ -29,7 +29,6 @@ public class RoomController {
         Hotel hotel = new Hotel();
         hotel.setId(hotelId);
 
-        // Create the room using the RoomService or Factory
         Room newRoom = roomService.createRoom(hotel, roomId, roomType, pricePerNight, maxOccupancy);
 
         // Create a response map with room details
