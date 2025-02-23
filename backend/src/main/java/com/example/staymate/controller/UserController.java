@@ -2,7 +2,8 @@ package com.example.staymate.controller;
 
 import com.example.staymate.entity.user.User;
 import com.example.staymate.service.UserService;
-import com.example.staymate.exception.ResourceNotFoundException; // Import the exception class
+import com.example.staymate.exception.ResourceNotFoundException;
+import com.example.staymate.dto.custom.CustomResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,60 +23,67 @@ public class UserController {
 
     // Register a new user
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody User user) {
+    public ResponseEntity<CustomResponse<User>> registerUser(@Valid @RequestBody User user) {
         User savedUser = userService.registerUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser); // 201 Created
+        return ResponseEntity.status(HttpStatus.CREATED).body(new CustomResponse<>("User registered successfully", savedUser));
     }
 
     // Get all users
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<CustomResponse<List<User>>> getAllUsers() {
         List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users); // 200 OK
+        return ResponseEntity.ok(new CustomResponse<>("Users retrieved successfully", users));
     }
 
     // Get user by ID with error handling
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<CustomResponse<User>> getUserById(@PathVariable Long id) {
         try {
             User user = userService.getUserById(id); // Now returns a User, not Optional
-            return ResponseEntity.ok(user); // 200 OK
+            return ResponseEntity.ok(new CustomResponse<>("User retrieved successfully", user));
         } catch (ResourceNotFoundException e) {
-            return ResponseEntity.notFound().build(); // 404 Not Found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponse<>("User not found with ID: " + id, null));
         }
     }
 
     // Get user by email (better naming)
     @GetMapping("/by-email/{email}")
-    public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
+    public ResponseEntity<CustomResponse<User>> getUserByEmail(@PathVariable String email) {
         try {
             User user = userService.getUserByEmail(email);
-            return ResponseEntity.ok(user); // 200 OK
+            return ResponseEntity.ok(new CustomResponse<>("User retrieved successfully", user));
         } catch (ResourceNotFoundException e) {
-            return ResponseEntity.notFound().build(); // 404 Not Found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponse<>("User not found with email: " + email, null));
         }
     }
 
     // Update user information
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
+    public ResponseEntity<CustomResponse<User>> updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
         try {
             user.setId(id);
             User updatedUser = userService.updateUser(id, user);
-            return ResponseEntity.ok(updatedUser); // 200 OK
+            return ResponseEntity.ok(new CustomResponse<>("User updated successfully", updatedUser));
         } catch (ResourceNotFoundException e) {
-            return ResponseEntity.notFound().build(); // 404 Not Found
+            // Add a log to ensure the exception is caught
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponse<>("User not found with ID: " + id, null));
         }
     }
 
+
     // Delete user by ID
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<CustomResponse<Void>> deleteUser(@PathVariable Long id) {
         try {
             userService.deleteUser(id);
-            return ResponseEntity.noContent().build(); // 204 No Content
+            return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                    .body(new CustomResponse<>("User deleted successfully", null));
         } catch (ResourceNotFoundException e) {
-            return ResponseEntity.notFound().build(); // 404 Not Found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponse<>("User not found with ID: " + id, null));
         }
     }
 }

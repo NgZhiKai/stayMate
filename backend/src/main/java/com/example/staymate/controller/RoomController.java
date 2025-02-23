@@ -26,17 +26,23 @@ public class RoomController {
                                                           @RequestParam RoomType roomType,
                                                           @RequestParam double pricePerNight,
                                                           @RequestParam int maxOccupancy) {
-        Hotel hotel = new Hotel();
-        hotel.setId(hotelId);
-
+        // Fetch hotel from the database to make sure it exists
+        Hotel hotel = roomService.getHotelById(hotelId);  // Assuming a method in RoomService that fetches a hotel by ID
+        if (hotel == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Hotel not found with ID: " + hotelId));
+        }
+    
+        // Create room using the service
         Room newRoom = roomService.createRoom(hotel, roomId, roomType, pricePerNight, maxOccupancy);
-
+    
+        // Handle failure in room creation
         if (newRoom == null) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Failed to create room"));
+                    .body(Map.of("message", "Failed to create room. Please try again later."));
         }
-
-        // Build the response map directly
+    
+        // Build the response map directly with details of the new room
         Map<String, Object> response = Map.of(
                 "message", "Room created successfully",
                 "hotelId", newRoom.getId().getHotelId(),
@@ -44,7 +50,9 @@ public class RoomController {
                 "pricePerNight", newRoom.getPricePerNight(),
                 "maxOccupancy", newRoom.getMaxOccupancy()
         );
-
+    
+        // Return successful response
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+    
 }

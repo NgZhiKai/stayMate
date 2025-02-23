@@ -1,3 +1,5 @@
+// 1 test case
+
 package com.example.staymate.controller;
 
 import com.example.staymate.entity.enums.RoomStatus;
@@ -5,6 +7,7 @@ import com.example.staymate.entity.enums.RoomType;
 import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.entity.room.Room;
 import com.example.staymate.entity.room.RoomId;
+import com.example.staymate.entity.room.SingleRoom;
 import com.example.staymate.factory.RoomFactory;
 import com.example.staymate.service.RoomService;
 
@@ -22,8 +25,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,30 +65,29 @@ class RoomControllerTest {
     //     // Simulate hotel creation
     //     Hotel mockHotel = new Hotel();
     //     mockHotel.setId(hotelId);
+    //     mockHotel.setName("Sunset Hotel");
 
-    //     // Simulate room creation using RoomFactory
-    //     Room mockRoom = RoomFactory.createRoom(mockHotel, generatedRoomId, roomType, pricePerNight, maxOccupancy);
-    //     mockRoom.setId(new RoomId(hotelId, generatedRoomId));
-    //     mockRoom.setMaxOccupancy(maxOccupancy);
-    //     mockRoom.setPricePerNight(pricePerNight);
-    //     mockRoom.setStatus(RoomStatus.AVAILABLE);
+    //     // Simulate room creation using SingleRoom instead of RoomFactory
+    //     Room mockRoom = new SingleRoom(mockHotel, generatedRoomId, pricePerNight, maxOccupancy);
 
-    //     when(roomService.createRoom(mockHotel, generatedRoomId, roomType, pricePerNight, maxOccupancy))
-    //         .thenReturn(mockRoom);
+    //     // Ensure the mock behavior is set up correctly
+    //     doReturn(mockHotel).when(roomService).getHotelById(anyLong());
+    //     when(roomService.createRoom(any(Hotel.class), anyLong(), any(RoomType.class), anyDouble(), anyInt()))
+    //             .thenReturn(mockRoom);
 
+    //     // Perform the POST request and verify the response
     //     mockMvc.perform(post("/rooms/{hotelId}/{roomId}", hotelId, generatedRoomId)
-    //         .param("roomType", roomType.name())
-    //         .param("pricePerNight", String.valueOf(pricePerNight))
-    //         .param("maxOccupancy", String.valueOf(maxOccupancy))
-    //         .contentType(MediaType.APPLICATION_JSON))
-    //         .andExpect(status().isCreated());
-
-    //     assertEquals(hotelId, mockRoom.getHotelId());            
-    //     // .andExpect(jsonPath("$.hotelId").value(hotelId))
-    //     //     .andExpect(jsonPath("$.roomId").value(generatedRoomId))
-    //     //     .andExpect(jsonPath("$.pricePerNight").value(pricePerNight))
-    //     //     .andExpect(jsonPath("$.maxOccupancy").value(maxOccupancy));
-
+    //                 .param("roomType", roomType.name()) // Pass room type as a parameter
+    //                 .param("pricePerNight", String.valueOf(pricePerNight)) // Pass price as a parameter
+    //                 .param("maxOccupancy", String.valueOf(maxOccupancy)) // Pass max occupancy as a parameter
+    //                 .contentType(MediaType.APPLICATION_JSON))
+    //             .andExpect(status().isCreated()) // Expect a 201 Created status
+    //             .andExpect(jsonPath("$.message").value("Room created successfully")) // Check message
+    //             .andExpect(jsonPath("$.hotelId").value(hotelId)) // Check hotelId in the response
+    //             .andExpect(jsonPath("$.roomId").value(generatedRoomId)) // Check roomId in the response
+    //             .andExpect(jsonPath("$.pricePerNight").value(pricePerNight)) // Check price per night
+    //             .andExpect(jsonPath("$.maxOccupancy").value(maxOccupancy)); // Check max occupancy
     // }
+
 
 }

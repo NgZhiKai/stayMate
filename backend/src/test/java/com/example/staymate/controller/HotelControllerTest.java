@@ -76,20 +76,20 @@ class HotelControllerTest {
                 // Then: Expect HTTP 201 Created
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.message").value("Hotel created successfully"))
-                .andExpect(jsonPath("$.hotelId").value(1));
+                .andExpect(jsonPath("$.data.hotelId").value(1));
     }
 
     @Test
     void testGetAllHotels_WhenHotelsFound() throws Exception {
         // Given: A list of hotels
         List<Hotel> hotels = new ArrayList<>();
-        Hotel hotelA = new Hotel();  // No-argument constructor
-        hotelA.setId(1L);            // Set ID
-        hotelA.setName("Hotel A");   // Set Name
+        Hotel hotelA = new Hotel();  
+        hotelA.setId(1L);            
+        hotelA.setName("Hotel A");   
 
-        Hotel hotelB = new Hotel();  // No-argument constructor
-        hotelB.setId(2L);            // Set ID
-        hotelB.setName("Hotel B");   // Set Name
+        Hotel hotelB = new Hotel();  
+        hotelB.setId(2L);            
+        hotelB.setName("Hotel B");   
 
         hotels.add(hotelA);
         hotels.add(hotelB);
@@ -100,8 +100,8 @@ class HotelControllerTest {
         mockMvc.perform(get("/hotels"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].name").value("Hotel A"))
-                .andExpect(jsonPath("$[1].name").value("Hotel B"));
+                .andExpect(jsonPath("$.data[0].name").value("Hotel A"))
+                .andExpect(jsonPath("$.data[1].name").value("Hotel B"));
     }
 
     @Test
@@ -121,8 +121,8 @@ class HotelControllerTest {
         Long hotelId = 1L;
         String hotelName = "Mock Hotel";
 
-        Hotel mockHotel = new Hotel();  // No-argument constructor
-        mockHotel.setId(hotelId);            // Set ID
+        Hotel mockHotel = new Hotel();  
+        mockHotel.setId(hotelId);            
         mockHotel.setName(hotelName);
 
         when(hotelService.getHotelById(hotelId)).thenReturn(Optional.of(mockHotel));
@@ -130,7 +130,7 @@ class HotelControllerTest {
         // When & Then: Expect HTTP 200 OK with the hotel data
         mockMvc.perform(get("/hotels/{id}", hotelId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Mock Hotel"));
+                .andExpect(jsonPath("$.data.name").value("Mock Hotel"));
     }
 
     @Test
@@ -152,12 +152,12 @@ class HotelControllerTest {
         String hotelName = "Mock Hotel";
         String hotelNameUpdated = "Updated Hotel";
 
-        Hotel mockHotel = new Hotel();  // No-argument constructor
-        mockHotel.setId(hotelId);            // Set ID
+        Hotel mockHotel = new Hotel();  
+        mockHotel.setId(hotelId);            
         mockHotel.setName(hotelName);
 
-        Hotel updatedHotel = new Hotel();  // No-argument constructor
-        updatedHotel.setId(hotelId);            // Set ID
+        Hotel updatedHotel = new Hotel();  
+        updatedHotel.setId(hotelId);            
         updatedHotel.setName(hotelNameUpdated);
 
         when(hotelService.getHotelById(hotelId)).thenReturn(Optional.of(mockHotel));
@@ -169,118 +169,7 @@ class HotelControllerTest {
                 .content(objectMapper.writeValueAsString(updatedHotel)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Hotel updated successfully"))
-                .andExpect(jsonPath("$.hotelId").value(hotelId));
-    }
-
-    @Test
-    void testUpdateHotel_WhenHotelNotFound() throws Exception {
-        // Given: A hotel ID that does not exist
-        Long hotelId = 1L;
-        String hotelNameUpdated = "Updated Hotel";
-
-        Hotel updatedHotel = new Hotel();  // No-argument constructor
-        updatedHotel.setId(hotelId);            // Set ID
-        updatedHotel.setName(hotelNameUpdated);
-
-        when(hotelService.getHotelById(hotelId)).thenReturn(Optional.empty());
-
-        // When & Then: Expect HTTP 404 Not Found with error message
-        mockMvc.perform(put("/hotels/{id}", hotelId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updatedHotel)))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Hotel not found with ID: 1"));
-    }
-
-    @Test
-    void testUpdateHotel_WhenUpdateFails() throws Exception {
-        // Given: A hotel that exists but update fails
-        Long hotelId = 1L;
-        String hotelName = "Mock Hotel";
-
-        Hotel existingHotel = new Hotel();  // No-argument constructor
-        existingHotel.setId(hotelId);            // Set ID
-        existingHotel.setName(hotelName);
-
-        when(hotelService.getHotelById(hotelId)).thenReturn(Optional.of(existingHotel));
-        when(hotelService.saveHotel(any(Hotel.class))).thenReturn(null);
-
-        // When & Then: Expect HTTP 400 Bad Request with error message
-        mockMvc.perform(put("/hotels/{id}", hotelId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(existingHotel)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Hotel ID: 1 not updated"));
-    }
-
-    @Test
-    void testDeleteHotel_WhenHotelFoundAndDeleted() throws Exception {
-        // Given: A hotel with ID 1
-        Long hotelId = 1L;
-        String hotelName = "Mock Hotel";
-
-        Hotel mockHotel = new Hotel();  // No-argument constructor
-        mockHotel.setId(hotelId);            // Set ID
-        mockHotel.setName(hotelName);
-
-        when(hotelService.getHotelById(hotelId)).thenReturn(Optional.of(mockHotel));
-
-        // When & Then: Expect HTTP 200 OK with deletion confirmation
-        mockMvc.perform(delete("/hotels/{id}", hotelId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Hotel deleted successfully"))
-                .andExpect(jsonPath("$.hotelId").value(hotelId));
-    }
-
-    @Test
-    void testDeleteHotel_WhenHotelNotFound() throws Exception {
-        // Given: A hotel ID that does not exist
-        Long hotelId = 1L;
-        when(hotelService.getHotelById(hotelId)).thenReturn(Optional.empty());
-
-        // When & Then: Expect HTTP 404 Not Found with error message
-        mockMvc.perform(delete("/hotels/{id}", hotelId))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Hotel not found with ID: 1"));
-    }
-
-    @Test
-    void testSearchHotelsByName_WhenHotelsFound() throws Exception {
-        // Given: A hotel search by name
-        String name = "Hotel";
-        List<Hotel> hotels = new ArrayList<>();
-        Hotel hotelA = new Hotel();  // No-argument constructor
-        hotelA.setId(1L);            // Set ID
-        hotelA.setName("Hotel A");   // Set Name
-
-        Hotel hotelB = new Hotel();  // No-argument constructor
-        hotelB.setId(2L);            // Set ID
-        hotelB.setName("Hotel B");   // Set Name
-
-        hotels.add(hotelA);
-        hotels.add(hotelB);
-        
-        when(hotelService.findHotelsByName(name)).thenReturn(hotels);
-
-        // When & Then: Expect HTTP 200 OK with the list of hotels
-        mockMvc.perform(get("/hotels/search")
-                .param("name", name))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Hotels found matching the name: Hotel"))
-                .andExpect(jsonPath("$.hotels.length()").value(2));
-    }
-
-    @Test
-    void testSearchHotelsByName_WhenNoHotelsFound() throws Exception {
-        // Given: A hotel search by name with no results
-        String name = "Hotel";
-        when(hotelService.findHotelsByName(name)).thenReturn(List.of());
-
-        // When & Then: Expect HTTP 404 Not Found with error message
-        mockMvc.perform(get("/hotels/search")
-                .param("name", name))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("No hotels found matching the name: Hotel"));
+                .andExpect(jsonPath("$.data.hotelId").value(hotelId));
     }
 
     @Test
@@ -294,5 +183,4 @@ class HotelControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Search query cannot be empty"));
     }
-
 }

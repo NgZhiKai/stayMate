@@ -8,9 +8,9 @@ import com.example.staymate.entity.enums.BookingStatus;
 import com.example.staymate.service.BookingService;
 import com.example.staymate.service.RoomService;
 import com.example.staymate.service.UserService;
+import com.example.staymate.dto.custom.CustomResponse;
 
 import jakarta.validation.Valid;
-
 import com.example.staymate.entity.user.User;
 import com.example.staymate.entity.room.Room;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class BookingController {
 
     // Create a new booking
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createBooking(@Valid @RequestBody BookingRequestDTO bookingRequestDTO) {
+    public ResponseEntity<CustomResponse<Map<String, Object>>> createBooking(@Valid @RequestBody BookingRequestDTO bookingRequestDTO) {
 
         // Step 1: Check if the user exists (throws ResourceNotFoundException if not found)
         User user = userService.getUserById(bookingRequestDTO.getUserId());
@@ -48,24 +48,24 @@ public class BookingController {
         // Step 2: Validate check-in and check-out dates
         if (bookingRequestDTO.getCheckOutDate().isBefore(bookingRequestDTO.getCheckInDate())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Check-out date must be after check-in date"));
+                    .body(new CustomResponse<>("Check-out date must be after check-in date", null));
         }
 
         // Step 3: Check if the room is available
         if (!roomService.isRoomAvailable(bookingRequestDTO.getHotelId(), bookingRequestDTO.getRoomId(),
                 bookingRequestDTO.getCheckInDate(), bookingRequestDTO.getCheckOutDate())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Room is not available for the selected dates"));
+                    .body(new CustomResponse<>("Room is not available for the selected dates", null));
         }
 
         // Step 4: Book the room
         Room room;
         try {
-            room = roomService.bookRoom(bookingRequestDTO.getHotelId(), bookingRequestDTO.getRoomId(), 
+            room = roomService.bookRoom(bookingRequestDTO.getHotelId(), bookingRequestDTO.getRoomId(),
                                         bookingRequestDTO.getCheckInDate(), bookingRequestDTO.getCheckOutDate());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "Room booking failed. The room might not be available."));
+                    .body(new CustomResponse<>("Room booking failed. The room might not be available.", null));
         }
 
         // Step 5: Create Booking object
@@ -90,28 +90,30 @@ public class BookingController {
         response.put("message", "Booking created successfully");
         response.put("bookingId", savedBooking.getId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new CustomResponse<>("Booking created successfully", response));
     }
 
     // Get a booking by ID
     @GetMapping("/{id}")
-    public ResponseEntity<BookingResponseDTO> getBookingById(@PathVariable Long id) {
+    public ResponseEntity<CustomResponse<BookingResponseDTO>> getBookingById(@PathVariable Long id) {
         Booking booking = bookingService.getBookingById(id);
         if (booking == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Booking not found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponse<>("Booking not found", null)); // Booking not found
         }
         BookingResponseDTO bookingResponseDTO = new BookingResponseDTO(booking);
-        return ResponseEntity.ok(bookingResponseDTO);
+        return ResponseEntity.ok(new CustomResponse<>("Booking retrieved successfully", bookingResponseDTO));
     }
 
     // Cancel a booking by ID
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> cancelBooking(@PathVariable Long id) {
+    public ResponseEntity<CustomResponse<Map<String, Object>>> cancelBooking(@PathVariable Long id) {
         Booking booking = bookingService.cancelBooking(id);
         if (booking == null) {
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Booking not found");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponse<>("Booking not found", response));
         }
 
         Map<String, Object> response = new HashMap<>();
@@ -119,32 +121,35 @@ public class BookingController {
         response.put("bookingId", booking.getId());
         response.put("status", booking.getStatus());
 
-        return ResponseEntity.status(HttpStatus.OK).body(response); // Successfully cancelled
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new CustomResponse<>("Booking cancelled successfully", response)); // Successfully cancelled
     }
 
     @GetMapping("/hotel/{hotelId}")
-    public ResponseEntity<List<BookingResponseDTO>> getBookingsForHotel(@PathVariable Long hotelId) {
+    public ResponseEntity<CustomResponse<List<BookingResponseDTO>>> getBookingsForHotel(@PathVariable Long hotelId) {
 
         List<BookingResponseDTO> bookings = bookingService.getBookingsByHotel(hotelId).stream()
                 .map(BookingResponseDTO::new)
                 .collect(Collectors.toList());
 
         if (bookings.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyList());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponse<>("No bookings found for the hotel", Collections.emptyList()));
         }
-        return ResponseEntity.ok(bookings);
+        return ResponseEntity.ok(new CustomResponse<>("Bookings retrieved successfully", bookings));
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<UserBookingResponseDTO>> getBookingsForUser(@PathVariable Long userId) {
+    public ResponseEntity<CustomResponse<List<UserBookingResponseDTO>>> getBookingsForUser(@PathVariable Long userId) {
         List<UserBookingResponseDTO> bookings = bookingService.getBookingsByUser(userId).stream()
                 .map(UserBookingResponseDTO::new)
                 .collect(Collectors.toList());
 
         if (bookings.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyList());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponse<>("No bookings found for user", Collections.emptyList()));
         }
-        return ResponseEntity.ok(bookings);
+        return ResponseEntity.ok(new CustomResponse<>("Bookings retrieved successfully", bookings));
     }
 
 }

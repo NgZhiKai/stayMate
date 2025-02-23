@@ -37,7 +37,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,70 +62,71 @@ class BookingControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(bookingController).build();
     }
 
-    // @Test
-    // void testCreateBooking_Success() throws Exception {
-    //     Long userId = 1L;
-    //     Long hotelId = 1L;
-    //     Long generatedRoomId = 101L;
-    //     LocalDate checkInDate = LocalDate.now();
-    //     LocalDate checkOutDate = checkInDate.plusDays(2);
-    //     double totalAmount = 100.0;
-    //     RoomType roomType = RoomType.SINGLE;
-    //     double pricePerNight = 50.0;
-    //     int maxOccupancy = 2;
+    @Test
+    void testCreateBooking_Success() throws Exception {
+        Long userId = 1L;
+        Long hotelId = 1L;
+        Long generatedRoomId = 101L;
+        LocalDate checkInDate = LocalDate.of(2025, 2, 23); // Set the check-in date as per the request
+        LocalDate checkOutDate = LocalDate.of(2025, 2, 25); // Set the check-out date as per the request
+        double totalAmount = 100.0;
+        RoomType roomType = RoomType.SINGLE;
+        double pricePerNight = 50.0;
+        int maxOccupancy = 2;
 
-    //     // Creating mock data for User and Room
-    //     User user = new User();
-    //     user.setId(userId);
-    //     when(userService.getUserById(userId)).thenReturn(user);
+        // Creating mock data for User and Room
+        User user = new User();
+        user.setId(userId);
+        when(userService.getUserById(userId)).thenReturn(user);
 
-    //     lenient().when(roomService.isRoomAvailable(eq(hotelId), eq(generatedRoomId), eq(checkInDate), eq(checkOutDate))).thenReturn(true);
+        lenient().when(roomService.isRoomAvailable(eq(hotelId), eq(generatedRoomId), eq(checkInDate), eq(checkOutDate))).thenReturn(true);
         
-    //     // Simulate hotel creation
-    //     Hotel mockHotel = new Hotel();
-    //     mockHotel.setId(hotelId);
+        // Simulate hotel creation
+        Hotel mockHotel = new Hotel();
+        mockHotel.setId(hotelId);
 
-    //     // Creating BookingRequestDTO mock
-    //     BookingRequestDTO bookingRequestDTO = new BookingRequestDTO();
-    //     bookingRequestDTO.setUserId(userId);
-    //     bookingRequestDTO.setHotelId(hotelId);
-    //     bookingRequestDTO.setRoomId(generatedRoomId);
-    //     bookingRequestDTO.setCheckInDate(checkInDate);
-    //     bookingRequestDTO.setCheckOutDate(checkOutDate);
-    //     bookingRequestDTO.setTotalAmount(totalAmount);
+        // Creating BookingRequestDTO mock
+        BookingRequestDTO bookingRequestDTO = new BookingRequestDTO();
+        bookingRequestDTO.setUserId(userId);
+        bookingRequestDTO.setHotelId(hotelId);
+        bookingRequestDTO.setRoomId(generatedRoomId);
+        bookingRequestDTO.setCheckInDate(checkInDate);
+        bookingRequestDTO.setCheckOutDate(checkOutDate);
+        bookingRequestDTO.setTotalAmount(totalAmount);
 
-    //     // Simulate room creation using RoomFactory
-    //     Room mockRoom = RoomFactory.createRoom(mockHotel, generatedRoomId, roomType, pricePerNight, maxOccupancy);
-    //     mockRoom.setId(new RoomId(hotelId, generatedRoomId));
-    //     mockRoom.setMaxOccupancy(maxOccupancy);
-    //     mockRoom.setPricePerNight(pricePerNight);
-    //     mockRoom.setStatus(RoomStatus.AVAILABLE);
+        // Simulate room creation using RoomFactory
+        Room mockRoom = RoomFactory.createRoom(mockHotel, generatedRoomId, roomType, pricePerNight, maxOccupancy);
+        mockRoom.setId(new RoomId(hotelId, generatedRoomId));
+        mockRoom.setMaxOccupancy(maxOccupancy);
+        mockRoom.setPricePerNight(pricePerNight);
+        mockRoom.setStatus(RoomStatus.AVAILABLE);
 
-    //     // Mock RoomService to return the created room from the factory
-    //     lenient().when(roomService.createRoom(eq(mockHotel), eq(generatedRoomId), eq(roomType), eq(pricePerNight), eq(maxOccupancy)))
-    //         .thenReturn(mockRoom);
+        // Mock RoomService to return the created room from the factory
+        lenient().when(roomService.createRoom(eq(mockHotel), eq(generatedRoomId), eq(roomType), eq(pricePerNight), eq(maxOccupancy)))
+            .thenReturn(mockRoom);
 
-    //     when(roomService.bookRoom(eq(hotelId), eq(generatedRoomId), eq(checkInDate), eq(checkOutDate))).thenReturn(mockRoom);
+        when(roomService.bookRoom(eq(hotelId), eq(generatedRoomId), eq(checkInDate), eq(checkOutDate))).thenReturn(mockRoom);
 
-    //     // Creating a Booking mock
-    //     Booking booking = new Booking();
-    //     booking.setId(1L);
-    //     booking.setUser(user);
-    //     booking.setRoom(mockRoom);
-    //     booking.setCheckInDate(checkInDate);
-    //     booking.setCheckOutDate(checkOutDate);
-    //     booking.setTotalAmount(totalAmount);
-    //     booking.setStatus(BookingStatus.PENDING);
-    //     when(bookingService.createBooking(any(Booking.class))).thenReturn(booking);
+        // Creating a Booking mock
+        Booking booking = new Booking();
+        booking.setId(1L);
+        booking.setUser(user);
+        booking.setRoom(mockRoom);
+        booking.setCheckInDate(checkInDate);
+        booking.setCheckOutDate(checkOutDate);
+        booking.setBookingDate(checkInDate);
+        booking.setTotalAmount(totalAmount);
+        booking.setStatus(BookingStatus.PENDING);
+        when(bookingService.createBooking(any(Booking.class))).thenReturn(booking);
 
-    //     // Perform the POST request to create a booking
-    //     mockMvc.perform(post("/bookings")
-    //             .contentType(MediaType.APPLICATION_JSON)
-    //             .content("{\"userId\":1,\"hotelId\":1,\"roomId\":101,\"checkInDate\":\"2025-02-25\",\"checkOutDate\":\"2025-02-27\",\"totalAmount\":100.0}"))
-    //             .andExpect(status().isCreated())
-    //             .andExpect(jsonPath("$.message").value("Booking created successfully"))
-    //             .andExpect(jsonPath("$.bookingId").value(1));
-    // }
+        // Perform the POST request to create a booking
+        mockMvc.perform(post("/bookings")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"userId\":1,\"hotelId\":1,\"roomId\":101,\"checkInDate\":\"2025-02-23\",\"checkOutDate\":\"2025-02-25\",\"totalAmount\":100.0}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.message").value("Booking created successfully"))
+                .andExpect(jsonPath("$.data.bookingId").value(1));
+    }
 
     @Test
     void testCreateBooking_RoomUnavailable() throws Exception {
@@ -157,7 +157,7 @@ class BookingControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"userId\":1,\"hotelId\":1,\"roomId\":101,\"checkInDate\":\"2025-02-25\",\"checkOutDate\":\"2025-02-27\",\"totalAmount\":100.0}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Room is not available for the selected dates"));
+                .andExpect(jsonPath("$.message").value("Room is not available for the selected dates"));
 
         // Verifying that createBooking was not called due to room unavailability
         verify(bookingService, times(0)).createBooking(any(Booking.class));
@@ -184,46 +184,46 @@ class BookingControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"userId\":1,\"hotelId\":1,\"roomId\":101,\"checkInDate\":\"2025-02-25\",\"checkOutDate\":\"2025-02-24\",\"totalAmount\":100.0}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Check-out date must be after check-in date"));
+                .andExpect(jsonPath("$.message").value("Check-out date must be after check-in date"));
     }
 
-    // @Test
-    // void testCreateBooking_BookingRoomFailure() throws Exception {
-    //     Long userId = 1L;
-    //     Long hotelId = 1L;
-    //     Long roomId = 101L;
-    //     LocalDate checkInDate = LocalDate.now().plusDays(10);
-    //     LocalDate checkOutDate = checkInDate.plusDays(1);
+    @Test
+    void testCreateBooking_BookingRoomFailure() throws Exception {
+        Long userId = 1L;
+        Long hotelId = 1L;
+        Long roomId = 101L;
+        LocalDate checkInDate = LocalDate.now().plusDays(10);
+        LocalDate checkOutDate = checkInDate.plusDays(1);
 
-    //     User mockUser = new User();
-    //     mockUser.setId(userId);
-    //     when(userService.getUserById(userId)).thenReturn(mockUser);
+        User mockUser = new User();
+        mockUser.setId(userId);
+        when(userService.getUserById(userId)).thenReturn(mockUser);
 
-    //     lenient().when(roomService.isRoomAvailable(hotelId, roomId, checkInDate, checkOutDate)).thenReturn(true);  // Simulate room availability
-    //     lenient().when(roomService.bookRoom(hotelId, roomId, checkInDate, checkOutDate)).thenThrow(new RuntimeException("Room booking failed. The room might not be available."));
+        lenient().when(roomService.isRoomAvailable(hotelId, roomId, checkInDate, checkOutDate)).thenReturn(true);  // Simulate room availability
+        lenient().when(roomService.bookRoom(hotelId, roomId, checkInDate, checkOutDate)).thenThrow(new RuntimeException("Room booking failed. The room might not be available."));
 
-    //     mockMvc.perform(post("/bookings")
-    //             .contentType(MediaType.APPLICATION_JSON)
-    //             .content("{\"userId\":1,\"hotelId\":1,\"roomId\":101,\"checkInDate\":\"2025-02-25\",\"checkOutDate\":\"2025-02-26\",\"totalAmount\":100.0}"))
-    //             .andExpect(status().isBadRequest())
-    //             .andExpect(jsonPath("$.error").value("Room booking failed. The room might not be available."));  // Expect the error message    }
+        mockMvc.perform(post("/bookings")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"userId\":1,\"hotelId\":1,\"roomId\":101,\"checkInDate\":\"2025-02-25\",\"checkOutDate\":\"2025-02-26\",\"totalAmount\":100.0}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Room is not available for the selected dates"));  // Expect the error message    }
 
-    // }
+    }
 
-    // @Test
-    // void testGetBookingById_BookingFound() throws Exception {
+    @Test
+    void testGetBookingById_BookingFound() throws Exception {
         
-    //     Long bookingId = 1L;
-    //     Booking mockBooking = new Booking();
-    //     mockBooking.setId(bookingId);
-    //     mockBooking.setStatus(BookingStatus.PENDING);
-    //     when(bookingService.getBookingById(bookingId)).thenReturn(mockBooking);
+        Long bookingId = 1L;
+        Booking mockBooking = new Booking();
+        mockBooking.setId(bookingId);
+        mockBooking.setStatus(BookingStatus.PENDING);
+        when(bookingService.getBookingById(bookingId)).thenReturn(mockBooking);
 
-    //     mockMvc.perform(get("/bookings/{id}", bookingId))
-    //             .andExpect(status().isOk())
-    //             .andExpect(jsonPath("$.bookingId").value(bookingId))
-    //             .andExpect(jsonPath("$.status").value(BookingStatus.PENDING.toString()));
-    // }
+        mockMvc.perform(get("/bookings/{id}", bookingId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.bookingId").value(bookingId))
+                .andExpect(jsonPath("$.data.status").value(BookingStatus.PENDING.toString()));
+    }
 
     @Test
     void testGetBookingById_BookingNotFound() throws Exception {
@@ -234,7 +234,8 @@ class BookingControllerTest {
         // Act & Assert
         mockMvc.perform(get("/bookings/{id}", bookingId))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(""));
+                .andExpect(jsonPath("$.message").value("Booking not found"));
+
     }
 
     @Test
@@ -250,8 +251,8 @@ class BookingControllerTest {
         mockMvc.perform(delete("/bookings/{id}", bookingId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Booking cancelled successfully"))
-                .andExpect(jsonPath("$.bookingId").value(bookingId))
-                .andExpect(jsonPath("$.status").value(BookingStatus.CANCELLED.toString()));
+                .andExpect(jsonPath("$.data.bookingId").value(bookingId))
+                .andExpect(jsonPath("$.data.status").value(BookingStatus.CANCELLED.toString()));
     }
 
     @Test
@@ -282,8 +283,8 @@ class BookingControllerTest {
 
         mockMvc.perform(get("/bookings/hotel/{hotelId}", hotelId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0]").exists());
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0]").exists());
     }
 
     @Test
@@ -295,7 +296,7 @@ class BookingControllerTest {
         // Act & Assert
         mockMvc.perform(get("/bookings/hotel/{hotelId}", hotelId))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$").isEmpty());
+                .andExpect(jsonPath("$.data").isEmpty());
     }
 
     @Test
@@ -315,8 +316,8 @@ class BookingControllerTest {
 
         mockMvc.perform(get("/bookings/user/{userId}", userId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0]").exists());
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0]").exists());
     }
 
     @Test
@@ -326,7 +327,7 @@ class BookingControllerTest {
 
         mockMvc.perform(get("/bookings/user/{userId}", userId))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$").isEmpty());
+                .andExpect(jsonPath("$.data").isEmpty());
     }
 
 }
