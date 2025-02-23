@@ -1,4 +1,4 @@
-package com.example.staymate.dto;
+package com.example.staymate.dto.booking;
 
 import java.time.LocalDate;
 

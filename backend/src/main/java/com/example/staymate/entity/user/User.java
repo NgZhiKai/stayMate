@@ -1,12 +1,9 @@
 package com.example.staymate.entity.user;
 
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 import org.mindrot.jbcrypt.BCrypt;  // Import BCrypt class
 
 import com.example.staymate.entity.enums.UserRole;
-import com.example.staymate.entity.booking.Booking;
 
 @Entity
 @Table(name = "users") // Avoids SQL conflicts with reserved keywords
@@ -31,9 +28,6 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private UserRole role;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Booking> bookings = new ArrayList<>();
 
     // Default constructor
     public User() {}
@@ -80,6 +74,4 @@ public class User {
     public UserRole getRole() { return role; }
     public void setRole(UserRole role) { this.role = role; }
 
-    public List<Booking> getBookings() { return bookings; }
-    public void setBookings(List<Booking> bookings) { this.bookings = bookings; }
 }

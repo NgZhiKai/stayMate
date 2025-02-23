@@ -1,7 +1,7 @@
 package com.example.staymate.controller;
 
-import com.example.staymate.dto.HotelRequestDTO;
-import com.example.staymate.dto.RoomRequestDTO;
+import com.example.staymate.dto.hotel.HotelRequestDTO;
+import com.example.staymate.dto.room.RoomRequestDTO;
 import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.entity.room.Room;
 import com.example.staymate.service.HotelService;

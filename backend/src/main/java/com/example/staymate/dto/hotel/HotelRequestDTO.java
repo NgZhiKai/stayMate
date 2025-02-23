@@ -1,6 +1,8 @@
-package com.example.staymate.dto;
+package com.example.staymate.dto.hotel;
 
 import java.util.List;
+
+import com.example.staymate.dto.room.RoomRequestDTO;
 
 public class HotelRequestDTO {
     private String name;

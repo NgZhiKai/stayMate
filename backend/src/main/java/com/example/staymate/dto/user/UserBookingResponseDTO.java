@@ -1,4 +1,4 @@
-package com.example.staymate.dto;
+package com.example.staymate.dto.user;
 
 import java.time.LocalDate;
 

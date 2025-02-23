@@ -1,4 +1,4 @@
-package com.example.staymate.dto;
+package com.example.staymate.dto.room;
 
 import com.example.staymate.entity.enums.RoomType;
 

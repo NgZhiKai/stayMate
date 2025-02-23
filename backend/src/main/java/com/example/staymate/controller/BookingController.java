@@ -1,8 +1,8 @@
 package com.example.staymate.controller;
 
-import com.example.staymate.dto.BookingRequestDTO;
-import com.example.staymate.dto.BookingResponseDTO;
-import com.example.staymate.dto.UserBookingResponseDTO;
+import com.example.staymate.dto.booking.BookingRequestDTO;
+import com.example.staymate.dto.booking.BookingResponseDTO;
+import com.example.staymate.dto.user.UserBookingResponseDTO;
 import com.example.staymate.entity.booking.Booking;
 import com.example.staymate.entity.enums.BookingStatus;
 import com.example.staymate.service.BookingService;
