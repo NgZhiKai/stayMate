@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS Notification (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT,
     message VARCHAR(255) NOT NULL, 
-    type ENUM('BOOKING_CONFIRMATION', 'PAYMENT_SUCCESS') NOT NULL,  -- Notification type (using ENUM)
+    type ENUM('BOOKING', 'PAYMENT', 'PROMOTION') NOT NULL,  -- Notification type (using ENUM)
     is_read BOOLEAN NOT NULL, 
     created_at DATETIME NOT NULL,
     FOREIGN KEY (user_id) REFERENCES Users(id)

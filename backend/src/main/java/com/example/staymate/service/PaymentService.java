@@ -1,7 +1,12 @@
 package com.example.staymate.service;
 
 import com.example.staymate.entity.payment.Payment;
+import com.example.staymate.observer.Subject;
 import com.example.staymate.entity.booking.Booking;
+import com.example.staymate.entity.notification.Notification;
+import com.example.staymate.observer.NotificationObserver;
+import com.example.staymate.observer.Observer;
+import com.example.staymate.entity.enums.NotificationType;
 import com.example.staymate.entity.enums.PaymentMethod;
 import com.example.staymate.entity.enums.PaymentStatus;
 import com.example.staymate.strategy.payment.PaymentContext;
@@ -16,16 +21,40 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
-public class PaymentService {
+public class PaymentService implements Subject {
+
+    private final List<Observer> observers = new ArrayList<>();
 
     @Autowired
     private PaymentRepository paymentRepository;
 
     @Autowired
     private BookingRepository bookingRepository;
+
+    // Add observers
+    @Override
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(Notification notification) {
+        for (Observer observer : observers) {
+            observer.update(notification);
+        }
+    }
+
+    @Autowired
+    public void setNotificationObserver(NotificationObserver notificationObserver) {
+        addObserver(notificationObserver);
+    }
 
     // Create a new payment and save it to the database with PENDING status
     public Payment createPayment(Long bookingId, PaymentMethod paymentMethod, double amount) {
@@ -85,6 +114,17 @@ public class PaymentService {
         } else {
             payment.setStatus(PaymentStatus.FAILED);
         }
+
+        // Create a notification
+        Notification notification = new Notification();
+        notification.setUser(payment.getBooking().getUser());
+        notification.setMessage("Your payment of $" + payment.getAmount() + " was successful.");
+        notification.setType(NotificationType.PAYMENT);
+        notification.setRead(false);
+        notification.setCreatedAt(LocalDateTime.now());
+
+        // Notify observers
+        notifyObservers(notification);
 
         // Save the updated payment status back to the database
         paymentRepository.save(payment);

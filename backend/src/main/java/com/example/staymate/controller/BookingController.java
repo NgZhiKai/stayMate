@@ -80,7 +80,7 @@ public class BookingController {
         booking.setBookingDate(LocalDate.now());
 
         // Step 7: Set Booking Status directly to CONFIRMED (to avoid double saves)
-        booking.setStatus(BookingStatus.CONFIRMED);
+        booking.setStatus(BookingStatus.PENDING);
 
         // Step 8: Save the booking
         Booking savedBooking = bookingService.createBooking(booking);
