@@ -60,10 +60,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Dependencies
-        if: steps.cache-nodemodules.outputs.cache-hit != 'true'
-        run: npm install --force
-
       - name: Installing JSHint
         run: |
           sudo npm install -g jshint
