@@ -78,32 +78,32 @@ jobs:
           path: |
             ./JSHint-report
 
-  # sast_scan:
-  #   name: SAST Scan (OWASP Dependency Check)
-  #   runs-on: ubuntu-latest
-  #   needs: build_and_test  # Ensures this runs after build_and_test
+  sast_scan:
+    name: SAST Scan (OWASP Dependency Check)
+    runs-on: ubuntu-latest
+    needs: build_and_test # Ensures this runs after build_and_test
 
-  #   steps:
-  #     # Checkout the repository
-  #     - uses: actions/checkout@v4
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v4
 
-  #     # Install OWASP Dependency Check
-  #     - name: OWASP Dependency Check
-  #       run: |
-  #         wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.2.0/dependency-check-7.2.0-release.zip
-  #         unzip dependency-check-7.2.0-release.zip
+      # Install OWASP Dependency Check
+      - name: OWASP Dependency Check
+        run: |
+          wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.2.0/dependency-check-7.2.0-release.zip
+          unzip dependency-check-7.2.0-release.zip
 
-  #     # Run OWASP Dependency Check scan on backend
-  #     - name: Run scan with ODC
-  #       run: |
-  #         dependency-check/bin/dependency-check.sh --project "Staymate" --scan ./backend > ODC-report
+      # Run OWASP Dependency Check scan on backend
+      - name: Run scan with ODC
+        run: |
+          dependency-check/bin/dependency-check.sh --project "Staymate" --scan ./backend > ODC-report
 
-  #     # Archive SAST report
-  #     - name: Archive SAST Report
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: sast-report
-  #         path: ./ODC-report
+      # Archive SAST report
+      - name: Archive SAST Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: sast-report
+          path: ./ODC-report
 
   dast_scan:
     name: DAST Scan (ZAP)

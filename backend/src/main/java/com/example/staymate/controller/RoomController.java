@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.staymate.dto.custom.CustomResponse;
 import com.example.staymate.entity.enums.RoomType;
 import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.entity.room.Room;
@@ -26,37 +27,35 @@ public class RoomController {
     }
 
     @PostMapping("/{hotelId}/{roomId}")
-    public ResponseEntity<Map<String, Object>> createRoom(@PathVariable Long hotelId, @PathVariable Long roomId,
-                                                          @RequestParam RoomType roomType,
-                                                          @RequestParam double pricePerNight,
-                                                          @RequestParam int maxOccupancy) {
-        // Fetch hotel from the database to make sure it exists
-        Hotel hotel = roomService.getHotelById(hotelId);  // Assuming a method in RoomService that fetches a hotel by ID
-        if (hotel == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "Hotel not found with ID: " + hotelId));
-        }
-    
-        // Create room using the service
-        Room newRoom = roomService.createRoom(hotel, roomId, roomType, pricePerNight, maxOccupancy);
-    
-        // Handle failure in room creation
-        if (newRoom == null) {
+    public ResponseEntity<CustomResponse<Map<String, Object>>> createRoom(@PathVariable Long hotelId,
+            @PathVariable Long roomId,
+            @RequestParam RoomType roomType,
+            @RequestParam double pricePerNight,
+            @RequestParam int maxOccupancy) {
+        try {
+            Hotel hotel = roomService.getHotelById(hotelId);
+            if (hotel == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new CustomResponse<>("Hotel not found with ID: " + hotelId, null));
+            }
+
+            Room newRoom = roomService.createRoom(hotel, roomId, roomType, pricePerNight, maxOccupancy);
+            if (newRoom == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new CustomResponse<>("Failed to create room. Please try again later.", null));
+            }
+
+            Map<String, Object> roomData = Map.of(
+                    "hotelId", newRoom.getId().getHotelId(),
+                    "roomId", newRoom.getId().getRoomId(),
+                    "pricePerNight", newRoom.getPricePerNight(),
+                    "maxOccupancy", newRoom.getMaxOccupancy());
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new CustomResponse<>("Room created successfully", roomData));
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Failed to create room. Please try again later."));
+                    .body(new CustomResponse<>("An error occurred: " + e.getMessage(), null));
         }
-    
-        // Build the response map directly with details of the new room
-        Map<String, Object> response = Map.of(
-                "message", "Room created successfully",
-                "hotelId", newRoom.getId().getHotelId(),
-                "roomId", newRoom.getId().getRoomId(),
-                "pricePerNight", newRoom.getPricePerNight(),
-                "maxOccupancy", newRoom.getMaxOccupancy()
-        );
-    
-        // Return successful response
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    
 }

@@ -26,7 +26,7 @@ import com.example.staymate.entity.notification.Notification;
 import com.example.staymate.observer.NotificationObserver;
 import com.example.staymate.repository.BookingRepository;
 
-@ExtendWith(MockitoExtension.class)  // Enable Mockito extension in JUnit 5
+@ExtendWith(MockitoExtension.class)
 class BookingServiceTest {
 
     @Mock
