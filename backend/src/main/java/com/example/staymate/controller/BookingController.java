@@ -59,7 +59,7 @@ public class BookingController {
                     .body(new CustomResponse<>("Check-out date must be after check-in date", null));
         }
 
-        // Step 3: Check if the room is available
+        // Check if the room is available
         if (!roomService.isRoomAvailable(bookingRequestDTO.getHotelId(), bookingRequestDTO.getRoomId(),
                 bookingRequestDTO.getCheckInDate(), bookingRequestDTO.getCheckOutDate())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
