@@ -66,7 +66,7 @@ public class BookingController {
                     .body(new CustomResponse<>("Room is not available for the selected dates", null));
         }
 
-        // Step 4: Book the room
+        // Book the room
         Room room;
         try {
             room = roomService.bookRoom(bookingRequestDTO.getHotelId(), bookingRequestDTO.getRoomId(),
