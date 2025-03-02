@@ -84,7 +84,7 @@ public class BookingController {
         booking.setCheckOutDate(bookingRequestDTO.getCheckOutDate());
         booking.setTotalAmount(bookingRequestDTO.getTotalAmount());
 
-        // Step 6: Set Booking Date (if not provided)
+        // Set Booking Date (if not provided)
         booking.setBookingDate(LocalDate.now());
 
         // Step 7: Set Booking Status directly to CONFIRMED (to avoid double saves)
