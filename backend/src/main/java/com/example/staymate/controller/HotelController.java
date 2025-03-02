@@ -92,21 +92,29 @@ public class HotelController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CustomResponse<Map<String, Object>>> updateHotel(@PathVariable Long id,
+    public ResponseEntity<CustomResponse<Map<String, Object>>> updateHotel(
+            @PathVariable Long id,
             @RequestBody Hotel hotel) {
         try {
-            Hotel existingHotel = hotelService.getHotelById(id); // Ensure the hotel exists
-            hotel.setId(id); // Set the ID to the provided one for update
+            // Ensure the hotel exists
+            Hotel existingHotel = hotelService.getHotelById(id);
+            if (existingHotel == null) {
+                throw new RuntimeException("Hotel not found with id: " + id);
+            }
 
+            // Set the ID to ensure the correct hotel is updated
+            hotel.setId(id);
             Hotel updatedHotel = hotelService.saveHotel(hotel);
 
+            // Build response
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Hotel updated successfully");
             response.put("hotelId", updatedHotel.getId());
-            return ResponseEntity.ok(new CustomResponse<>("Hotel updated successfully", response)); // 200 OK
+
+            return ResponseEntity.ok(new CustomResponse<>("Hotel updated successfully", response));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new CustomResponse<>(e.getMessage(), null)); // 404 Not Found
+                    .body(new CustomResponse<>(e.getMessage(), null));
         }
     }
 

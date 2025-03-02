@@ -101,7 +101,7 @@ class ReviewControllerTest {
         review.setId(reviewId);
         when(reviewService.getReviewById(reviewId)).thenReturn(review);
 
-        // Ac
+        // Act
         ResponseEntity<CustomResponse<Review>> response = reviewController.getReviewById(reviewId);
 
         // Assert
