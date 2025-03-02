@@ -101,7 +101,7 @@ class ReviewControllerTest {
         review.setId(reviewId);
         when(reviewService.getReviewById(reviewId)).thenReturn(review);
 
-        // Act
+        // Ac
         ResponseEntity<CustomResponse<Review>> response = reviewController.getReviewById(reviewId);
 
         // Assert
@@ -227,9 +227,11 @@ class ReviewControllerTest {
     @Test
     void testDeleteReview_NotFound() throws Exception {
         // Arrange: Set up the mock to return null when looking for review with ID 999
-        when(reviewService.getReviewById(1L)).thenThrow(new ResourceNotFoundException("Review not found for this id: 1"));
+        when(reviewService.getReviewById(1L))
+                .thenThrow(new ResourceNotFoundException("Review not found for this id: 1"));
 
-        // Act & Assert: Perform the delete request and assert the response status and body
+        // Act & Assert: Perform the delete request and assert the response status and
+        // body
         mockMvc.perform(delete("/reviews/1"))
                 .andExpect(status().isNotFound()) // Expecting 404 status code
                 .andExpect(jsonPath("$.message").value("Review not found for this id: 1"));
