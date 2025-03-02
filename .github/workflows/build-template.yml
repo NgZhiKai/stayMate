@@ -48,6 +48,44 @@ jobs:
             -Ddb.username=root \
             -Ddb.password=root
 
+  lint:
+    name: Linting with JSHint
+    runs-on: ubuntu-latest
+    needs: build_and_test # Ensures linting runs after build_and_test
+
+    steps:
+      # Checkout the repository again for linting
+      - uses: actions/checkout@v4
+
+      # Set up Node.js for linting
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+
+      # Install Node.js dependencies
+      - name: Install Dependencies
+        run: npm ci --force
+
+      # Install JSHint globally
+      - name: Install JSHint
+        run: sudo npm install -g jshint
+
+      # Ensure lint script has correct permissions
+      - name: Change script permission
+        run: chmod +x scripts/jshint-script.sh
+
+      # Run JSHint linting
+      - name: Run JSHint Scan
+        run: scripts/jshint-script.sh
+
+      # Archive linting reports
+      - name: Archive Linting Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: linting-tool-report
+          path: ./JSHint-report
+
   # sast_scan:
   #   name: SAST Scan (OWASP Dependency Check)
   #   runs-on: ubuntu-latest

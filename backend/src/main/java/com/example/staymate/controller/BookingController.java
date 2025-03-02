@@ -47,9 +47,10 @@ public class BookingController {
 
     // Create a new booking
     @PostMapping
-    public ResponseEntity<CustomResponse<Map<String, Object>>> createBooking(@Valid @RequestBody BookingRequestDTO bookingRequestDTO) {
+    public ResponseEntity<CustomResponse<Map<String, Object>>> createBooking(
+            @Valid @RequestBody BookingRequestDTO bookingRequestDTO) {
 
-        // Step 1: Check if the user exists (throws ResourceNotFoundException if not found)
+        // Check if the user exists (throws ResourceNotFoundException if not found)
         User user = userService.getUserById(bookingRequestDTO.getUserId());
 
         // Step 2: Validate check-in and check-out dates
@@ -69,7 +70,7 @@ public class BookingController {
         Room room;
         try {
             room = roomService.bookRoom(bookingRequestDTO.getHotelId(), bookingRequestDTO.getRoomId(),
-                                        bookingRequestDTO.getCheckInDate(), bookingRequestDTO.getCheckOutDate());
+                    bookingRequestDTO.getCheckInDate(), bookingRequestDTO.getCheckOutDate());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new CustomResponse<>("Room booking failed. The room might not be available.", null));
@@ -97,7 +98,8 @@ public class BookingController {
         response.put("message", "Booking created successfully");
         response.put("bookingId", savedBooking.getId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new CustomResponse<>("Booking created successfully", response));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new CustomResponse<>("Booking created successfully", response));
     }
 
     // Get a booking by ID
