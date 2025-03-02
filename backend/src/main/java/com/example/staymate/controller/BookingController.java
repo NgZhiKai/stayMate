@@ -90,7 +90,7 @@ public class BookingController {
         // Set Booking Status directly to CONFIRMED (to avoid double saves)
         booking.setStatus(BookingStatus.PENDING);
 
-        // Step 8: Save the booking
+        // Save the booking
         Booking savedBooking = bookingService.createBooking(booking);
 
         // Step 9: Return Success Response
