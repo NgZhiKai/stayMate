@@ -53,7 +53,7 @@ public class BookingController {
         // Check if the user exists (throws ResourceNotFoundException if not found)
         User user = userService.getUserById(bookingRequestDTO.getUserId());
 
-        // Step 2: Validate check-in and check-out dates
+        // Validate check-in and check-out dates
         if (bookingRequestDTO.getCheckOutDate().isBefore(bookingRequestDTO.getCheckInDate())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new CustomResponse<>("Check-out date must be after check-in date", null));
