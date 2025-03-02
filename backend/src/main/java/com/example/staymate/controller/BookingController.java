@@ -76,7 +76,7 @@ public class BookingController {
                     .body(new CustomResponse<>("Room booking failed. The room might not be available.", null));
         }
 
-        // Step 5: Create Booking object
+        // Create Booking object
         Booking booking = new Booking();
         booking.setUser(user);
         booking.setRoom(room);
