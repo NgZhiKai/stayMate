@@ -105,26 +105,30 @@ jobs:
   #         name: sast-report
   #         path: ./ODC-report
 
-  # dast_scan:
-  #   name: DAST Scan (ZAP)
-  #   runs-on: ubuntu-latest
-  #   needs: build_and_test  # Ensures this runs after build_and_test
+  dast_scan:
+    name: DAST Scan (ZAP)
+    runs-on: ubuntu-latest
+    needs: build_and_test # Ensures this runs after build_and_test
 
-  #   steps:
-  #     # Checkout the repository
-  #     - uses: actions/checkout@v4
+    strategy:
+      matrix:
+        node-version: [16.x]
 
-  #     # Change permission for ZAP script
-  #     - name: Change script permission
-  #       run: chmod +x scripts/zap-script.sh
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v4
 
-  #     # Run ZAP scan
-  #     - name: Run ZAP Scan
-  #       run: scripts/zap-script.sh
+      # Change permission for ZAP script
+      - name: Change script permission
+        run: chmod +x scripts/zap-script.sh
 
-  #     # Archive DAST report
-  #     - name: Archive DAST Report
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: zap-report
-  #         path: ./zap_baseline_report.html
+      # Run ZAP scan
+      - name: Run ZAP Scan
+        run: scripts/zap-script.sh
+
+      # Archive DAST report
+      - name: Archive DAST Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: ./zap_baseline_report.html

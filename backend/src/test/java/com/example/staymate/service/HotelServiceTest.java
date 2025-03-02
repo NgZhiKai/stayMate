@@ -56,13 +56,15 @@ class HotelServiceTest {
 
     @Test
     void testGetHotelById_Success() {
+        // Arrange: Mock the repository method to return the hotel directly
         when(hotelRepository.findById(hotel.getId())).thenReturn(Optional.of(hotel));
-        Optional<Hotel> foundHotel = hotelService.getHotelById(hotel.getId());
-        assertTrue(foundHotel.isPresent());
-        assertEquals("Sample Hotel", foundHotel.get().getName());
+        
+        Hotel foundHotel = hotelService.getHotelById(hotel.getId());
+        assertNotNull(foundHotel);
+        assertEquals("Sample Hotel", foundHotel.getName());
         verify(hotelRepository, times(1)).findById(hotel.getId());
     }
-
+    
     @Test
     void testSaveHotel_Create() {
         when(hotelRepository.save(hotel)).thenReturn(hotel);

@@ -4,20 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.staymate.dto.custom.CustomResponse;
 import com.example.staymate.dto.hotel.HotelRequestDTO;
@@ -38,10 +29,11 @@ public class HotelController {
     private RoomService roomService;
 
     @PostMapping
-    public ResponseEntity<CustomResponse<Map<String, Object>>> createHotel(@RequestBody HotelRequestDTO hotelRequestDTO) {
+    public ResponseEntity<CustomResponse<Map<String, Object>>> createHotel(
+            @RequestBody HotelRequestDTO hotelRequestDTO) {
         if (hotelRequestDTO.getName() == null || hotelRequestDTO.getName().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new CustomResponse<>("Hotel name is required", null));  // 400 Bad Request
+                    .body(new CustomResponse<>("Hotel name is required", null)); // 400 Bad Request
         }
 
         Hotel hotel = new Hotel();
@@ -58,7 +50,7 @@ public class HotelController {
         for (RoomRequestDTO roomRequest : hotelRequestDTO.getRooms()) {
             if (roomRequest.getQuantity() <= 0) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new CustomResponse<>("Room quantity must be greater than zero", null));  // 400 Bad Request
+                        .body(new CustomResponse<>("Room quantity must be greater than zero", null)); // 400 Bad Request
             }
             for (int i = 0; i < roomRequest.getQuantity(); i++) {
                 Room room = roomService.createRoom(savedHotel, roomId++, roomRequest.getRoomType(),
@@ -74,7 +66,8 @@ public class HotelController {
         response.put("message", "Hotel created successfully");
         response.put("hotelId", savedHotel.getId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new CustomResponse<>("Hotel created successfully", response));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new CustomResponse<>("Hotel created successfully", response));
     }
 
     @GetMapping
@@ -82,82 +75,76 @@ public class HotelController {
         List<Hotel> hotels = hotelService.getAllHotels();
         if (hotels.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new CustomResponse<>("No hotels found", null));  // 404 Not Found
+                    .body(new CustomResponse<>("No hotels found", null)); // 404 Not Found
         }
-        return ResponseEntity.ok(new CustomResponse<>("Hotels retrieved successfully", hotels));  // 200 OK
+        return ResponseEntity.ok(new CustomResponse<>("Hotels retrieved successfully", hotels)); // 200 OK
     }
-    
+
     @GetMapping("/{id}")
     public ResponseEntity<CustomResponse<Hotel>> getHotelById(@PathVariable Long id) {
-        Optional<Hotel> hotel = hotelService.getHotelById(id);
-        if (hotel.isPresent()) {
-            return ResponseEntity.ok(new CustomResponse<>("Hotel retrieved successfully", hotel.get()));  // 200 OK
-        } else {
+        try {
+            Hotel hotel = hotelService.getHotelById(id); // Directly getting the hotel, no Optional
+            return ResponseEntity.ok(new CustomResponse<>("Hotel retrieved successfully", hotel)); // 200 OK
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new CustomResponse<>("Hotel not found with ID: " + id, null));  // 404 Not Found
+                    .body(new CustomResponse<>(e.getMessage(), null)); // 404 Not Found
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CustomResponse<Map<String, Object>>> updateHotel(@PathVariable Long id, @RequestBody Hotel hotel) {
-        Optional<Hotel> existingHotel = hotelService.getHotelById(id);
-        
-        if (existingHotel.isEmpty()) {
+    public ResponseEntity<CustomResponse<Map<String, Object>>> updateHotel(@PathVariable Long id,
+            @RequestBody Hotel hotel) {
+        try {
+            Hotel existingHotel = hotelService.getHotelById(id); // Ensure the hotel exists
+            hotel.setId(id); // Set the ID to the provided one for update
+
+            Hotel updatedHotel = hotelService.saveHotel(hotel);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Hotel updated successfully");
+            response.put("hotelId", updatedHotel.getId());
+            return ResponseEntity.ok(new CustomResponse<>("Hotel updated successfully", response)); // 200 OK
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new CustomResponse<>("Hotel not found with ID: " + id, null));  // 404 Not Found
+                    .body(new CustomResponse<>(e.getMessage(), null)); // 404 Not Found
         }
-
-        hotel.setId(id);  // Ensure the hotel ID is set before updating
-        
-        Hotel updatedHotel = hotelService.saveHotel(hotel);
-        
-        if (updatedHotel == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new CustomResponse<>("Hotel ID: " + id + " not updated", null));  // 400 Bad Request
-        }
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Hotel updated successfully");
-        response.put("hotelId", updatedHotel.getId());
-        return ResponseEntity.ok(new CustomResponse<>("Hotel updated successfully", response));  // 200 OK
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<CustomResponse<Map<String, Object>>> deleteHotel(@PathVariable Long id) {
-        Optional<Hotel> hotel = hotelService.getHotelById(id);
-        
-        if (hotel.isEmpty()) {
+        try {
+            hotelService.getHotelById(id); // Ensure hotel exists
+
+            hotelService.deleteHotel(id);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Hotel deleted successfully");
+            response.put("hotelId", id);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new CustomResponse<>("Hotel deleted successfully", response)); // 200 OK
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new CustomResponse<>("Hotel not found with ID: " + id, null));  // 404 Not Found
+                    .body(new CustomResponse<>(e.getMessage(), null)); // 404 Not Found
         }
-        
-        hotelService.deleteHotel(id);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Hotel deleted successfully");
-        response.put("hotelId", id);
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new CustomResponse<>("Hotel deleted successfully", response));  // 200 OK
-    }      
+    }
 
     @GetMapping("/search")
     public ResponseEntity<CustomResponse<Map<String, Object>>> searchHotelsByName(@RequestParam String name) {
         if (name == null || name.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new CustomResponse<>("Search query cannot be empty", null));  // 400 Bad Request
+                    .body(new CustomResponse<>("Search query cannot be empty", null)); // 400 Bad Request
         }
 
         List<Hotel> hotels = hotelService.findHotelsByName(name);
-        
+
         if (hotels.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new CustomResponse<>("No hotels found matching the name: " + name, null));  // 404 Not Found
+                    .body(new CustomResponse<>("No hotels found matching the name: " + name, null)); // 404 Not Found
         }
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Hotels found matching the name: " + name);
         response.put("hotels", hotels);
-        return ResponseEntity.ok(new CustomResponse<>("Hotels found successfully", response));  // 200 OK
+        return ResponseEntity.ok(new CustomResponse<>("Hotels found successfully", response)); // 200 OK
     }
-
 }

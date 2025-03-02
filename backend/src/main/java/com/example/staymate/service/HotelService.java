@@ -2,13 +2,13 @@ package com.example.staymate.service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.entity.room.Room;
+import com.example.staymate.exception.ResourceNotFoundException;
 import com.example.staymate.repository.HotelRepository;
 
 @Service
@@ -23,8 +23,9 @@ public class HotelService {
     }
 
     // Retrieve a hotel by ID
-    public Optional<Hotel> getHotelById(Long id) {
-        return hotelRepository.findById(id);
+    public Hotel getHotelById(Long id) {
+        return hotelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with ID " + id));
     }
 
     // Create or update a hotel
@@ -49,7 +50,7 @@ public class HotelService {
     // Get the list of rooms for a specific hotel
     public List<Room> getRoomsByHotel(Long hotelId) {
         return hotelRepository.findById(hotelId)
-                             .map(Hotel::getRooms)
-                             .orElse(Collections.emptyList());  // If hotel exists, return rooms
+                .map(Hotel::getRooms)
+                .orElse(Collections.emptyList()); // If hotel exists, return rooms
     }
 }

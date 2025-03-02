@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +25,7 @@ import com.example.staymate.dto.hotel.HotelRequestDTO;
 import com.example.staymate.dto.room.RoomRequestDTO;
 import com.example.staymate.entity.enums.RoomType;
 import com.example.staymate.entity.hotel.Hotel;
+import com.example.staymate.exception.ResourceNotFoundException;
 import com.example.staymate.service.HotelService;
 import com.example.staymate.service.RoomService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,10 +60,9 @@ class HotelControllerTest {
         requestDTO.setLatitude(25.7617);
         requestDTO.setLongitude(-80.1918);
         requestDTO.setRooms(List.of(
-            new RoomRequestDTO(RoomType.SINGLE, 30.0, 2, 10),
-            new RoomRequestDTO(RoomType.DOUBLE, 50.0, 4, 10),
-            new RoomRequestDTO(RoomType.SUITE, 100.0, 8, 20)
-        ));
+                new RoomRequestDTO(RoomType.SINGLE, 30.0, 2, 10),
+                new RoomRequestDTO(RoomType.DOUBLE, 50.0, 4, 10),
+                new RoomRequestDTO(RoomType.SUITE, 100.0, 8, 20)));
 
         // Mock Hotel creation
         Hotel mockHotel = new Hotel();
@@ -75,7 +74,7 @@ class HotelControllerTest {
         mockMvc.perform(post("/hotels")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDTO)))
-                
+
                 // Then: Expect HTTP 201 Created
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.message").value("Hotel created successfully"))
@@ -86,13 +85,13 @@ class HotelControllerTest {
     void testGetAllHotels_WhenHotelsFound() throws Exception {
         // Given: A list of hotels
         List<Hotel> hotels = new ArrayList<>();
-        Hotel hotelA = new Hotel();  
-        hotelA.setId(1L);            
-        hotelA.setName("Hotel A");   
+        Hotel hotelA = new Hotel();
+        hotelA.setId(1L);
+        hotelA.setName("Hotel A");
 
-        Hotel hotelB = new Hotel();  
-        hotelB.setId(2L);            
-        hotelB.setName("Hotel B");   
+        Hotel hotelB = new Hotel();
+        hotelB.setId(2L);
+        hotelB.setName("Hotel B");
 
         hotels.add(hotelA);
         hotels.add(hotelB);
@@ -124,11 +123,11 @@ class HotelControllerTest {
         Long hotelId = 1L;
         String hotelName = "Mock Hotel";
 
-        Hotel mockHotel = new Hotel();  
-        mockHotel.setId(hotelId);            
+        Hotel mockHotel = new Hotel();
+        mockHotel.setId(hotelId);
         mockHotel.setName(hotelName);
 
-        when(hotelService.getHotelById(hotelId)).thenReturn(Optional.of(mockHotel));
+        when(hotelService.getHotelById(hotelId)).thenReturn(mockHotel);
 
         // When & Then: Expect HTTP 200 OK with the hotel data
         mockMvc.perform(get("/hotels/{id}", hotelId))
@@ -140,7 +139,7 @@ class HotelControllerTest {
     void testGetHotelById_WhenHotelNotFound() throws Exception {
         // Given: A hotel ID that does not exist
         Long hotelId = 1L;
-        when(hotelService.getHotelById(hotelId)).thenReturn(Optional.empty());
+        when(hotelService.getHotelById(hotelId)).thenThrow(new ResourceNotFoundException("Hotel not found with ID: " + hotelId));
 
         // When & Then: Expect HTTP 404 Not Found with error message
         mockMvc.perform(get("/hotels/{id}", hotelId))
@@ -155,15 +154,15 @@ class HotelControllerTest {
         String hotelName = "Mock Hotel";
         String hotelNameUpdated = "Updated Hotel";
 
-        Hotel mockHotel = new Hotel();  
-        mockHotel.setId(hotelId);            
+        Hotel mockHotel = new Hotel();
+        mockHotel.setId(hotelId);
         mockHotel.setName(hotelName);
 
-        Hotel updatedHotel = new Hotel();  
-        updatedHotel.setId(hotelId);            
+        Hotel updatedHotel = new Hotel();
+        updatedHotel.setId(hotelId);
         updatedHotel.setName(hotelNameUpdated);
 
-        when(hotelService.getHotelById(hotelId)).thenReturn(Optional.of(mockHotel));
+        when(hotelService.getHotelById(hotelId)).thenReturn(mockHotel);
         when(hotelService.saveHotel(any(Hotel.class))).thenReturn(updatedHotel);
 
         // When & Then: Expect HTTP 200 OK with the update confirmation
