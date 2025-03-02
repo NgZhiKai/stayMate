@@ -1,25 +1,30 @@
 package com.example.staymate.service;
 
-import com.example.staymate.entity.booking.Booking;
-import com.example.staymate.entity.enums.BookingStatus;
-import com.example.staymate.entity.notification.Notification;
-import com.example.staymate.entity.enums.NotificationType;
-import com.example.staymate.observer.NotificationObserver;
-import com.example.staymate.repository.BookingRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.example.staymate.entity.booking.Booking;
+import com.example.staymate.entity.enums.BookingStatus;
+import com.example.staymate.entity.enums.NotificationType;
+import com.example.staymate.entity.notification.Notification;
+import com.example.staymate.observer.NotificationObserver;
+import com.example.staymate.repository.BookingRepository;
 
 @ExtendWith(MockitoExtension.class)  // Enable Mockito extension in JUnit 5
 class BookingServiceTest {

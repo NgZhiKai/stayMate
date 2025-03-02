@@ -1,10 +1,9 @@
 package com.example.staymate.dto.payment;
 
-import com.example.staymate.entity.payment.Payment;
-
 import java.time.LocalDateTime;
 
 import com.example.staymate.entity.enums.PaymentStatus;
+import com.example.staymate.entity.payment.Payment;
 
 public class PaymentIdResponseDTO {
     private Long paymentId;

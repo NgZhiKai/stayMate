@@ -1,11 +1,11 @@
-name: Java CI with Maven
+name: Java CI with Maven, SAST, and DAST
 
 on:
   workflow_call:
 
 jobs:
-  build:
-    name: Setting Up Java and Maven
+  build_and_test:
+    name: Build and Test
     runs-on: ubuntu-latest
 
     services:
@@ -19,47 +19,82 @@ jobs:
         options: --health-cmd="mysqladmin ping --silent" --health-timeout=10s --health-retries=3
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
+      # Checkout the repository
+      - uses: actions/checkout@v4
 
-    - name: Cache Maven dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
+      # Set up JDK for Java build and tests
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
 
-    - name: Build with Maven
-      run: |
-        cd backend
-        mvn -B package --file pom.xml -Ddb.url=jdbc:mysql://localhost:3306/test_db -Ddb.username=root -Ddb.password=root
-      
-  test:
-    name: Running Test Cases
-    runs-on: ubuntu-latest
-    needs: [build]
+      # Cache Maven dependencies
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: test_db
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping --silent" --health-timeout=10s --health-retries=3
-
-    steps:
-      - name: Checkout code again
-        uses: actions/checkout@v4
-
-      - name: Run test Cases
+      # Build and Test with Maven
+      - name: Build and Test with Maven
         run: |
           cd backend
-          mvn test -Ddb.url=jdbc:mysql://localhost:3306/test_db -Ddb.username=root -Ddb.password=root
+          mvn -B package test --file pom.xml \
+            -Ddb.url=jdbc:mysql://localhost:3306/test_db \
+            -Ddb.username=root \
+            -Ddb.password=root
+
+  sast_scan:
+    name: SAST Scan (OWASP Dependency Check)
+    runs-on: ubuntu-latest
+    needs: build_and_test  # Ensures this runs after build_and_test
+
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v4
+
+      # Install OWASP Dependency Check
+      - name: OWASP Dependency Check
+        run: |
+          wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.2.0/dependency-check-7.2.0-release.zip
+          unzip dependency-check-7.2.0-release.zip
+
+      # Run OWASP Dependency Check scan on backend
+      - name: Run scan with ODC
+        run: |
+          dependency-check/bin/dependency-check.sh --project "Staymate" --scan ./backend > ODC-report
+
+      # Archive SAST report
+      - name: Archive SAST Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: sast-report
+          path: ./ODC-report
+
+  dast_scan:
+    name: DAST Scan (ZAP)
+    runs-on: ubuntu-latest
+    needs: build_and_test  # Ensures this runs after build_and_test
+
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v4
+
+      # Change permission for ZAP script
+      - name: Change script permission
+        run: chmod +x scripts/zap-script.sh
+
+      # Run ZAP scan
+      - name: Run ZAP Scan
+        run: scripts/zap-script.sh
+
+      # Archive DAST report
+      - name: Archive DAST Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
+          path: ./zap_baseline_report.html

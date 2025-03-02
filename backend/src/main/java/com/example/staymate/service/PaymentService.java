@@ -1,26 +1,27 @@
 package com.example.staymate.service;
 
-import com.example.staymate.entity.payment.Payment;
-import com.example.staymate.observer.Subject;
-import com.example.staymate.entity.booking.Booking;
-import com.example.staymate.entity.notification.Notification;
-import com.example.staymate.observer.NotificationObserver;
-import com.example.staymate.observer.Observer;
-import com.example.staymate.entity.enums.NotificationType;
-import com.example.staymate.entity.enums.PaymentMethod;
-import com.example.staymate.entity.enums.PaymentStatus;
-import com.example.staymate.strategy.payment.PaymentContext;
-import com.example.staymate.strategy.payment.CreditCardPaymentStrategy;
-import com.example.staymate.strategy.payment.PaypalPaymentStrategy;
-import com.example.staymate.strategy.payment.StripePaymentStrategy;
-import com.example.staymate.repository.PaymentRepository;
-import com.example.staymate.repository.BookingRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.staymate.entity.booking.Booking;
+import com.example.staymate.entity.enums.NotificationType;
+import com.example.staymate.entity.enums.PaymentMethod;
+import com.example.staymate.entity.enums.PaymentStatus;
+import com.example.staymate.entity.notification.Notification;
+import com.example.staymate.entity.payment.Payment;
+import com.example.staymate.observer.NotificationObserver;
+import com.example.staymate.observer.Observer;
+import com.example.staymate.observer.Subject;
+import com.example.staymate.repository.BookingRepository;
+import com.example.staymate.repository.PaymentRepository;
+import com.example.staymate.strategy.payment.CreditCardPaymentStrategy;
+import com.example.staymate.strategy.payment.PaymentContext;
+import com.example.staymate.strategy.payment.PaypalPaymentStrategy;
+import com.example.staymate.strategy.payment.StripePaymentStrategy;
 
 @Service
 public class PaymentService implements Subject {

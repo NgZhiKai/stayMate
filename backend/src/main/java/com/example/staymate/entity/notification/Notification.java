@@ -1,10 +1,18 @@
 package com.example.staymate.entity.notification;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 import com.example.staymate.entity.enums.NotificationType;
 import com.example.staymate.entity.user.User;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Notification {

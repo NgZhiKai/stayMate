@@ -1,14 +1,15 @@
 package com.example.staymate.service;
 
-import com.example.staymate.entity.enums.UserRole;
-import com.example.staymate.entity.user.User;
-import com.example.staymate.repository.UserRepository;
-import com.example.staymate.exception.ResourceNotFoundException;  // Import the exception class
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.example.staymate.entity.enums.UserRole;
+import com.example.staymate.entity.user.User;
+import com.example.staymate.exception.ResourceNotFoundException;  // Import the exception class
+import com.example.staymate.repository.UserRepository;
 
 @Service
 public class UserService {

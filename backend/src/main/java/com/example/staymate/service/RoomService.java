@@ -1,24 +1,24 @@
 package com.example.staymate.service;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.example.staymate.entity.booking.Booking;
 import com.example.staymate.entity.enums.RoomType;
 import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.entity.room.Room;
 import com.example.staymate.entity.room.RoomId;
+import com.example.staymate.exception.RoomAlreadyBookedException;
+import com.example.staymate.exception.RoomNotFoundException;
 import com.example.staymate.factory.RoomFactory;
 import com.example.staymate.repository.BookingRepository;
 import com.example.staymate.repository.HotelRepository;
 import com.example.staymate.repository.RoomRepository;
-import com.example.staymate.exception.RoomNotFoundException;
-import com.example.staymate.exception.RoomAlreadyBookedException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.util.Optional;
-import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 public class RoomService {

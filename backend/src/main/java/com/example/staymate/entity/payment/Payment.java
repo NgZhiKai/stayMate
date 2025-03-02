@@ -1,10 +1,19 @@
 package com.example.staymate.entity.payment;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
 import com.example.staymate.entity.booking.Booking;
 import com.example.staymate.entity.enums.PaymentMethod;
 import com.example.staymate.entity.enums.PaymentStatus;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class Payment {

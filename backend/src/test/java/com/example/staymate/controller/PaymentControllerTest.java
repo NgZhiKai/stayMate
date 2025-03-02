@@ -1,33 +1,5 @@
 package com.example.staymate.controller;
 
-import com.example.staymate.entity.payment.Payment;
-import com.example.staymate.entity.room.Room;
-import com.example.staymate.entity.room.RoomId;
-import com.example.staymate.entity.user.User;
-import com.example.staymate.factory.RoomFactory;
-import com.example.staymate.entity.enums.BookingStatus;
-import com.example.staymate.entity.enums.PaymentMethod;
-import com.example.staymate.entity.enums.PaymentStatus;
-import com.example.staymate.entity.enums.RoomStatus;
-import com.example.staymate.entity.enums.RoomType;
-import com.example.staymate.entity.hotel.Hotel;
-import com.example.staymate.dto.payment.PaymentRequestDTO;
-import com.example.staymate.entity.booking.Booking;
-import com.example.staymate.service.PaymentService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -35,8 +7,37 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import com.example.staymate.dto.payment.PaymentRequestDTO;
+import com.example.staymate.entity.booking.Booking;
+import com.example.staymate.entity.enums.BookingStatus;
+import com.example.staymate.entity.enums.PaymentMethod;
+import com.example.staymate.entity.enums.PaymentStatus;
+import com.example.staymate.entity.enums.RoomStatus;
+import com.example.staymate.entity.enums.RoomType;
+import com.example.staymate.entity.hotel.Hotel;
+import com.example.staymate.entity.payment.Payment;
+import com.example.staymate.entity.room.Room;
+import com.example.staymate.entity.room.RoomId;
+import com.example.staymate.entity.user.User;
+import com.example.staymate.factory.RoomFactory;
+import com.example.staymate.service.PaymentService;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentControllerTest {
@@ -94,7 +95,7 @@ class PaymentControllerTest {
         mockPayment.setId(1L);
         mockPayment.setAmount(50.00);
         mockPayment.setStatus(PaymentStatus.SUCCESS);
-        mockPayment.setBooking(mockBooking);  // Set the booking
+        mockPayment.setBooking(mockBooking); // Set the booking
         mockPayment.setPaymentMethod(PaymentMethod.STRIPE);
         mockPayment.setTransactionDate(LocalDateTime.now());
 
@@ -113,7 +114,8 @@ class PaymentControllerTest {
                 .content("{\"bookingId\":1, \"amount\":50.0}")
                 .param("paymentMethod", "STRIPE"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("Payment created and processed successfully. Current status: SUCCESS"));
+                .andExpect(jsonPath("$.message")
+                        .value("Payment created and processed successfully. Current status: SUCCESS"));
     }
 
     // Test Case for getting payment by ID (SUCCESS status)
@@ -156,7 +158,7 @@ class PaymentControllerTest {
         mockPayment.setId(1L);
         mockPayment.setAmount(50.00);
         mockPayment.setStatus(PaymentStatus.SUCCESS);
-        mockPayment.setBooking(mockBooking);  // Set the booking
+        mockPayment.setBooking(mockBooking); // Set the booking
 
         when(paymentService.getPaymentById(1L)).thenReturn(mockPayment);
 
@@ -208,7 +210,7 @@ class PaymentControllerTest {
         mockPayment.setId(2L);
         mockPayment.setAmount(50.00);
         mockPayment.setStatus(PaymentStatus.FAILED);
-        mockPayment.setBooking(mockBooking);  // Set the booking
+        mockPayment.setBooking(mockBooking); // Set the booking
 
         when(paymentService.getPaymentById(2L)).thenReturn(mockPayment);
 
@@ -283,7 +285,6 @@ class PaymentControllerTest {
                 .andExpect(jsonPath("$.data[0].paymentId").value(1))
                 .andExpect(jsonPath("$.data[1].paymentId").value(2));
     }
-
 
     // Test Case for error handling in getPaymentById (Payment Not Found)
     @Test

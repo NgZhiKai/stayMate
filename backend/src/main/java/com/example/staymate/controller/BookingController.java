@@ -1,29 +1,36 @@
 package com.example.staymate.controller;
 
-import com.example.staymate.dto.booking.BookingRequestDTO;
-import com.example.staymate.dto.booking.BookingResponseDTO;
-import com.example.staymate.dto.user.UserBookingResponseDTO;
-import com.example.staymate.entity.booking.Booking;
-import com.example.staymate.entity.enums.BookingStatus;
-import com.example.staymate.service.BookingService;
-import com.example.staymate.service.RoomService;
-import com.example.staymate.service.UserService;
-import com.example.staymate.dto.custom.CustomResponse;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import jakarta.validation.Valid;
-import com.example.staymate.entity.user.User;
-import com.example.staymate.entity.room.Room;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.List;
-import java.util.Collections;
+import com.example.staymate.dto.booking.BookingRequestDTO;
+import com.example.staymate.dto.booking.BookingResponseDTO;
+import com.example.staymate.dto.custom.CustomResponse;
+import com.example.staymate.dto.user.UserBookingResponseDTO;
+import com.example.staymate.entity.booking.Booking;
+import com.example.staymate.entity.enums.BookingStatus;
+import com.example.staymate.entity.room.Room;
+import com.example.staymate.entity.user.User;
+import com.example.staymate.service.BookingService;
+import com.example.staymate.service.RoomService;
+import com.example.staymate.service.UserService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/bookings")

@@ -2,40 +2,16 @@
 
 package com.example.staymate.controller;
 
-import com.example.staymate.entity.enums.RoomStatus;
-import com.example.staymate.entity.enums.RoomType;
-import com.example.staymate.entity.hotel.Hotel;
-import com.example.staymate.entity.room.Room;
-import com.example.staymate.entity.room.RoomId;
-import com.example.staymate.entity.room.SingleRoom;
-import com.example.staymate.factory.RoomFactory;
-import com.example.staymate.service.RoomService;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.example.staymate.service.RoomService;
 
 @ExtendWith(MockitoExtension.class)
 class RoomControllerTest {

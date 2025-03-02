@@ -2,9 +2,8 @@ package com.example.staymate.dto.notification;
 
 import java.time.LocalDateTime;
 
-import com.example.staymate.entity.notification.Notification;
-
 import com.example.staymate.entity.enums.NotificationType;
+import com.example.staymate.entity.notification.Notification;
 
 public class NotificationResponseDTO {
     private Long notificationId;

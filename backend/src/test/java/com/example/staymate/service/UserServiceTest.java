@@ -1,9 +1,16 @@
 package com.example.staymate.service;
 
-import com.example.staymate.entity.enums.UserRole;
-import com.example.staymate.entity.user.User;
-import com.example.staymate.exception.ResourceNotFoundException;
-import com.example.staymate.repository.UserRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,11 +18,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import com.example.staymate.entity.enums.UserRole;
+import com.example.staymate.entity.user.User;
+import com.example.staymate.exception.ResourceNotFoundException;
+import com.example.staymate.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {

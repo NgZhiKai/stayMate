@@ -1,11 +1,15 @@
 package com.example.staymate.controller;
 
-import com.example.staymate.entity.notification.Notification;
-import com.example.staymate.entity.user.User;
-import com.example.staymate.entity.enums.NotificationType;
-import com.example.staymate.service.NotificationService;
-import com.example.staymate.service.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,12 +20,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.example.staymate.entity.enums.NotificationType;
+import com.example.staymate.entity.notification.Notification;
+import com.example.staymate.entity.user.User;
+import com.example.staymate.service.NotificationService;
+import com.example.staymate.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
 public class NotificationControllerTest {

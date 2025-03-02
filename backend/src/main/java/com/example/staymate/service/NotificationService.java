@@ -1,14 +1,14 @@
 package com.example.staymate.service;
 
 
-import org.springframework.stereotype.Service;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.example.staymate.entity.enums.NotificationType;
 import com.example.staymate.entity.notification.Notification;
 import com.example.staymate.repository.NotificationRepository;
-
-import java.util.List;
 
 @Service
 public class NotificationService {

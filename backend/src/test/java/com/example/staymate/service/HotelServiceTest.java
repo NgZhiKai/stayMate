@@ -1,9 +1,15 @@
 package com.example.staymate.service;
 
-import com.example.staymate.entity.hotel.Hotel;
-import com.example.staymate.entity.room.SingleRoom;
-import com.example.staymate.entity.room.Room;
-import com.example.staymate.repository.HotelRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,11 +17,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import com.example.staymate.entity.hotel.Hotel;
+import com.example.staymate.entity.room.Room;
+import com.example.staymate.entity.room.SingleRoom;
+import com.example.staymate.repository.HotelRepository;
 
 @ExtendWith(MockitoExtension.class)
 class HotelServiceTest {

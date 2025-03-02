@@ -1,15 +1,19 @@
 package com.example.staymate.controller;
 
-import com.example.staymate.dto.hotel.HotelRequestDTO;
-import com.example.staymate.dto.room.RoomRequestDTO;
-import com.example.staymate.entity.hotel.Hotel;
-import com.example.staymate.entity.enums.RoomType;
-import com.example.staymate.service.HotelService;
-import com.example.staymate.service.RoomService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -18,14 +22,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.example.staymate.dto.hotel.HotelRequestDTO;
+import com.example.staymate.dto.room.RoomRequestDTO;
+import com.example.staymate.entity.enums.RoomType;
+import com.example.staymate.entity.hotel.Hotel;
+import com.example.staymate.service.HotelService;
+import com.example.staymate.service.RoomService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
 class HotelControllerTest {
