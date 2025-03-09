@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS Users (
     password VARCHAR(255) NOT NULL,
     phone_number VARCHAR(15), -- Optional phone number, adjust length as needed
     role ENUM('CUSTOMER', 'ADMIN') NOT NULL,  -- Enum values for user roles
+    verification_token VARCHAR(255),
+    verified BOOLEAN NOT NULL, 
     CONSTRAINT email_unique UNIQUE (email) -- Ensure email is unique
 );
 

@@ -63,7 +63,7 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(user)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("User registered successfully"))
+                .andExpect(jsonPath("$.message").value("User registered successfully. Please check your email to verify your account."))
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.email").value("test@example.com"));
     }

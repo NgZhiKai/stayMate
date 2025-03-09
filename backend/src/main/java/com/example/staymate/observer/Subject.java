@@ -1,9 +1,11 @@
 package com.example.staymate.observer;
 
-import com.example.staymate.entity.notification.Notification;
+import java.util.Map;
 
 public interface Subject {
     void addObserver(Observer observer);
+
     void removeObserver(Observer observer);
-    void notifyObservers(Notification notification);
+
+    void notifyObservers(Map<String, Object> data);
 }

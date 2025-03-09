@@ -1,8 +1,7 @@
 package com.example.staymate.observer;
 
-import com.example.staymate.entity.notification.Notification;
+import java.util.Map;
 
 public interface Observer {
-    void update(Notification notification);
+    void update(Map<String, Object> data);
 }
-

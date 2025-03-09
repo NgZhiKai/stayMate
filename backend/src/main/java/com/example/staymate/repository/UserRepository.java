@@ -18,6 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Find users by role
     List<User> findByRole(UserRole role);
 
-    // Custom queries (example)
     List<User> findByLastNameContaining(String lastName);
+
+    User findByVerificationToken(String verificationToken);
 }

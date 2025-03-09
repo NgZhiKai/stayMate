@@ -2,7 +2,9 @@ package com.example.staymate.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,10 +48,16 @@ public class PaymentService implements Subject {
     }
 
     @Override
-    public void notifyObservers(Notification notification) {
+    public void notifyObservers(Map<String, Object> data) {
         for (Observer observer : observers) {
-            observer.update(notification);
+            observer.update(data);
         }
+    }
+
+    public void notifyObservers(Notification notification) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("notification", notification);
+        notifyObservers(data);
     }
 
     @Autowired
@@ -69,11 +77,11 @@ public class PaymentService implements Subject {
 
         // Create a new Payment object and link the booking to the payment
         Payment payment = new Payment();
-        payment.setBooking(booking);  // Set the booking for this payment
-        payment.setPaymentMethod(paymentMethod);  // Set the payment method
-        payment.setAmount(amount);  // Set the payment amount
-        payment.setTransactionDate(LocalDateTime.now());  // Set the transaction date
-        payment.setStatus(PaymentStatus.PENDING);  // Set status to PENDING initially
+        payment.setBooking(booking); // Set the booking for this payment
+        payment.setPaymentMethod(paymentMethod); // Set the payment method
+        payment.setAmount(amount); // Set the payment amount
+        payment.setTransactionDate(LocalDateTime.now()); // Set the transaction date
+        payment.setStatus(PaymentStatus.PENDING); // Set status to PENDING initially
 
         // Save the payment to the database
         return paymentRepository.save(payment);
@@ -85,7 +93,7 @@ public class PaymentService implements Subject {
             throw new IllegalArgumentException("Payment ID and Payment Method must not be null.");
         }
 
-        Payment payment = getPaymentById(paymentId);  // Retrieve the payment by its ID
+        Payment payment = getPaymentById(paymentId); // Retrieve the payment by its ID
         if (payment.getStatus() == PaymentStatus.SUCCESS) {
             throw new IllegalStateException("Payment has already been successfully processed.");
         }
@@ -107,7 +115,7 @@ public class PaymentService implements Subject {
         }
 
         // Execute the payment process
-        boolean success = context.executePayment(payment.getAmount());  // Execute the payment strategy
+        boolean success = context.executePayment(payment.getAmount()); // Execute the payment strategy
 
         // After processing, update the payment status accordingly
         if (success) {
@@ -172,7 +180,6 @@ public class PaymentService implements Subject {
 
         return payments;
     }
-
 
     // Get payment by ID
     public Payment getPaymentById(Long id) {

@@ -1,5 +1,7 @@
 package com.example.staymate.observer;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,8 +19,8 @@ public class NotificationObserver implements Observer {
     }
 
     @Override
-    public void update(Notification notification) {
-        notificationService.createNotification(notification);
+    public void update(Map<String, Object> data) {
+        notificationService.createNotification((Notification) data.get("notification"));
     }
-}
 
+}

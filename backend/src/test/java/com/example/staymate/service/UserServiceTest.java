@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,7 +21,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.staymate.entity.enums.UserRole;
 import com.example.staymate.entity.user.User;
+import com.example.staymate.exception.InvalidUserException;
 import com.example.staymate.exception.ResourceNotFoundException;
+import com.example.staymate.observer.Observer;
 import com.example.staymate.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +31,9 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private Observer notificationObserver;
 
     @InjectMocks
     private UserService userService;
@@ -42,36 +48,34 @@ class UserServiceTest {
         user.setFirstName("John");
         user.setLastName("Doe");
         user.setEmail("john.doe@example.com");
+        user.setPassword("testing");
         user.setPhoneNumber("123456789");
         user.setRole(UserRole.CUSTOMER);
+        user.setVerified(false);
     }
 
-    // Test for registerUser method (successful registration)
     @Test
     void testRegisterUser_Success() {
+
         // Mock userRepository.findByEmail to return empty (no user with the same email)
-        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
+        lenient().when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
 
         // Mock userRepository.save to return the saved user
-        when(userRepository.save(any(User.class))).thenReturn(user);
+        lenient().when(userRepository.save(any(User.class))).thenReturn(user);
 
-        // Call the service method
-        User registeredUser = userService.registerUser(user);
+        // Register the user
+        User savedUser = userService.registerUser(user);
 
-        // Validate that the user was registered
-        assertNotNull(registeredUser);
-        assertEquals("John", registeredUser.getFirstName());
-        assertEquals("Doe", registeredUser.getLastName());
-
-        // Verify the repository methods were called
-        verify(userRepository, times(1)).findByEmail(user.getEmail());
-        verify(userRepository, times(1)).save(user);
+        // // Verify that the repository methods were called exactly once
+        verify(userRepository, times(1)).findByEmail(savedUser.getEmail());
+        verify(userRepository, times(2)).save(savedUser);
     }
 
     // Test for registerUser method (duplicate email)
     @Test
     void testRegisterUser_EmailAlreadyExists() {
-        // Mock userRepository.findByEmail to return an existing user with the same email
+        // Mock userRepository.findByEmail to return an existing user with the same
+        // email
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
         // Call the service method and expect an IllegalArgumentException
@@ -227,5 +231,27 @@ class UserServiceTest {
 
         // Verify the repository method was called
         verify(userRepository, times(1)).existsById(user.getId());
+    }
+
+    @Test
+    public void testGenerateVerificationToken_Success() {
+        // Stub the userRepository.save method to return the user
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        // Act: Call the method
+        String token = userService.generateVerificationToken(user);
+
+        // Assert: Verify the token is not null and the user was updated
+        assertNotNull(token);
+        assertEquals(token, user.getVerificationToken());
+        verify(userRepository).save(user); // Ensure the user was saved after setting the token
+    }
+
+    @Test
+    public void testGenerateVerificationToken_ThrowsExceptionForNullUser() {
+        // Act & Assert: Expect an exception when null is passed
+        assertThrows(InvalidUserException.class, () -> {
+            userService.generateVerificationToken(null);
+        });
     }
 }

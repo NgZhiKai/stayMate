@@ -2,7 +2,9 @@ package com.example.staymate.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +22,9 @@ import com.example.staymate.repository.BookingRepository;
 @Service
 public class BookingService implements Subject {
 
+    @Autowired
     private final BookingRepository bookingRepository;
+
     private final List<Observer> observers = new ArrayList<>();
 
     public BookingService(BookingRepository bookingRepository) {
@@ -38,10 +42,16 @@ public class BookingService implements Subject {
     }
 
     @Override
-    public void notifyObservers(Notification notification) {
+    public void notifyObservers(Map<String, Object> data) {
         for (Observer observer : observers) {
-            observer.update(notification);
+            observer.update(data);
         }
+    }
+
+    public void notifyObservers(Notification notification) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("notification", notification);
+        notifyObservers(data);
     }
 
     @Autowired
@@ -73,23 +83,18 @@ public class BookingService implements Subject {
         Booking updatedBooking = bookingRepository.save(booking);
 
         // Notify observers when a booking is confirmed or canceled
+        Notification notification = new Notification();
+        notification.setUser(booking.getUser());
+        notification.setRead(false);
+        notification.setCreatedAt(LocalDateTime.now());
+
         if (booking.getStatus() == BookingStatus.CONFIRMED) {
-            Notification notification = new Notification();
-            notification.setUser(booking.getUser());
             notification.setMessage("Your booking has been confirmed!");
-            notification.setType(NotificationType.BOOKING);
-            notification.setRead(false);
-            notification.setCreatedAt(LocalDateTime.now());
-            notifyObservers(notification);
         } else if (booking.getStatus() == BookingStatus.CANCELLED) {
-            Notification notification = new Notification();
-            notification.setUser(booking.getUser());
             notification.setMessage("Your booking has been canceled.");
-            notification.setType(NotificationType.BOOKING);
-            notification.setRead(false);
-            notification.setCreatedAt(LocalDateTime.now());
-            notifyObservers(notification);
         }
+
+        notifyObservers(notification);
 
         return updatedBooking;
     }

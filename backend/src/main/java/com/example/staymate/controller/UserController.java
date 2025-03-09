@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.staymate.dto.custom.CustomResponse;
+import com.example.staymate.dto.user.UserCreationRequestDTO;
 import com.example.staymate.entity.user.User;
 import com.example.staymate.exception.ResourceNotFoundException;
 import com.example.staymate.service.UserService;
@@ -32,9 +34,20 @@ public class UserController {
 
     // Register a new user
     @PostMapping("/register")
-    public ResponseEntity<CustomResponse<User>> registerUser(@Valid @RequestBody User user) {
+    public ResponseEntity<CustomResponse<User>> registerUser(@Valid @RequestBody UserCreationRequestDTO userDto) {
+        User user = new User();
+        user.setFirstName(userDto.getFirstName());
+        user.setLastName(userDto.getLastName());
+        user.setEmail(userDto.getEmail());
+        user.setPassword(userDto.getPassword());
+        user.setPhoneNumber(userDto.getPhoneNumber());
+        user.setRole(userDto.getRole());
+
         User savedUser = userService.registerUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new CustomResponse<>("User registered successfully", savedUser));
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new CustomResponse<>(
+                        "User registered successfully. Please check your email to verify your account.", savedUser));
     }
 
     // Get all users
@@ -82,7 +95,6 @@ public class UserController {
         }
     }
 
-
     // Delete user by ID
     @DeleteMapping("/{id}")
     public ResponseEntity<CustomResponse<Void>> deleteUser(@PathVariable Long id) {
@@ -93,6 +105,16 @@ public class UserController {
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new CustomResponse<>("User not found with ID: " + id, null));
+        }
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyUser(@RequestParam("token") String token) {
+        boolean isVerified = userService.verifyUser(token);
+        if (isVerified) {
+            return ResponseEntity.ok("User verified successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired token.");
         }
     }
 }

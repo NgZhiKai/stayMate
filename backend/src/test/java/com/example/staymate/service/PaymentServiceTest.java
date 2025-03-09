@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,7 +98,9 @@ class PaymentServiceTest {
 
         assertEquals(PaymentStatus.SUCCESS, payment.getStatus());
         verify(paymentRepository, times(1)).save(payment);
-        verify(notificationObserver, times(1)).update(any(Notification.class));
+        verify(notificationObserver, times(1)).update(argThat(data -> {
+            return data.containsKey("notification") && data.get("notification") instanceof Notification;
+        }));
     }
 
     @Test

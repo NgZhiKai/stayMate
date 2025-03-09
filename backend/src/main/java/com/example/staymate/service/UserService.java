@@ -1,56 +1,91 @@
 package com.example.staymate.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.staymate.entity.enums.UserRole;
 import com.example.staymate.entity.user.User;
-import com.example.staymate.exception.ResourceNotFoundException;  // Import the exception class
+import com.example.staymate.exception.ResourceNotFoundException;
+import com.example.staymate.exception.InvalidUserException;
+import com.example.staymate.observer.EmailObserver;
+import com.example.staymate.observer.Observer;
+import com.example.staymate.observer.Subject;
 import com.example.staymate.repository.UserRepository;
 
 @Service
-public class UserService {
+public class UserService implements Subject {
 
     @Autowired
     private UserRepository userRepository;
 
-    // Register a new user (Prevent duplicate email)
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+    @Value("${server.port}")
+    private String serverPort;
+
+    private final List<Observer> observers = new ArrayList<>();
+
     public User registerUser(User user) {
+        if (user == null) {
+            throw new InvalidUserException("User cannot be null.");
+        }
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email is already registered.");
         }
-        return userRepository.save(user);
+
+        user.setVerified(false);
+        User savedUser = userRepository.save(user);
+
+        String token = generateVerificationToken(savedUser);
+        String verificationLink = baseUrl + ":" + serverPort + "/users/verify?token=" + token;
+
+        notifyObservers(savedUser, verificationLink);
+
+        return savedUser;
     }
 
-    // Retrieve all users
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    // Retrieve a user by ID, throw exception if not found
     public User getUserById(Long id) {
+        if (id == null) {
+            throw new InvalidUserException("User ID cannot be null.");
+        }
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with ID " + id));
     }
 
-    // Retrieve a user by email, throw exception if not found
     public User getUserByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new InvalidUserException("Email cannot be null or empty.");
+        }
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email " + email));
     }
 
-    // Find users by role
     public List<User> getUsersByRole(UserRole role) {
+        if (role == null) {
+            throw new InvalidUserException("Role cannot be null.");
+        }
         return userRepository.findByRole(role);
     }
 
-    // Update user information (Only update if user exists)
     @Transactional
     public User updateUser(Long id, User updatedUser) {
-        User existingUser = getUserById(id); // Ensures user exists, throws exception if not found
+        if (id == null || updatedUser == null) {
+            throw new InvalidUserException("User ID and updated user data cannot be null.");
+        }
+        User existingUser = getUserById(id);
 
         existingUser.setFirstName(updatedUser.getFirstName());
         existingUser.setLastName(updatedUser.getLastName());
@@ -61,11 +96,69 @@ public class UserService {
         return userRepository.save(existingUser);
     }
 
-    // Delete user by ID (Throw exception if user doesn't exist)
     public void deleteUser(Long id) {
+        if (id == null) {
+            throw new InvalidUserException("User ID cannot be null.");
+        }
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User not found with ID: " + id);
         }
         userRepository.deleteById(id);
+    }
+
+    public String generateVerificationToken(User user) {
+        if (user == null) {
+            throw new InvalidUserException("User cannot be null when generating a verification token.");
+        }
+        String token = UUID.randomUUID().toString();
+        user.setVerificationToken(token);
+        userRepository.save(user);
+        return token;
+    }
+
+    public boolean verifyUser(String token) {
+        if (token == null || token.isBlank()) {
+            throw new InvalidUserException("Verification token cannot be null or empty.");
+        }
+        User user = userRepository.findByVerificationToken(token);
+        if (user == null || user.isVerified()) {
+            return false;
+        }
+        user.setVerified(true);
+        user.setVerificationToken(null);
+        userRepository.save(user);
+        return true;
+    }
+
+    @Override
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(Map<String, Object> data) {
+        for (Observer observer : observers) {
+            observer.update(data);
+        }
+    }
+
+    public void notifyObservers(User user, String verificationLink) {
+        if (user == null || verificationLink == null || verificationLink.isBlank()) {
+            throw new InvalidUserException("User and verification link cannot be null or empty.");
+        }
+        Map<String, Object> data = new HashMap<>();
+        data.put("verificationLink", verificationLink);
+        data.put("user", user);
+        notifyObservers(data);
+    }
+
+    @Autowired
+    public void setEmailObserver(EmailObserver emailObserver) {
+        addObserver(emailObserver);
     }
 }
