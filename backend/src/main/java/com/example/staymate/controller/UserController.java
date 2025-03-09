@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.staymate.dto.custom.CustomResponse;
 import com.example.staymate.dto.user.UserCreationRequestDTO;
+import com.example.staymate.dto.user.UserLoginRequestDTO;
 import com.example.staymate.entity.user.User;
 import com.example.staymate.exception.ResourceNotFoundException;
 import com.example.staymate.service.UserService;
@@ -48,6 +49,18 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new CustomResponse<>(
                         "User registered successfully. Please check your email to verify your account.", savedUser));
+    }
+
+    // User login
+    @PostMapping("/login")
+    public ResponseEntity<CustomResponse<String>> loginUser(@Valid @RequestBody UserLoginRequestDTO loginDto) {
+        String token = userService.loginUser(loginDto.getEmail(), loginDto.getPassword());
+        if (token != null) {
+            return ResponseEntity.ok(new CustomResponse<>("Login successful", token));
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new CustomResponse<>("Invalid email or password", null));
+        }
     }
 
     // Get all users
@@ -117,4 +130,5 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired token.");
         }
     }
+    
 }

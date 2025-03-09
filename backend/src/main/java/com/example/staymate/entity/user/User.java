@@ -1,6 +1,6 @@
 package com.example.staymate.entity.user;
 
-import org.mindrot.jbcrypt.BCrypt; // Import BCrypt class
+import org.mindrot.jbcrypt.BCrypt;
 
 import com.example.staymate.entity.enums.UserRole;
 
@@ -104,6 +104,10 @@ public class User {
     // Hash password manually before setting it
     public void setPassword(String password) {
         this.password = BCrypt.hashpw(password, BCrypt.gensalt());
+    }
+
+    public boolean checkPassword(String newPassword) {
+        return BCrypt.checkpw(newPassword, this.password);
     }
 
     public String getPhoneNumber() {

@@ -5,6 +5,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -56,6 +58,7 @@ class UserControllerTest {
         user.setId(1L);
         user.setEmail("test@example.com");
         user.setFirstName("Test");
+        user.setPassword("Test");
 
         when(userService.registerUser(any(User.class))).thenReturn(user);
 
@@ -147,6 +150,7 @@ class UserControllerTest {
         user.setId(1L);
         user.setEmail("user@example.com");
         user.setFirstName("Test User");
+        user.setPassword("Test");
 
         lenient().when(userService.updateUser(1L, user)).thenReturn(user);
 
@@ -163,6 +167,7 @@ class UserControllerTest {
         user.setId(1L);
         user.setEmail("user@example.com");
         user.setFirstName("User");
+        user.setPassword("Test");
 
         doThrow(new ResourceNotFoundException("User not found with ID: 1")).when(userService).updateUser(anyLong(), any(User.class));
 
@@ -189,6 +194,47 @@ class UserControllerTest {
         mockMvc.perform(delete("/users/1"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("User not found with ID: 1"));
+    }
+
+    @Test
+    public void testLoginUser_Success() throws Exception {
+        // Arrange
+        String email = "user@example.com";
+        String password = "password123";
+        String token = "sampleJwtToken";
+        
+        // Mock userService.loginUser
+        when(userService.loginUser(email, password)).thenReturn(token);
+
+        // Act & Assert
+        mockMvc.perform(post("/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Login successful"))
+                .andExpect(jsonPath("$.data").value(token));
+
+        verify(userService, times(1)).loginUser(email, password);
+    }
+
+    @Test
+    public void testLoginUser_Failure_InvalidCredentials() throws Exception {
+        // Arrange
+        String email = "user@example.com";
+        String password = "wrongPassword";
+
+        // Mock userService.loginUser to return null (invalid credentials)
+        when(userService.loginUser(email, password)).thenReturn(null);
+
+        // Act & Assert
+        mockMvc.perform(post("/users/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Invalid email or password"))
+                .andExpect(jsonPath("$.data").isEmpty());
+
+        verify(userService, times(1)).loginUser(email, password);
     }
 
 }

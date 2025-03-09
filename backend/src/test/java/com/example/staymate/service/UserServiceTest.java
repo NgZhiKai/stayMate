@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.staymate.entity.enums.UserRole;
@@ -253,5 +254,108 @@ class UserServiceTest {
         assertThrows(InvalidUserException.class, () -> {
             userService.generateVerificationToken(null);
         });
+    }
+
+    @Test
+    public void testLoginUser_Success() {
+        // Arrange
+        String email = "john.doe@example.com";
+        String password = "testing";
+        String expectedToken = "sampleJwtToken";
+
+        // Create a mock of the UserService
+        UserService userServiceMock = Mockito.spy(userService);
+        User userSpy = Mockito.spy(user); // Use a spy on the user
+
+        // Mock the behavior of userRepository and user
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(userSpy));  // Use userSpy here
+        when(userSpy.checkPassword(password)).thenReturn(true); // Simulate valid password
+        when(userSpy.isVerified()).thenReturn(true); // Simulate verified user
+
+        // Mock the token generation
+        when(userServiceMock.generateVerificationToken(userSpy)).thenReturn(expectedToken);  // Use userSpy here
+
+        // Act
+        String token = userServiceMock.loginUser(email, password);
+
+        // Assert
+        assertEquals(expectedToken, token);
+        verify(userRepository, times(1)).findByEmail(email); // Ensure findByEmail was called
+        verify(userSpy, times(1)).checkPassword(password); // Ensure checkPassword was called
+        verify(userServiceMock, times(1)).generateVerificationToken(userSpy); // Ensure token generation was called
+    }
+
+    @Test
+    public void testLoginUser_EmailNotFound() {
+        // Arrange
+        String email = "nonexistent@example.com";
+        String password = "password123";
+
+        // Mock the behavior of userRepository to return empty for non-existing user
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.empty());
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> userService.loginUser(email, password));
+    }
+
+    @Test
+    public void testLoginUser_InvalidPassword() {
+        // Arrange
+        String email = "user@example.com";
+        String password = "wrongPassword";
+
+        // Create a spy to call actual methods but mock specific ones
+        User userSpy = Mockito.spy(user);
+
+        // Mock the behavior of userRepository
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(userSpy));
+
+        // Mock the checkPassword method on the spy object to return false
+        when(userSpy.checkPassword(password)).thenReturn(false); // Simulate invalid password
+
+        // Act & Assert
+        assertThrows(InvalidUserException.class, () -> userService.loginUser(email, password));
+    }
+
+    @Test
+    public void testLoginUser_UnverifiedUser() {
+        // Arrange
+        String email = "user@example.com";
+        String password = "password123";
+
+        // Simulate an unverified user
+        user.setVerified(false);
+
+         // Create a spy to call actual methods but mock specific ones
+        User userSpy = Mockito.spy(user);
+
+        // Mock the behavior of userRepository
+        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(userSpy));
+
+        // Mock the checkPassword method on the spy object to return false
+        when(userSpy.checkPassword(password)).thenReturn(true); // Simulate invalid password
+
+        // Act & Assert
+        assertThrows(InvalidUserException.class, () -> userService.loginUser(email, password));
+    }
+
+    @Test
+    public void testLoginUser_NullEmail() {
+        // Arrange
+        String email = null;
+        String password = "password123";
+
+        // Act & Assert
+        assertThrows(InvalidUserException.class, () -> userService.loginUser(email, password));
+    }
+
+    @Test
+    public void testLoginUser_NullPassword() {
+        // Arrange
+        String email = "user@example.com";
+        String password = null;
+
+        // Act & Assert
+        assertThrows(InvalidUserException.class, () -> userService.loginUser(email, password));
     }
 }

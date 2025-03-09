@@ -13,8 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.staymate.entity.enums.UserRole;
 import com.example.staymate.entity.user.User;
-import com.example.staymate.exception.ResourceNotFoundException;
 import com.example.staymate.exception.InvalidUserException;
+import com.example.staymate.exception.ResourceNotFoundException;
 import com.example.staymate.observer.EmailObserver;
 import com.example.staymate.observer.Observer;
 import com.example.staymate.observer.Subject;
@@ -161,4 +161,25 @@ public class UserService implements Subject {
     public void setEmailObserver(EmailObserver emailObserver) {
         addObserver(emailObserver);
     }
+
+    public String loginUser(String email, String password) {
+        if (email == null || password == null) {
+            throw new InvalidUserException("Email and password cannot be null.");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email " + email));
+
+        if (!user.checkPassword(password)) {
+            throw new InvalidUserException("Invalid email or password.");
+        }
+
+        if (!user.isVerified()) {
+            throw new InvalidUserException("User email is not verified.");
+        }
+
+        String token = generateVerificationToken(user);
+        return token;
+    }
+
 }
