@@ -62,7 +62,7 @@ public class RoomController {
         }
     }
 
-    @PostMapping("/{hotelId}/{roomId}")
+    @PostMapping("/{hotelId}")
     @Operation(summary = "Create a new room", description = "Creates a room in a specified hotel with given details.")
     public ResponseEntity<CustomResponse<Map<String, Object>>> createRoom1(
             @PathVariable @Parameter(description = "ID of the hotel where the room will be created") Long hotelId,
