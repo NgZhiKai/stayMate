@@ -84,13 +84,13 @@ jobs:
       # Install OWASP Dependency Check
       - name: OWASP Dependency Check
         run: |
-          wget https://github.com/jeremylong/DependencyCheck/releases/download/v7.2.0/dependency-check-7.2.0-release.zip
-          unzip dependency-check-7.2.0-release.zip
+          wget https://github.com/dependency-check/DependencyCheck/releases/download/v12.1.0/dependency-check-12.1.0-release.zip
+          unzip dependency-check-12.1.0-release.zip
 
       # Run OWASP Dependency Check scan on backend
       - name: Run scan with ODC
         run: |
-          dependency-check/bin/dependency-check.sh --project "Staymate" --scan ./backend > ODC-report
+          dependency-check/bin/dependency-check.sh --project "Staymate" --scan ./backend --debug > ODC-report
 
       # Archive SAST report
       - name: Archive SAST Report
@@ -155,5 +155,4 @@ jobs:
       # Change to target folder and copy files to EC2 using SCP
       - name: Copy files to EC2 using SCP
         run: |
-          cd target
-          scp -i ~/.ssh/staymateApplication.pem staymate-0.0.1-SNAPSHOT.jar ec2-user@ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com:/home/ec2-user
+          scp -i ~/.ssh/staymateApplication.pem ~/target/staymate-0.0.1-SNAPSHOT.jar ec2-user@ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com:/home/ec2-user
