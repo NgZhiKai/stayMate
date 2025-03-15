@@ -61,4 +61,39 @@ public class RoomController {
                     .body(new CustomResponse<>("An error occurred: " + e.getMessage(), null));
         }
     }
+
+    @PostMapping("/{hotelId}/{roomId}")
+    @Operation(summary = "Create a new room", description = "Creates a room in a specified hotel with given details.")
+    public ResponseEntity<CustomResponse<Map<String, Object>>> createRoom1(
+            @PathVariable @Parameter(description = "ID of the hotel where the room will be created") Long hotelId,
+            @PathVariable @Parameter(description = "ID of the room to be created") Long roomId,
+            @RequestParam @Parameter(description = "Type of the room") RoomType roomType,
+            @RequestParam @Parameter(description = "Price per night for the room") double pricePerNight,
+            @RequestParam @Parameter(description = "Maximum occupancy of the room") int maxOccupancy) {
+        try {
+            Hotel hotel = roomService.getHotelById(hotelId);
+            if (hotel == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new CustomResponse<>("Hotel not found with ID: " + hotelId, null));
+            }
+
+            Room newRoom = roomService.createRoom(hotel, roomId, roomType, pricePerNight, maxOccupancy);
+            if (newRoom == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new CustomResponse<>("Failed to create room. Please try again later.", null));
+            }
+
+            Map<String, Object> roomData = Map.of(
+                    "hotelId", newRoom.getId().getHotelId(),
+                    "roomId", newRoom.getId().getRoomId(),
+                    "pricePerNight", newRoom.getPricePerNight(),
+                    "maxOccupancy", newRoom.getMaxOccupancy());
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new CustomResponse<>("Room created successfully", roomData));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new CustomResponse<>("An error occurred: " + e.getMessage(), null));
+        }
+    }
 }

@@ -161,12 +161,6 @@ jobs:
           nc -zv ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com 22
         continue-on-error: true # Continue the deployment even if the check fails
 
-      # List files in target folder
-      - name: List files in ./backend/target/
-        run: |
-          echo "Listing files in ./backend/target/"
-          ls -al ./backend/target/
-
       # Change to target folder and copy files to EC2 using SCP
       - name: Copy files to EC2 using SCP
         run: |
