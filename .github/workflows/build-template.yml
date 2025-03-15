@@ -34,7 +34,7 @@ jobs:
         run: |
           cd backend
           mvn -B package test --file pom.xml \
-            -Ddb.url=jdbc:mysql://staymatems.c3geuwcoi6en.ap-southeast-1.rds.amazonaws.com:3307/test_db \
+            -Ddb.url=jdbc:mysql://staymatems.c3geuwcoi6en.ap-southeast-1.rds.amazonaws.com:3307/staymateMS \
             -Ddb.username=admin \
             -Ddb.password=password
 

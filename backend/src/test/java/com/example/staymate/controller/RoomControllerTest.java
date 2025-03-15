@@ -45,7 +45,7 @@ class RoomControllerTest {
         MockitoAnnotations.openMocks(this);
         mockMvc = MockMvcBuilders.standaloneSetup(roomController).build();
     }
-    //
+    
     // @Test
     // void testCreateRoom() throws Exception {
     // Long hotelId = 3L;
