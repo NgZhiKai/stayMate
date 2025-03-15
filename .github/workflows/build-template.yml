@@ -8,16 +8,6 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: test_db
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping --silent" --health-timeout=10s --health-retries=3
-
     steps:
       # Checkout the repository
       - uses: actions/checkout@v4
@@ -44,9 +34,9 @@ jobs:
         run: |
           cd backend
           mvn -B package test --file pom.xml \
-            -Ddb.url=jdbc:mysql://localhost:3306/test_db \
-            -Ddb.username=root \
-            -Ddb.password=root
+            -Ddb.url=jdbc:mysql://staymatems.c3geuwcoi6en.ap-southeast-1.rds.amazonaws.com:3307/test_db \
+            -Ddb.username=admin \
+            -Ddb.password=password
 
   lint:
     name: Linting with JSHint
@@ -136,3 +126,34 @@ jobs:
         with:
           name: zap-report
           path: ./zap_baseline_report.html
+
+  deploy_to_ec2:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: dast_scan # Ensures deployment runs after DAST Scan
+
+    steps:
+      # Checkout the repository
+      - uses: actions/checkout@v4
+
+      # Set up SSH for SCP
+      - name: Set up SSH for SCP
+        run: |
+          mkdir -p ~/.ssh
+          cp pemFiles/staymateApplication.pem ~/.ssh/staymateApplication.pem
+          chmod 400 ~/.ssh/staymateApplication.pem
+          # Add EC2 host to known hosts to avoid SSH prompt
+          ssh-keyscan -H ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com >> ~/.ssh/known_hosts
+
+      # Check if EC2 is reachable
+      - name: Check if EC2 is reachable
+        run: |
+          echo "Checking if EC2 is reachable..."
+          nc -zv ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com 22
+        continue-on-error: true # Continue the deployment even if the check fails
+
+      # Change to target folder and copy files to EC2 using SCP
+      - name: Copy files to EC2 using SCP
+        run: |
+          cd target
+          scp -i ~/.ssh/staymateApplication.pem staymate-0.0.1-SNAPSHOT.jar ec2-user@ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com:/home/ec2-user
