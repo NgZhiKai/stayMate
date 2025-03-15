@@ -176,4 +176,4 @@ jobs:
       - name: SSH into EC2 and run the Jar
         run: |
           ssh -i ~/.ssh/staymateApplication.pem ec2-user@ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com \
-            'java -jar staymate-0.0.1-SNAPSHOT.jar'
+            'nohup java -jar /home/ec2-user/staymate-0.0.1-SNAPSHOT.jar &'
