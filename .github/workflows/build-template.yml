@@ -130,9 +130,7 @@ jobs:
   deploy_to_ec2:
     name: Deploy to EC2
     runs-on: ubuntu-latest
-    needs:
-      build_and_test
-      #[lint, dast_scan] # Ensures deployment runs after DAST Scan
+    needs: build_and_test # Ensures deployment runs after DAST Scan
 
     steps:
       # Checkout the repository
@@ -154,26 +152,27 @@ jobs:
           nc -zv ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com 22
         continue-on-error: true # Continue the deployment even if the check fails
 
-      # Run mvn clean install to clean, build, and install the artifacts
-      - name: Clean and Install with Maven
+      # SSH into EC2 to kill the process using port 4200
+      - name: Kill process using port 4200
         run: |
-          cd backend
-          mvn clean install --file pom.xml \
-            -Ddb.url=jdbc:mysql://staymatems.c3geuwcoi6en.ap-southeast-1.rds.amazonaws.com:3307/staymateMS \
-            -Ddb.username=admin \
-            -Ddb.password=password
+          ssh -i ~/.ssh/staymateApplication.pem ec2-user@ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com << 'EOF'
+            # Find and kill process using port 4200
+            PID=$(lsof -t -i:4200)
+            if [ -n "$PID" ]; then
+              echo "Killing process $PID using port 4200"
+              kill -9 $PID
+            else
+              echo "No process found using port 4200"
+            fi
+          EOF
 
-      - name: List files in backend target folder
+      # List files in target folder
+      - name: List files in target folder
         run: |
-          echo "Listing files in backend/target/"
-          ls -al backend/target/
+          echo "Listing files in ./backend/target/"
+          ls -al ./backend/target/
 
-      # Change to target folder and copy files to EC2 using SCP
+      # Copy files to EC2 using SCP
       - name: Copy files to EC2 using SCP
         run: |
-          scp -i ~/.ssh/staymateApplication.pem backend/target/staymate-0.0.1-SNAPSHOT.jar ec2-user@ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com:/home/ec2-user
-
-      - name: SSH into EC2 and run the Jar
-        run: |
-          ssh -i ~/.ssh/staymateApplication.pem ec2-user@ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com \
-            'nohup java -jar /home/ec2-user/staymate-0.0.1-SNAPSHOT.jar &'
+          scp -i ~/.ssh/staymateApplication.pem ./backend/target/staymate-0.0.1-SNAPSHOT.jar ec2-user@ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com:/home/ec2-user
