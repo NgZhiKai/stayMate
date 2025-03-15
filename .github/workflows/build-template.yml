@@ -166,6 +166,14 @@ jobs:
             fi
           EOF
 
+      - name: Build and Install with Maven
+        run: |
+          cd backend
+          mvn clean install --file pom.xml \
+            -Ddb.url=jdbc:mysql://staymatems.c3geuwcoi6en.ap-southeast-1.rds.amazonaws.com:3307/staymateMS \
+            -Ddb.username=admin \
+            -Ddb.password=password
+
       # List files in target folder
       - name: List files in target folder
         run: |
