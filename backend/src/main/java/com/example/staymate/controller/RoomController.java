@@ -4,11 +4,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.staymate.dto.custom.CustomResponse;
 import com.example.staymate.entity.enums.RoomType;
@@ -16,8 +12,13 @@ import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.entity.room.Room;
 import com.example.staymate.service.RoomService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/rooms")
+@Tag(name = "Room Controller", description = "API for managing hotel rooms")
 public class RoomController {
 
     private final RoomService roomService;
@@ -27,11 +28,13 @@ public class RoomController {
     }
 
     @PostMapping("/{hotelId}/{roomId}")
-    public ResponseEntity<CustomResponse<Map<String, Object>>> createRoom(@PathVariable Long hotelId,
-            @PathVariable Long roomId,
-            @RequestParam RoomType roomType,
-            @RequestParam double pricePerNight,
-            @RequestParam int maxOccupancy) {
+    @Operation(summary = "Create a new room", description = "Creates a room in a specified hotel with given details.")
+    public ResponseEntity<CustomResponse<Map<String, Object>>> createRoom(
+            @PathVariable @Parameter(description = "ID of the hotel where the room will be created") Long hotelId,
+            @PathVariable @Parameter(description = "ID of the room to be created") Long roomId,
+            @RequestParam @Parameter(description = "Type of the room") RoomType roomType,
+            @RequestParam @Parameter(description = "Price per night for the room") double pricePerNight,
+            @RequestParam @Parameter(description = "Maximum occupancy of the room") int maxOccupancy) {
         try {
             Hotel hotel = roomService.getHotelById(hotelId);
             if (hotel == null) {

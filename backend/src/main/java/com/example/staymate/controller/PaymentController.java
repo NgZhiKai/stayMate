@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.staymate.dto.custom.CustomResponse;
@@ -21,6 +21,9 @@ import com.example.staymate.entity.enums.PaymentMethod;
 import com.example.staymate.entity.payment.Payment;
 import com.example.staymate.service.PaymentService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+
 @RestController
 @RequestMapping("/payments")
 public class PaymentController {
@@ -28,12 +31,15 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;
 
-    // Create and process a new payment in one call
+    @Operation(summary = "Create and process a new payment", description = "Create a new payment entry and process it in one API call.")
     @PostMapping
-    public ResponseEntity<CustomResponse<String>> createAndProcessPayment(@RequestBody PaymentRequestDTO paymentRequestDTO, @RequestParam PaymentMethod paymentMethod) {
+    public ResponseEntity<CustomResponse<String>> createAndProcessPayment(
+            @Parameter(description = "The payment details for creating a new payment") @RequestBody PaymentRequestDTO paymentRequestDTO,
+            @Parameter(description = "The payment method to process the payment") @RequestParam PaymentMethod paymentMethod) {
         try {
             // 1. Create the payment entry in the database (initially in PENDING state)
-            Payment newPayment = paymentService.createPayment(paymentRequestDTO.getBookingId(), paymentMethod, paymentRequestDTO.getAmount());
+            Payment newPayment = paymentService.createPayment(paymentRequestDTO.getBookingId(), paymentMethod,
+                    paymentRequestDTO.getAmount());
 
             // 2. Process the payment (update status based on payment method)
             paymentService.processPayment(newPayment.getId(), paymentMethod);
@@ -41,7 +47,8 @@ public class PaymentController {
             // 3. Return a successful response with the processed payment status
             Payment processedPayment = paymentService.getPaymentById(newPayment.getId());
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new CustomResponse<>("Payment created and processed successfully. Current status: " + processedPayment.getStatus(), null));
+                    .body(new CustomResponse<>("Payment created and processed successfully. Current status: "
+                            + processedPayment.getStatus(), null));
         } catch (Exception e) {
             // Return an error response if something goes wrong
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -49,9 +56,10 @@ public class PaymentController {
         }
     }
 
-    // Get payment by ID
+    @Operation(summary = "Get payment by ID", description = "Retrieve a specific payment by its ID.")
     @GetMapping("/{id}")
-    public ResponseEntity<CustomResponse<PaymentIdResponseDTO>> getPaymentById(@PathVariable Long id) {
+    public ResponseEntity<CustomResponse<PaymentIdResponseDTO>> getPaymentById(
+            @Parameter(description = "ID of the payment to retrieve") @PathVariable Long id) {
         try {
             Payment payment = paymentService.getPaymentById(id);
             PaymentIdResponseDTO paymentIdResponseDTO = new PaymentIdResponseDTO(payment);
@@ -62,16 +70,17 @@ public class PaymentController {
         }
     }
 
-    // Get payments for a specific booking
+    @Operation(summary = "Get payments by booking ID", description = "Retrieve all payments associated with a specific booking ID.")
     @GetMapping("/booking/{bookingId}")
-    public ResponseEntity<CustomResponse<List<PaymentIdResponseDTO>>> getPaymentsByBookingId(@PathVariable Long bookingId) {
+    public ResponseEntity<CustomResponse<List<PaymentIdResponseDTO>>> getPaymentsByBookingId(
+            @Parameter(description = "ID of the booking to retrieve payments for") @PathVariable Long bookingId) {
         try {
             List<Payment> payments = paymentService.getPaymentsByBookingId(bookingId);
 
             // Convert the list of Payment entities to PaymentIdResponseDTO objects
             List<PaymentIdResponseDTO> paymentIdResponseDTOs = payments.stream()
-                .map(PaymentIdResponseDTO::new)
-                .collect(Collectors.toList());
+                    .map(PaymentIdResponseDTO::new)
+                    .collect(Collectors.toList());
 
             return ResponseEntity.ok(new CustomResponse<>("Payments retrieved successfully", paymentIdResponseDTOs));
         } catch (Exception e) {
@@ -80,16 +89,17 @@ public class PaymentController {
         }
     }
 
-    // Get payments for a specific user
+    @Operation(summary = "Get payments by user ID", description = "Retrieve all payments associated with a specific user ID.")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<CustomResponse<List<PaymentIdResponseDTO>>> getPaymentsByUserId(@PathVariable Long userId) {
+    public ResponseEntity<CustomResponse<List<PaymentIdResponseDTO>>> getPaymentsByUserId(
+            @Parameter(description = "ID of the user to retrieve payments for") @PathVariable Long userId) {
         try {
             List<Payment> payments = paymentService.getPaymentsByUserId(userId);
 
             // Convert the list of Payment entities to PaymentIdResponseDTO objects
             List<PaymentIdResponseDTO> paymentIdResponseDTOs = payments.stream()
-                .map(PaymentIdResponseDTO::new)
-                .collect(Collectors.toList());
+                    .map(PaymentIdResponseDTO::new)
+                    .collect(Collectors.toList());
 
             return ResponseEntity.ok(new CustomResponse<>("Payments retrieved successfully", paymentIdResponseDTOs));
         } catch (Exception e) {

@@ -1,7 +1,7 @@
 -- Create the schema and use it
-CREATE SCHEMA IF NOT EXISTS staymatedb;
+CREATE SCHEMA IF NOT EXISTS staymateMS;
 
-USE staymatedb;
+USE staymateMS;
 
 -- Drop existing tables if they exist
 DROP TABLE IF EXISTS Notification;

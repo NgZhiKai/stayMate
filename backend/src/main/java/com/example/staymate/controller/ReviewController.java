@@ -23,6 +23,9 @@ import com.example.staymate.service.HotelService;
 import com.example.staymate.service.ReviewService;
 import com.example.staymate.service.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+
 @RestController
 @RequestMapping("/reviews")
 public class ReviewController {
@@ -38,7 +41,7 @@ public class ReviewController {
         this.userService = userService;
     }
 
-    // Get all reviews
+    @Operation(summary = "Get all reviews", description = "Retrieve all reviews from the system.")
     @GetMapping
     public ResponseEntity<CustomResponse<List<Review>>> getAllReviews() {
         try {
@@ -50,9 +53,10 @@ public class ReviewController {
         }
     }
 
-    // Get review by ID
+    @Operation(summary = "Get review by ID", description = "Retrieve a review by its ID.")
     @GetMapping("/{id}")
-    public ResponseEntity<CustomResponse<Review>> getReviewById(@PathVariable Long id) {
+    public ResponseEntity<CustomResponse<Review>> getReviewById(
+            @Parameter(description = "ID of the review to retrieve") @PathVariable Long id) {
         try {
             Review review = reviewService.getReviewById(id);
             if (review == null) {
@@ -68,9 +72,10 @@ public class ReviewController {
         }
     }
 
-    // Create a new review
+    @Operation(summary = "Create a new review", description = "Create and save a new review for a hotel by a user.")
     @PostMapping
-    public ResponseEntity<CustomResponse<Review>> createReview(@RequestBody Review review) {
+    public ResponseEntity<CustomResponse<Review>> createReview(
+            @Parameter(description = "The review details to be created") @RequestBody Review review) {
         try {
             Hotel hotel = hotelService.getHotelById(review.getHotel().getId());
             if (hotel == null) {
@@ -97,9 +102,11 @@ public class ReviewController {
         }
     }
 
-    // Update an existing review
+    @Operation(summary = "Update an existing review", description = "Update the details of an existing review by its ID.")
     @PutMapping("/{id}")
-    public ResponseEntity<CustomResponse<Review>> updateReview(@PathVariable Long id, @RequestBody Review review) {
+    public ResponseEntity<CustomResponse<Review>> updateReview(
+            @Parameter(description = "ID of the review to update") @PathVariable Long id,
+            @Parameter(description = "The updated review details") @RequestBody Review review) {
         try {
             Review existingReview = reviewService.getReviewById(id);
             if (existingReview == null) {
@@ -131,9 +138,10 @@ public class ReviewController {
         }
     }
 
-    // Delete a review by ID
+    @Operation(summary = "Delete a review by ID", description = "Delete a review by its ID.")
     @DeleteMapping("/{id}")
-    public ResponseEntity<CustomResponse<String>> deleteReview(@PathVariable Long id) {
+    public ResponseEntity<CustomResponse<String>> deleteReview(
+            @Parameter(description = "ID of the review to delete") @PathVariable Long id) {
         try {
             Review review = reviewService.getReviewById(id);
             if (review == null) {
@@ -151,9 +159,10 @@ public class ReviewController {
         }
     }
 
-    // Get reviews for a specific hotel
+    @Operation(summary = "Get reviews for a specific hotel", description = "Retrieve all reviews associated with a specific hotel by its ID.")
     @GetMapping("/hotel/{hotelId}")
-    public ResponseEntity<CustomResponse<List<Review>>> getReviewsByHotel(@PathVariable Long hotelId) {
+    public ResponseEntity<CustomResponse<List<Review>>> getReviewsByHotel(
+            @Parameter(description = "ID of the hotel to retrieve reviews for") @PathVariable Long hotelId) {
         try {
             Hotel hotel = hotelService.getHotelById(hotelId);
             if (hotel == null) {
@@ -170,9 +179,10 @@ public class ReviewController {
         }
     }
 
-    // Get reviews by a specific user
+    @Operation(summary = "Get reviews by a specific user", description = "Retrieve all reviews associated with a specific user by their ID.")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<CustomResponse<List<Review>>> getReviewsByUser(@PathVariable Long userId) {
+    public ResponseEntity<CustomResponse<List<Review>>> getReviewsByUser(
+            @Parameter(description = "ID of the user to retrieve reviews for") @PathVariable Long userId) {
         try {
             User user = userService.getUserById(userId);
             if (user == null) {
@@ -189,10 +199,11 @@ public class ReviewController {
         }
     }
 
-    // Get reviews for a specific hotel by a specific user
+    @Operation(summary = "Get reviews for a specific hotel by a specific user", description = "Retrieve reviews for a specific hotel by a specific user.")
     @GetMapping("/hotel/{hotelId}/user/{userId}")
-    public ResponseEntity<CustomResponse<List<Review>>> getReviewsByHotelAndUser(@PathVariable Long hotelId,
-            @PathVariable Long userId) {
+    public ResponseEntity<CustomResponse<List<Review>>> getReviewsByHotelAndUser(
+            @Parameter(description = "ID of the hotel to retrieve reviews for") @PathVariable Long hotelId,
+            @Parameter(description = "ID of the user to retrieve reviews for") @PathVariable Long userId) {
         try {
             Hotel hotel = hotelService.getHotelById(hotelId);
             if (hotel == null) {

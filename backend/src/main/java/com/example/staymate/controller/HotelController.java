@@ -18,6 +18,9 @@ import com.example.staymate.entity.room.Room;
 import com.example.staymate.service.HotelService;
 import com.example.staymate.service.RoomService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+
 @RequestMapping("/hotels")
 @RestController
 public class HotelController {
@@ -28,9 +31,10 @@ public class HotelController {
     @Autowired
     private RoomService roomService;
 
+    @Operation(summary = "Create a new hotel", description = "This operation creates a new hotel and its rooms")
     @PostMapping
     public ResponseEntity<CustomResponse<Map<String, Object>>> createHotel(
-            @RequestBody HotelRequestDTO hotelRequestDTO) {
+            @Parameter(description = "Details of the hotel to be created") @RequestBody HotelRequestDTO hotelRequestDTO) {
         if (hotelRequestDTO.getName() == null || hotelRequestDTO.getName().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new CustomResponse<>("Hotel name is required", null)); // 400 Bad Request
@@ -70,6 +74,7 @@ public class HotelController {
                 .body(new CustomResponse<>("Hotel created successfully", response));
     }
 
+    @Operation(summary = "Get all hotels", description = "Retrieve a list of all hotels")
     @GetMapping
     public ResponseEntity<CustomResponse<List<Hotel>>> getAllHotels() {
         List<Hotel> hotels = hotelService.getAllHotels();
@@ -80,8 +85,10 @@ public class HotelController {
         return ResponseEntity.ok(new CustomResponse<>("Hotels retrieved successfully", hotels)); // 200 OK
     }
 
+    @Operation(summary = "Get hotel by ID", description = "Retrieve a hotel by its ID")
     @GetMapping("/{id}")
-    public ResponseEntity<CustomResponse<Hotel>> getHotelById(@PathVariable Long id) {
+    public ResponseEntity<CustomResponse<Hotel>> getHotelById(
+            @Parameter(description = "ID of the hotel to retrieve") @PathVariable Long id) {
         try {
             Hotel hotel = hotelService.getHotelById(id); // Directly getting the hotel, no Optional
             return ResponseEntity.ok(new CustomResponse<>("Hotel retrieved successfully", hotel)); // 200 OK
@@ -91,10 +98,11 @@ public class HotelController {
         }
     }
 
+    @Operation(summary = "Update hotel details", description = "Update the information of an existing hotel")
     @PutMapping("/{id}")
     public ResponseEntity<CustomResponse<Map<String, Object>>> updateHotel(
-            @PathVariable Long id,
-            @RequestBody Hotel hotel) {
+            @Parameter(description = "ID of the hotel to update") @PathVariable Long id,
+            @Parameter(description = "Updated hotel information") @RequestBody Hotel hotel) {
         try {
             // Ensure the hotel exists
             Hotel existingHotel = hotelService.getHotelById(id);
@@ -118,8 +126,10 @@ public class HotelController {
         }
     }
 
+    @Operation(summary = "Delete hotel by ID", description = "Delete a hotel by its ID")
     @DeleteMapping("/{id}")
-    public ResponseEntity<CustomResponse<Map<String, Object>>> deleteHotel(@PathVariable Long id) {
+    public ResponseEntity<CustomResponse<Map<String, Object>>> deleteHotel(
+            @Parameter(description = "ID of the hotel to delete") @PathVariable Long id) {
         try {
             hotelService.getHotelById(id); // Ensure hotel exists
 
@@ -136,8 +146,10 @@ public class HotelController {
         }
     }
 
+    @Operation(summary = "Search hotels by name", description = "Search for hotels by their name")
     @GetMapping("/search")
-    public ResponseEntity<CustomResponse<Map<String, Object>>> searchHotelsByName(@RequestParam String name) {
+    public ResponseEntity<CustomResponse<Map<String, Object>>> searchHotelsByName(
+            @Parameter(description = "Name of the hotel to search") @RequestParam String name) {
         if (name == null || name.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new CustomResponse<>("Search query cannot be empty", null)); // 400 Bad Request
