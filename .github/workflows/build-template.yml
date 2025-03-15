@@ -152,20 +152,6 @@ jobs:
           nc -zv ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com 22
         continue-on-error: true # Continue the deployment even if the check fails
 
-      # SSH into EC2 to kill the process using port 4200
-      - name: Kill process using port 4200
-        run: |
-          ssh -i ~/.ssh/staymateApplication.pem ec2-user@ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com << 'EOF'
-            # Find and kill process using port 4200
-            PID=$(lsof -t -i:4200)
-            if [ -n "$PID" ]; then
-              echo "Killing process $PID using port 4200"
-              kill -9 $PID
-            else
-              echo "No process found using port 4200"
-            fi
-          EOF
-
       - name: Build and Install with Maven
         run: |
           cd backend
@@ -188,5 +174,17 @@ jobs:
       # Run the jar in the background
       - name: SSH into EC2 and run the Jar in the background
         run: |
-          ssh -i ~/.ssh/staymateApplication.pem ec2-user@ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com \
-            'nohup java -jar staymate-0.0.1-SNAPSHOT.jar &'
+          ssh -i ~/.ssh/staymateApplication.pem ec2-user@ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com << 'EOF'
+            cd /home/ec2-user
+            echo "Stopping old application..."
+            PID=$(pgrep -f "staymate-0.0.1-SNAPSHOT.jar")
+            if [ -n "$PID" ]; then
+              echo "Killing process $PID"
+              kill -9 $PID
+            else
+              echo "No existing process found."
+            fi
+            echo "Starting new application..."
+            nohup java -jar staymate-0.0.1-SNAPSHOT.jar > staymate.log 2>&1 &
+            disown
+          EOF
