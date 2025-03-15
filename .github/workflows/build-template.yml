@@ -29,28 +29,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # Run mvn clean install to clean, build, and install the artifacts
-      - name: Clean and Install with Maven
+      # Build and Test with Maven
+      - name: Build and Test with Maven
         run: |
           cd backend
-          mvn clean install --file pom.xml \
+          mvn -B package test --file pom.xml \
             -Ddb.url=jdbc:mysql://staymatems.c3geuwcoi6en.ap-southeast-1.rds.amazonaws.com:3307/staymateMS \
             -Ddb.username=admin \
             -Ddb.password=password
-
-      - name: List files in backend target folder
-        run: |
-          echo "Listing files in backend/target/"
-          ls -al backend/target/
-
-      # Build and Test with Maven
-      # - name: Build and Test with Maven
-      #   run: |
-      #     cd backend
-      #     mvn -B package test --file pom.xml \
-      #       -Ddb.url=jdbc:mysql://staymatems.c3geuwcoi6en.ap-southeast-1.rds.amazonaws.com:3307/staymateMS \
-      #       -Ddb.username=admin \
-      #       -Ddb.password=password
 
   # lint:
   #   name: Linting with JSHint
@@ -167,6 +153,15 @@ jobs:
           echo "Checking if EC2 is reachable..."
           nc -zv ec2-18-141-196-34.ap-southeast-1.compute.amazonaws.com 22
         continue-on-error: true # Continue the deployment even if the check fails
+
+      # Run mvn clean install to clean, build, and install the artifacts
+      - name: Clean and Install with Maven
+        run: |
+          cd backend
+          mvn clean install --file pom.xml \
+            -Ddb.url=jdbc:mysql://staymatems.c3geuwcoi6en.ap-southeast-1.rds.amazonaws.com:3307/staymateMS \
+            -Ddb.username=admin \
+            -Ddb.password=password
 
       - name: List files in backend target folder
         run: |
