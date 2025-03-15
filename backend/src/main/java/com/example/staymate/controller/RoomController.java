@@ -62,7 +62,7 @@ public class RoomController {
         }
     }
 
-    //
+    
     @GetMapping("/{hotelId}")
     @Operation(summary = "Create a new room", description = "Creates a room in a specified hotel with given details.")
     public ResponseEntity<CustomResponse<Map<String, Object>>> createRoom1(
