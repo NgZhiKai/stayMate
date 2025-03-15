@@ -166,7 +166,7 @@ jobs:
       - name: List files in backend target folder
         run: |
           echo "Listing files in backend/target/"
-          ls -al
+          ls -al backend/
 
       # Change to target folder and copy files to EC2 using SCP
       # - name: Copy files to EC2 using SCP
