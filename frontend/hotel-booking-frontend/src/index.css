@@ -1,0 +1,9 @@
+/* Custom sidebar width (15%) */
+.sidebar-15 {
+  width: 15%;
+}
+
+/* Custom main content margin (15%) */
+.main-content-15 {
+  margin-left: 15%;
+}
