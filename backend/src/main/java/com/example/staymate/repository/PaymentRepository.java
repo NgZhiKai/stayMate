@@ -16,6 +16,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     // Find payments by booking ID
     List<Payment> findByBookingId(Long bookingId);
 
-    @Query("SELECT COALESCE(SUM(p.amount), 0.0) FROM Payment p WHERE p.booking.id = :bookingId AND p.status = 'COMPLETED'")
+    @Query("SELECT COALESCE(SUM(p.amount), 0.0) FROM Payment p WHERE p.booking.id = :bookingId AND p.status = 'SUCCESS'")
     Optional<Double> findTotalPaidAmountByBookingId(@Param("bookingId") Long bookingId);
 }
