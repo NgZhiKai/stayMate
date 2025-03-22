@@ -10,15 +10,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.staymate.dto.custom.CustomResponse;
 import com.example.staymate.dto.payment.PaymentIdResponseDTO;
 import com.example.staymate.dto.payment.PaymentRequestDTO;
+import com.example.staymate.entity.booking.Booking;
 import com.example.staymate.entity.enums.PaymentMethod;
 import com.example.staymate.entity.payment.Payment;
+import com.example.staymate.service.BookingService;
 import com.example.staymate.service.PaymentService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,15 +33,39 @@ public class PaymentController {
     @Autowired
     private PaymentService paymentService;
 
+    @Autowired
+    private BookingService bookingService;
+
     @Operation(summary = "Create and process a new payment", description = "Create a new payment entry and process it in one API call.")
     @PostMapping
     public ResponseEntity<CustomResponse<String>> createAndProcessPayment(
             @Parameter(description = "The payment details for creating a new payment") @RequestBody PaymentRequestDTO paymentRequestDTO,
             @Parameter(description = "The payment method to process the payment") @RequestParam PaymentMethod paymentMethod) {
         try {
+
+            Long bookingId = paymentRequestDTO.getBookingId();
+            Double paymentAmount = paymentRequestDTO.getAmount();
+
+            // Retrieve the booking details
+            Booking booking = bookingService.getBookingById(bookingId);
+            if (booking == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new CustomResponse<>("Booking not found.", null));
+            }
+
+            // Calculate total paid amount
+            Double totalPaid = paymentService.getTotalPaidAmount(bookingId);
+            Double remainingAmount = booking.getTotalAmount() - totalPaid;
+
+            if (paymentAmount > remainingAmount) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new CustomResponse<>(
+                                "Payment exceeds remaining balance. Remaining amount: " + remainingAmount, null));
+            }
+
             // 1. Create the payment entry in the database (initially in PENDING state)
-            Payment newPayment = paymentService.createPayment(paymentRequestDTO.getBookingId(), paymentMethod,
-                    paymentRequestDTO.getAmount());
+            Payment newPayment = paymentService.createPayment(bookingId, paymentMethod,
+                    paymentAmount);
 
             // 2. Process the payment (update status based on payment method)
             paymentService.processPayment(newPayment.getId(), paymentMethod);

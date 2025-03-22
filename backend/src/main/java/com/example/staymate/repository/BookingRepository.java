@@ -12,19 +12,18 @@ import com.example.staymate.entity.booking.Booking;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    // Find bookings by user ID
-    public List<Booking> findBookingsByUserId(Long userId);
+        // Find bookings by user ID
+        public List<Booking> findBookingsByUserId(Long userId);
 
-    @Query("SELECT b FROM Booking b WHERE b.room.id.hotelId = :hotelId")
-    List<Booking> findBookingsByHotelId(@Param("hotelId") Long hotelId);
+        @Query("SELECT b FROM Booking b WHERE b.room.id.hotelId = :hotelId")
+        List<Booking> findBookingsByHotelId(@Param("hotelId") Long hotelId);
 
-    @Query("SELECT b FROM Booking b WHERE b.room.id.hotelId = :hotelId AND b.room.id.roomId = :roomId " +
-           "AND ((b.checkInDate < :checkOutDate AND b.checkOutDate > :checkInDate))")
-    List<Booking> findOverlappingBookings(
-                @Param("hotelId") Long hotelId,
-                @Param("roomId") Long roomId,
-                @Param("checkInDate") LocalDate checkInDate,
-                @Param("checkOutDate") LocalDate checkOutDate
-        );
+        @Query("SELECT b FROM Booking b WHERE b.room.id.hotelId = :hotelId AND b.room.id.roomId = :roomId " +
+                        "AND ((b.checkInDate < :checkOutDate AND b.checkOutDate > :checkInDate))")
+        List<Booking> findOverlappingBookings(
+                        @Param("hotelId") Long hotelId,
+                        @Param("roomId") Long roomId,
+                        @Param("checkInDate") LocalDate checkInDate,
+                        @Param("checkOutDate") LocalDate checkOutDate);
 
 }

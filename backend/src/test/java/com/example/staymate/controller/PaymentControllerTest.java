@@ -37,6 +37,7 @@ import com.example.staymate.entity.room.Room;
 import com.example.staymate.entity.room.RoomId;
 import com.example.staymate.entity.user.User;
 import com.example.staymate.factory.RoomFactory;
+import com.example.staymate.service.BookingService;
 import com.example.staymate.service.PaymentService;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,6 +45,9 @@ class PaymentControllerTest {
 
     @Mock
     private PaymentService paymentService;
+
+    @Mock
+    private BookingService bookingService;
 
     @InjectMocks
     private PaymentController paymentController;
@@ -61,8 +65,8 @@ class PaymentControllerTest {
         Long userId = 1L;
         Long hotelId = 1L;
         Long generatedRoomId = 101L;
-        LocalDate checkInDate = LocalDate.of(2025, 2, 23); // Set the check-in date as per the request
-        LocalDate checkOutDate = LocalDate.of(2025, 2, 25); // Set the check-out date as per the request
+        LocalDate checkInDate = LocalDate.of(2025, 2, 23);
+        LocalDate checkOutDate = LocalDate.of(2025, 2, 25);
         double totalAmount = 100.0;
         RoomType roomType = RoomType.SINGLE;
         double pricePerNight = 50.0;
@@ -95,10 +99,15 @@ class PaymentControllerTest {
         mockPayment.setId(1L);
         mockPayment.setAmount(50.00);
         mockPayment.setStatus(PaymentStatus.SUCCESS);
-        mockPayment.setBooking(mockBooking); // Set the booking
+        mockPayment.setBooking(mockBooking);
         mockPayment.setPaymentMethod(PaymentMethod.STRIPE);
         mockPayment.setTransactionDate(LocalDateTime.now());
 
+        // Mock the total paid amount (assume 40 has already been paid)
+        when(bookingService.getBookingById(1L)).thenReturn(mockBooking);
+        when(paymentService.getTotalPaidAmount(mockBooking.getId())).thenReturn(40.0);
+
+        // Mock the payment creation and processing
         when(paymentService.createPayment(anyLong(), any(PaymentMethod.class), anyDouble())).thenReturn(mockPayment);
         doNothing().when(paymentService).processPayment(anyLong(), any(PaymentMethod.class));
         when(paymentService.getPaymentById(anyLong())).thenReturn(mockPayment);
@@ -116,6 +125,57 @@ class PaymentControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.message")
                         .value("Payment created and processed successfully. Current status: SUCCESS"));
+    }
+
+    @Test
+    void testCreateAndProcessPayment_ExceedingTotalAmount() throws Exception {
+        Long bookingId = 1L;
+        double totalAmount = 100.0;
+        double alreadyPaid = 90.0;
+
+        Long userId = 1L;
+        Long hotelId = 1L;
+        Long generatedRoomId = 101L;
+        LocalDate checkInDate = LocalDate.of(2025, 2, 23);
+        LocalDate checkOutDate = LocalDate.of(2025, 2, 25);
+        RoomType roomType = RoomType.SINGLE;
+        double pricePerNight = 50.0;
+        int maxOccupancy = 2;
+
+        Hotel mockHotel = new Hotel();
+        mockHotel.setId(hotelId);
+
+        User user = new User();
+        user.setId(userId);
+
+        Room mockRoom = RoomFactory.createRoom(mockHotel, generatedRoomId, roomType, pricePerNight, maxOccupancy);
+        mockRoom.setId(new RoomId(hotelId, generatedRoomId));
+        mockRoom.setMaxOccupancy(maxOccupancy);
+        mockRoom.setPricePerNight(pricePerNight);
+        mockRoom.setStatus(RoomStatus.AVAILABLE);
+
+        Booking mockBooking = new Booking();
+        mockBooking.setId(1L);
+        mockBooking.setUser(user);
+        mockBooking.setRoom(mockRoom);
+        mockBooking.setCheckInDate(checkInDate);
+        mockBooking.setCheckOutDate(checkOutDate);
+        mockBooking.setBookingDate(checkInDate);
+        mockBooking.setTotalAmount(totalAmount);
+        mockBooking.setStatus(BookingStatus.PENDING);
+
+        // Mock total paid amount
+        when(bookingService.getBookingById(bookingId)).thenReturn(mockBooking);
+        when(paymentService.getTotalPaidAmount(bookingId)).thenReturn(alreadyPaid);
+
+        // Perform the POST request to create payment
+        mockMvc.perform(post("/payments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"bookingId\":1, \"amount\":20.0}")
+                .param("paymentMethod", "STRIPE"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Payment exceeds remaining balance. Remaining amount: 10.0"));
     }
 
     // Test Case for getting payment by ID (SUCCESS status)

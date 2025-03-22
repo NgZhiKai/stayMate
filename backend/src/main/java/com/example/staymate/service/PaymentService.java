@@ -190,4 +190,9 @@ public class PaymentService implements Subject {
         return paymentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + id));
     }
+
+    public double getTotalPaidAmount(Long bookingId) {
+        return paymentRepository.findTotalPaidAmountByBookingId(bookingId).orElse(0.0);
+    }
+    
 }
