@@ -18,6 +18,7 @@ import com.example.staymate.dto.custom.CustomResponse;
 import com.example.staymate.dto.payment.PaymentIdResponseDTO;
 import com.example.staymate.dto.payment.PaymentRequestDTO;
 import com.example.staymate.entity.booking.Booking;
+import com.example.staymate.entity.enums.BookingStatus;
 import com.example.staymate.entity.enums.PaymentMethod;
 import com.example.staymate.entity.payment.Payment;
 import com.example.staymate.service.BookingService;
@@ -55,6 +56,7 @@ public class PaymentController {
 
             // Calculate total paid amount
             Double totalPaid = paymentService.getTotalPaidAmount(bookingId);
+            Double updatedTotalPaid = totalPaid + paymentAmount;
             Double remainingAmount = booking.getTotalAmount() - totalPaid;
 
             if (paymentAmount > remainingAmount) {
@@ -69,6 +71,11 @@ public class PaymentController {
 
             // 2. Process the payment (update status based on payment method)
             paymentService.processPayment(newPayment.getId(), paymentMethod);
+
+            if (updatedTotalPaid.equals(booking.getTotalAmount())) {
+                booking.setStatus(BookingStatus.CONFIRMED);
+                bookingService.updateBooking(booking); // Ensure this method saves the change in DB
+            }
 
             // 3. Return a successful response with the processed payment status
             Payment processedPayment = paymentService.getPaymentById(newPayment.getId());

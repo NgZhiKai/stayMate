@@ -1,9 +1,12 @@
 package com.example.staymate.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -176,6 +179,78 @@ class PaymentControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message")
                         .value("Payment exceeds remaining balance. Remaining amount: 10.0"));
+    }
+
+    @Test
+    void testCreateAndProcessPayment_BookingConfirmedWhenFullyPaid() throws Exception {
+        Long bookingId = 1L;
+        double totalAmount = 100.0;
+        double alreadyPaid = 80.0;
+        double newPaymentAmount = 20.0; // This will complete the total amount (80 + 20 = 100)
+
+        Long userId = 1L;
+        Long hotelId = 1L;
+        Long generatedRoomId = 101L;
+        LocalDate checkInDate = LocalDate.of(2025, 2, 23);
+        LocalDate checkOutDate = LocalDate.of(2025, 2, 25);
+        RoomType roomType = RoomType.SINGLE;
+        double pricePerNight = 50.0;
+        int maxOccupancy = 2;
+
+        Hotel mockHotel = new Hotel();
+        mockHotel.setId(hotelId);
+
+        User user = new User();
+        user.setId(userId);
+
+        Room mockRoom = RoomFactory.createRoom(mockHotel, generatedRoomId, roomType, pricePerNight, maxOccupancy);
+        mockRoom.setId(new RoomId(hotelId, generatedRoomId));
+        mockRoom.setMaxOccupancy(maxOccupancy);
+        mockRoom.setPricePerNight(pricePerNight);
+        mockRoom.setStatus(RoomStatus.AVAILABLE);
+
+        Booking mockBooking = new Booking();
+        mockBooking.setId(1L);
+        mockBooking.setUser(user);
+        mockBooking.setRoom(mockRoom);
+        mockBooking.setCheckInDate(checkInDate);
+        mockBooking.setCheckOutDate(checkOutDate);
+        mockBooking.setBookingDate(checkInDate);
+        mockBooking.setTotalAmount(totalAmount);
+        mockBooking.setStatus(BookingStatus.PENDING);
+
+        // Mock bookingService to return this booking
+        when(bookingService.getBookingById(bookingId)).thenReturn(mockBooking);
+
+        // Mock total paid amount
+        when(paymentService.getTotalPaidAmount(bookingId)).thenReturn(alreadyPaid);
+
+        // Mock payment creation and processing
+        Payment mockPayment = new Payment();
+        mockPayment.setId(1L);
+        mockPayment.setAmount(newPaymentAmount);
+        mockPayment.setStatus(PaymentStatus.SUCCESS);
+        mockPayment.setBooking(mockBooking);
+        mockPayment.setPaymentMethod(PaymentMethod.STRIPE);
+        mockPayment.setTransactionDate(LocalDateTime.now());
+
+        when(paymentService.createPayment(eq(bookingId), any(PaymentMethod.class), eq(newPaymentAmount)))
+                .thenReturn(mockPayment);
+        doNothing().when(paymentService).processPayment(anyLong(), any(PaymentMethod.class));
+        when(paymentService.getPaymentById(anyLong())).thenReturn(mockPayment);
+
+        // Perform the POST request to create payment
+        mockMvc.perform(post("/payments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"bookingId\":1, \"amount\":20.0}")
+                .param("paymentMethod", "STRIPE"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.message")
+                        .value("Payment created and processed successfully. Current status: SUCCESS"));
+
+        // Verify that the booking status is updated to CONFIRMED
+        assertEquals(BookingStatus.CONFIRMED, mockBooking.getStatus());
+        verify(bookingService).updateBooking(mockBooking); // Ensure updateBooking was called
     }
 
     // Test Case for getting payment by ID (SUCCESS status)
