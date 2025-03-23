@@ -40,6 +40,10 @@ jobs:
             echo "DB_URL=$DB_URL"
             echo "DB_USERNAME=$DB_USERNAME"
             echo "DB_PASSWORD=[HIDDEN]"
+
+            echo "DB_URL=$DB_URL" >> $GITHUB_ENV
+            echo "DB_USERNAME=$DB_USERNAME" >> $GITHUB_ENV
+            echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
           else
             echo "Error: database-config.properties not found!"
             exit 1
@@ -48,13 +52,10 @@ jobs:
       - name: Build and Test with Maven
         run: |
           cd backend
-          echo "DB_URL=$DB_URL"
-          echo "DB_USERNAME=$DB_USERNAME"
-          echo "DB_PASSWORD=$DB_PASSWORD"
           mvn -B package test --file pom.xml \
-            -Ddb.url=$DB_URL \
-            -Ddb.username=$DB_USERNAME \
-            -Ddb.password=$DB_PASSWORD
+          -Ddb.url="${{ env.DB_URL }}" \
+          -Ddb.username="${{ env.DB_USERNAME }}" \
+          -Ddb.password="${{ env.DB_PASSWORD }}"
 
   lint:
     name: Linting with JSHint
