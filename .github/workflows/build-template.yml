@@ -39,7 +39,7 @@ jobs:
             # Debug output
             echo "DB_URL=$DB_URL"
             echo "DB_USERNAME=$DB_USERNAME"
-            echo "DB_PASSWORD=$DB_PASSWORD"
+            echo "DB_PASSWORD=[HIDDEN]"
           else
             echo "Error: database-config.properties not found!"
             exit 1
@@ -49,9 +49,9 @@ jobs:
         run: |
           cd backend
           mvn -B package test --file pom.xml \
-            -Ddb.url=$DB_URL \
-            -Ddb.username=$DB_USERNAME \
-            -Ddb.password=$DB_PASSWORD
+            -Ddb.url=jdbc:mysql://staymatems.c3geuwcoi6en.ap-southeast-1.rds.amazonaws.com:3307/staymateMS \
+            -Ddb.username=admin \
+            -Ddb.password=password
 
   lint:
     name: Linting with JSHint
