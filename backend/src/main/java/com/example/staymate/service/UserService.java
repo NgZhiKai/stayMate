@@ -26,7 +26,7 @@ public class UserService implements Subject {
     @Autowired
     private UserRepository userRepository;
 
-    @Value("${app.base-url}")
+    @Value("#{dynamicBaseUrl}")
     private String baseUrl;
 
     @Value("${server.port}")
