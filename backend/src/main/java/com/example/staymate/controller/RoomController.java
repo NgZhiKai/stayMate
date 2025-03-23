@@ -61,5 +61,5 @@ public class RoomController {
                     .body(new CustomResponse<>("An error occurred: " + e.getMessage(), null));
         }
     }
-    
+    // 
 }

@@ -160,6 +160,7 @@ jobs:
           export APP_HOST_IP=$(grep '^app.host_ip=' backend/src/main/resources/application.properties | cut -d '=' -f2)
 
           echo "APP_HOST_IP=$APP_HOST_IP"
+          echo "APP_HOST_IP=$APP_HOST_IP" >> $GITHUB_ENV
 
       # Set up SSH for SCP
       - name: Set up SSH for SCP
@@ -168,32 +169,22 @@ jobs:
           cp pemFiles/staymateApplication.pem ~/.ssh/staymateApplication.pem
           chmod 400 ~/.ssh/staymateApplication.pem
           # Add EC2 host to known hosts to avoid SSH prompt
-          ssh-keyscan -H $APP_HOST_IP >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.APP_HOST_IP }} >> ~/.ssh/known_hosts
 
       # Check if EC2 is reachable
       - name: Check if EC2 is reachable
         run: |
           echo "Checking if EC2 is reachable..."
-          nc -zv $APP_HOST_IP 22
+          nc -zv ${{ env.APP_HOST_IP }} 22
         continue-on-error: true # Continue the deployment even if the check fails
-
-      - name: Load Database Properties
-        run: |
-          export DB_URL=$(grep '^db.url=' backend/src/main/resources/database-config.properties | cut -d '=' -f2-)
-          export DB_USERNAME=$(grep '^db.username=' backend/src/main/resources/database-config.properties | cut -d '=' -f2)
-          export DB_PASSWORD=$(grep '^db.password=' backend/src/main/resources/database-config.properties | cut -d '=' -f2)
-            
-          echo "DB_URL=$DB_URL"
-          echo "DB_USERNAME=$DB_USERNAME"
-          echo "DB_PASSWORD=[HIDDEN]"
 
       - name: Build and Install with Maven
         run: |
           cd backend
           mvn clean install --file pom.xml \
-            -Ddb.url="$DB_URL" \
-            -Ddb.username="$DB_USERNAME" \
-            -Ddb.password="$DB_PASSWORD"
+          -Ddb.url="${{ env.DB_URL }}" \
+          -Ddb.username="${{ env.DB_USERNAME }}" \
+          -Ddb.password="${{ env.DB_PASSWORD }}"
 
       # List files in target folder
       - name: List files in target folder
@@ -204,12 +195,12 @@ jobs:
       # Copy files to EC2 using SCP
       - name: Copy files to EC2 using SCP
         run: |
-          scp -i ~/.ssh/staymateApplication.pem backend/target/staymate-0.0.1-SNAPSHOT.jar ec2-user@$APP_HOST_IP:/home/ec2-user
+          scp -i ~/.ssh/staymateApplication.pem backend/target/staymate-0.0.1-SNAPSHOT.jar ec2-user@${{ env.APP_HOST_IP }}:/home/ec2-user
 
       # Run the jar in the background
       - name: SSH into EC2 and run the Jar in the background
         run: |
-          ssh -i ~/.ssh/staymateApplication.pem ec2-user@$APP_HOST_IP << 'EOF'
+          ssh -i ~/.ssh/staymateApplication.pem ec2-user@${{ env.APP_HOST_IP }} << 'EOF'
             cd /home/ec2-user
             echo "Stopping old application..."
             PID=$(pgrep -f "staymate-0.0.1-SNAPSHOT.jar")
