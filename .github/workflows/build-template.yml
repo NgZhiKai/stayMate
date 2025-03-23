@@ -31,22 +31,27 @@ jobs:
 
       - name: Load Database Properties
         run: |
-          export DB_URL=$(grep '^db.url=' backend/src/main/resources/database-config.properties | cut -d '=' -f2-)
-          export DB_USERNAME=$(grep '^db.username=' backend/src/main/resources/database-config.properties | cut -d '=' -f2)
-          export DB_PASSWORD=$(grep '^db.password=' backend/src/main/resources/database-config.properties | cut -d '=' -f2)
+          if [ -f backend/src/main/resources/database-config.properties ]; then
+            export DB_URL=$(grep '^db.url=' backend/src/main/resources/database-config.properties | cut -d '=' -f2-)
+            export DB_USERNAME=$(grep '^db.username=' backend/src/main/resources/database-config.properties | cut -d '=' -f2)
+            export DB_PASSWORD=$(grep '^db.password=' backend/src/main/resources/database-config.properties | cut -d '=' -f2)
             
-          echo "DB_URL=$DB_URL"
-          echo "DB_USERNAME=$DB_USERNAME"
-          echo "DB_PASSWORD=[HIDDEN]"
+            # Debug output
+            echo "DB_URL=$DB_URL"
+            echo "DB_USERNAME=$DB_USERNAME"
+            echo "DB_PASSWORD=[HIDDEN]"
+          else
+            echo "Error: database-config.properties not found!"
+            exit 1
+          fi
 
-      # Build and Test with Maven
       - name: Build and Test with Maven
         run: |
           cd backend
           mvn -B package test --file pom.xml \
-            -Ddb.url=$DB_URL \
-            -Ddb.username=$DB_USERNAME \
-            -Ddb.password=$DB_PASSWORD
+            -Ddb.url="$DB_URL" \
+            -Ddb.username="$DB_USERNAME" \
+            -Ddb.password="$DB_PASSWORD"
 
   lint:
     name: Linting with JSHint
