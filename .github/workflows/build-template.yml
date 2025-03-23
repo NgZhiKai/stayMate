@@ -39,7 +39,7 @@ jobs:
             # Debug output
             echo "DB_URL=$DB_URL"
             echo "DB_USERNAME=$DB_USERNAME"
-            echo "DB_PASSWORD=[HIDDEN]"
+            echo "DB_PASSWORD=$DB_PASSWORD"
           else
             echo "Error: database-config.properties not found!"
             exit 1
