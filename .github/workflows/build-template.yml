@@ -48,10 +48,13 @@ jobs:
       - name: Build and Test with Maven
         run: |
           cd backend
+          echo "DB_URL=$DB_URL"
+          echo "DB_USERNAME=$DB_USERNAME"
+          echo "DB_PASSWORD=$DB_PASSWORD"
           mvn -B package test --file pom.xml \
-            -Ddb.url=jdbc:mysql://staymatems.c3geuwcoi6en.ap-southeast-1.rds.amazonaws.com:3307/staymateMS \
-            -Ddb.username=admin \
-            -Ddb.password=password
+            -Ddb.url=$DB_URL \
+            -Ddb.username=$DB_USERNAME \
+            -Ddb.password=$DB_PASSWORD
 
   lint:
     name: Linting with JSHint
