@@ -44,9 +44,9 @@ jobs:
         run: |
           cd backend
           mvn -B package test --file pom.xml \
-            -Ddb.url="$DB_URL" \
-            -Ddb.username="$DB_USERNAME" \
-            -Ddb.password="$DB_PASSWORD"
+            -Ddb.url=$DB_URL \
+            -Ddb.username=$DB_USERNAME \
+            -Ddb.password=$DB_PASSWORD
 
   lint:
     name: Linting with JSHint
