@@ -4,6 +4,7 @@ import HomePage from "./Pages/HomePage";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import AccountPage from "./Pages/AccountPage";
+import NearMePage from "./Pages/NearMePage";
 
 const App: React.FC = () => {
   const [isOpen, setIsOpen] = useState(() => {
@@ -29,7 +30,7 @@ const App: React.FC = () => {
           <div className={`flex-1 transition-all duration-300 p-4 ${isOpen ? "ml-64" : "ml-0"}`}>
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/nearme" element={<h1>Near Me Page</h1>} />
+              <Route path="/nearme" element={<NearMePage />} />
               <Route path="/account" element={<AccountPage />} />
             </Routes>
           </div>

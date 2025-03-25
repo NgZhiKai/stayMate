@@ -14,7 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     >
       <nav className="flex flex-col space-y-3">
         <Link to="/" className="hover:bg-gray-700 p-2 rounded">
-          🏠 Homepage
+          🏠 Hotels
         </Link>
         <Link to="/nearme" className="hover:bg-gray-700 p-2 rounded">
           📍 Near Me
