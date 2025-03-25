@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomePage from "./Pages/HomePage";
 import Sidebar from "./components/Sidebar";
-import Header from "./components/Header"; // ✅ Import the new header
+import Header from "./components/Header";
+import AccountPage from "./Pages/AccountPage";
 
 const App: React.FC = () => {
   const [isOpen, setIsOpen] = useState(() => {
@@ -29,7 +30,7 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/nearme" element={<h1>Near Me Page</h1>} />
-              <Route path="/account" element={<h1>Account Page</h1>} />
+              <Route path="/account" element={<AccountPage />} />
             </Routes>
           </div>
         </div>
