@@ -1,13 +1,26 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Custom sidebar width (15%) */
+.sidebar-15 {
+  width: 15%;
+  transition: transform 0.3s ease-in-out; /* Smooth transition */
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Sidebar closed state */
+.sidebar-closed {
+  transform: translateX(-100%); /* Hide sidebar off-screen */
+}
+
+/* Custom main content margin (15%) */
+.main-content-15 {
+  margin-left: 15%;
+  transition: margin-left 0.3s ease-in-out; /* Smooth transition */
+}
+
+/* Main content full width when sidebar is closed */
+.main-content-full {
+  margin-left: 0;
+}
+
+/* Custom position for toggle button when sidebar is open */
+.start-15 {
+  left: 15%; /* Position button at the right edge of the sidebar */
 }
