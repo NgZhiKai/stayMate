@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FiMenu } from "react-icons/fi";
+import { FiX, FiMenu } from "react-icons/fi";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -9,34 +9,32 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   return (
-    <>
-      {/* Mobile Toggle Button */}
+    <div
+      className={`fixed h-full w-64 bg-gray-900 text-white p-6 transition-all duration-300 z-40
+      ${isOpen ? "left-0" : "-left-64"}`}
+    >
+      {/* Toggle Button - ALWAYS VISIBLE */}
       <button
-        className="fixed top-4 left-4 z-50 p-2 bg-blue-600 text-white rounded-md md:hidden"
         onClick={toggleSidebar}
+        className={`absolute p-2 bg-blue-600 text-white rounded-md
+          ${isOpen ? "right-4 top-4" : "right-[-40px] top-4"}`}
       >
-        <FiMenu size={24} />
+        {isOpen ? <FiX size={20} /> : <FiMenu size={20} />}
       </button>
 
-      {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 w-64 bg-gray-900 text-white p-6 transition-transform duration-300 ease-in-out z-40
-        ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
-      >
-        <h2 className="text-xl font-bold mb-4">StayMate</h2>
-        <nav className="flex flex-col space-y-3">
-          <Link to="/" className="hover:bg-gray-700 p-2 rounded">
-            🏠 Homepage
-          </Link>
-          <Link to="/nearme" className="hover:bg-gray-700 p-2 rounded">
-            📍 Near Me
-          </Link>
-          <Link to="/account" className="hover:bg-gray-700 p-2 rounded">
-            🧑‍💼 Account
-          </Link>
-        </nav>
-      </div>
-    </>
+      <h2 className="text-xl font-bold mb-4 mt-2">StayMate</h2>
+      <nav className="flex flex-col space-y-3">
+        <Link to="/" className="hover:bg-gray-700 p-2 rounded">
+          🏠 Homepage
+        </Link>
+        <Link to="/nearme" className="hover:bg-gray-700 p-2 rounded">
+          📍 Near Me
+        </Link>
+        <Link to="/account" className="hover:bg-gray-700 p-2 rounded">
+          🧑‍💼 Account
+        </Link>
+      </nav>
+    </div>
   );
 };
 

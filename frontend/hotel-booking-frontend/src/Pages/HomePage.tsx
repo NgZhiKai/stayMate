@@ -2,9 +2,9 @@ import React from "react";
 
 const HomePage: React.FC = () => {
   return (
-    <div>
-      <h1 className="display-4">Welcome to StayMate</h1>
-      <p className="lead">Find the best hotels near you!</p>
+    <div className="pt-8"> {/* Added top padding */}
+      <h1 className="text-3xl font-bold">Welcome to StayMate</h1>
+      <p className="text-lg mt-2">Find the best hotels near you!</p>
     </div>
   );
 };
