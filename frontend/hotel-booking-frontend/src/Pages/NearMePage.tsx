@@ -16,10 +16,13 @@ const createCustomIcon = () => {
   });
 };
 
-const LocateControl = ({ onLocationFound }: { onLocationFound: (latlng: L.LatLng) => void }) => {
-  const map = useMap();
+// ✅ Fix: Properly extend L.Control to avoid TS error
+class LocateControlClass extends L.Control {
+  constructor(private onLocationFound: (latlng: L.LatLng) => void) {
+    super({ position: 'topleft' });
+  }
 
-  useEffect(() => {
+  onAdd(map: L.Map) {
     const locateButton = L.DomUtil.create('button', 'leaflet-bar leaflet-control leaflet-control-locate');
     locateButton.innerHTML = `
       <span class="leaflet-control-locate-icon" title="Locate me">
@@ -39,21 +42,26 @@ const LocateControl = ({ onLocationFound }: { onLocationFound: (latlng: L.LatLng
       });
     });
 
-    const locateControl = L.control({ position: 'topleft' });
-    locateControl.onAdd = () => locateButton;
-    locateControl.addTo(map);
-
     map.on('locationfound', (e) => {
-      onLocationFound(e.latlng);
-      L.circle(e.latlng, {
-        radius: e.accuracy,
-        fillOpacity: 0.2,
-        color: '#136AEC'
-      }).addTo(map);
+      this.onLocationFound(e.latlng);
     });
 
+    return locateButton;
+  }
+
+  onRemove(map: L.Map) {
+    map.off('locationfound');
+  }
+}
+
+const LocateControl = ({ onLocationFound }: { onLocationFound: (latlng: L.LatLng) => void }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    const locateControl = new LocateControlClass(onLocationFound);
+    map.addControl(locateControl);
+
     return () => {
-      map.off('locationfound');
       map.removeControl(locateControl);
     };
   }, [map, onLocationFound]);
