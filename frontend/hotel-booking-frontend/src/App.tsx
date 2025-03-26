@@ -1,61 +1,39 @@
-import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomePage from "./Pages/HomePage";
-import "./index.css";
+import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
+import AccountPage from "./Pages/AccountPage";
+import NearMePage from "./Pages/NearMePage";
 
 const App: React.FC = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Sidebar is open by default
+  const [isOpen, setIsOpen] = useState(() => {
+    const saved = localStorage.getItem("sidebarOpen");
+    return saved !== null ? JSON.parse(saved) : true;
+  });
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen); // Toggle sidebar visibility
-  };
+  useEffect(() => {
+    localStorage.setItem("sidebarOpen", JSON.stringify(isOpen));
+  }, [isOpen]);
 
   return (
     <Router>
-      <div className="d-flex">
-        {/* Fixed Sidebar */}
-        <div
-          className={`bg-dark text-white vh-100 position-fixed top-0 start-0 sidebar-15 ${
-            isSidebarOpen ? "" : "sidebar-closed"
-          }`}
-        >
-          <h2 className="p-3">StayMate</h2>
-          <nav className="d-flex flex-column p-3">
-            <Link to="/" className="text-white text-decoration-none mb-2">
-              🏠 Homepage
-            </Link>
-            <Link to="/nearme" className="text-white text-decoration-none mb-2">
-              📍 Near Me
-            </Link>
-            <Link to="/account" className="text-white text-decoration-none mb-2">
-              👤 Account
-            </Link>
-          </nav>
-        </div>
+      <div className="flex flex-col min-h-screen">
+        {/* ✅ Fixed Top Header */}
+        <Header toggleSidebar={() => setIsOpen(!isOpen)} />
 
-        {/* Main Content */}
-        <div
-          className={`flex-grow-1 main-content-15 p-3 ${
-            isSidebarOpen ? "" : "main-content-full"
-          } pt-5`} // Add pt-5 for padding-top
-        >
-          {/* Toggle Button */}
-          <button
-            onClick={toggleSidebar}
-            className={`btn btn-primary position-fixed top-0 ${
-              isSidebarOpen ? "start-15" : "start-0"
-            } m-3 rounded-circle`}
-            style={{ width: "40px", height: "40px", zIndex: 1000 }}
-          >
-            {isSidebarOpen ? "◄" : "►"}
-          </button>
+        <div className="flex flex-1 pt-16">
+          {/* ✅ Sidebar */}
+          <Sidebar isOpen={isOpen} toggleSidebar={() => setIsOpen(!isOpen)} />
 
-          {/* Routes */}
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/nearme" element={<h1>Near Me Page</h1>} />
-            <Route path="/account" element={<h1>Account Page</h1>} />
-          </Routes>
+          {/* ✅ Main Content (Prevents overlap with header) */}
+          <div className={`flex-1 transition-all duration-300 p-4 ${isOpen ? "ml-64" : "ml-0"}`}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/nearme" element={<NearMePage />} />
+              <Route path="/account" element={<AccountPage />} />
+            </Routes>
+          </div>
         </div>
       </div>
     </Router>

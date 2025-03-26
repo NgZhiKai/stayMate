@@ -6,36 +6,21 @@ interface SidebarProps {
   toggleSidebar: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
   return (
     <div
-      className={`bg-dark text-white vh-100 position-fixed top-0 start-0 w-20 transition-all ${
-        isOpen ? "translate-x-0" : "-translate-x-100"
-      }`}
-      style={{ zIndex: 1000 }}
+      className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-gray-900 text-white p-6 transition-all duration-300 z-40
+      ${isOpen ? "translate-x-0" : "-translate-x-64"}`}
     >
-      <h2 className="p-3">StayMate</h2>
-      <nav className="d-flex flex-column p-3">
-        <Link
-          to="/"
-          className="text-white text-decoration-none mb-2"
-          onClick={toggleSidebar}
-        >
-          🏠 Homepage
+      <nav className="flex flex-col space-y-3">
+        <Link to="/" className="hover:bg-gray-700 p-2 rounded">
+          🏠 Hotels
         </Link>
-        <Link
-          to="/nearme"
-          className="text-white text-decoration-none mb-2"
-          onClick={toggleSidebar}
-        >
+        <Link to="/nearme" className="hover:bg-gray-700 p-2 rounded">
           📍 Near Me
         </Link>
-        <Link
-          to="/account"
-          className="text-white text-decoration-none mb-2"
-          onClick={toggleSidebar}
-        >
-          👤 Account
+        <Link to="/account" className="hover:bg-gray-700 p-2 rounded">
+          🧑‍💼 Account
         </Link>
       </nav>
     </div>

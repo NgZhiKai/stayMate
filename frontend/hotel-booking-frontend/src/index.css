@@ -1,26 +1,48 @@
-/* Custom sidebar width (15%) */
-.sidebar-15 {
-  width: 15%;
-  transition: transform 0.3s ease-in-out; /* Smooth transition */
+@import "leaflet/dist/leaflet.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure smooth transitions */
+.transition-all {
+    transition: all 0.3s ease;
+  }
+  
+  /* Prevent horizontal scroll */
+  body {
+    overflow-x: hidden;
+  }
+
+  .leaflet-map {
+    height: 500px;  /* ✅ Adjust height as needed */
+    width: 100%;
+  }
+  
+  /* Style for the locate button */
+  .leaflet-control-locate-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    cursor: pointer;
+  }
+  
+  .leaflet-control-locate-icon:hover {
+    background: #f4f4f4;
+  }
+
+/* Location accuracy circle */
+.leaflet-control-locate-location circle {
+  animation: leaflet-control-locate-throb 4s ease infinite;
 }
 
-/* Sidebar closed state */
-.sidebar-closed {
-  transform: translateX(-100%); /* Hide sidebar off-screen */
+@keyframes leaflet-control-locate-throb {
+  0% { stroke-width: 1; }
+  50% { stroke-width: 3; opacity: 0.7; }
+  100% { stroke-width: 1; }
 }
 
-/* Custom main content margin (15%) */
-.main-content-15 {
-  margin-left: 15%;
-  transition: margin-left 0.3s ease-in-out; /* Smooth transition */
-}
-
-/* Main content full width when sidebar is closed */
-.main-content-full {
-  margin-left: 0;
-}
-
-/* Custom position for toggle button when sidebar is open */
-.start-15 {
-  left: 15%; /* Position button at the right edge of the sidebar */
-}
