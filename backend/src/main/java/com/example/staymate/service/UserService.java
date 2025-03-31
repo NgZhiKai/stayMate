@@ -162,23 +162,35 @@ public class UserService implements Subject {
         addObserver(emailObserver);
     }
 
-    public String loginUser(String email, String password) {
+    public String loginUser(String email, String password, String role) {
         if (email == null || password == null) {
             throw new InvalidUserException("Email and password cannot be null.");
         }
 
+        // Fetch the user by email
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email " + email));
 
+        // Check if the password matches
         if (!user.checkPassword(password)) {
             throw new InvalidUserException("Invalid email or password.");
         }
 
+        // Check if the user's email is verified
         if (!user.isVerified()) {
             throw new InvalidUserException("User email is not verified.");
         }
 
+        UserRole requestedRole = UserRole.valueOf(role.toUpperCase());
+
+        // Optional: Check if the role matches. You can customize this as needed.
+        if (!requestedRole.equals(user.getRole())) {
+            throw new InvalidUserException("Role mismatch: The provided role does not match the user's role.");
+        }
+
+        // Generate JWT token for the user
         String token = generateVerificationToken(user);
+
         return token;
     }
 

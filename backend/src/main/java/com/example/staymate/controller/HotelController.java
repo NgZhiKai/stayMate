@@ -1,9 +1,11 @@
 package com.example.staymate.controller;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -53,6 +55,17 @@ public class HotelController {
         hotel.setAddress(hotelRequestDTO.getAddress());
         hotel.setLatitude(hotelRequestDTO.getLatitude());
         hotel.setLongitude(hotelRequestDTO.getLongitude());
+
+        // Save image to file storage (or database)
+        if (hotelRequestDTO.getImage() != null && !hotelRequestDTO.getImage().isEmpty()) {
+            try {
+                byte[] imageBytes = hotelRequestDTO.getImage().getBytes();
+                hotel.setImage(imageBytes); // Assuming you store as BLOB in DB
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new CustomResponse<>("Error processing image", null));
+            }
+        }
 
         Hotel savedHotel = hotelService.saveHotel(hotel);
 

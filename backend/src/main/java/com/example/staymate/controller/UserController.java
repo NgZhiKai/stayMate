@@ -1,6 +1,8 @@
 package com.example.staymate.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import com.example.staymate.dto.custom.CustomResponse;
 import com.example.staymate.dto.user.UserCreationRequestDTO;
 import com.example.staymate.dto.user.UserLoginRequestDTO;
 import com.example.staymate.entity.user.User;
+import com.example.staymate.exception.InvalidUserException;
 import com.example.staymate.exception.ResourceNotFoundException;
 import com.example.staymate.service.UserService;
 
@@ -35,36 +38,62 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    // Register a new user
     @Operation(summary = "Register a new user", description = "Creates a new user and sends a verification email.")
     @PostMapping("/register")
     public ResponseEntity<CustomResponse<User>> registerUser(
             @Valid @RequestBody @Parameter(description = "User details for registration") UserCreationRequestDTO userDto) {
 
-        User user = new User();
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setEmail(userDto.getEmail());
-        user.setPassword(userDto.getPassword());
-        user.setPhoneNumber(userDto.getPhoneNumber());
-        user.setRole(userDto.getRole());
+        try {
+            // Convert DTO to User entity
+            User user = new User();
+            user.setFirstName(userDto.getFirstName());
+            user.setLastName(userDto.getLastName());
+            user.setEmail(userDto.getEmail());
+            user.setPassword(userDto.getPassword());
+            user.setPhoneNumber(userDto.getPhoneNumber());
+            user.setRole(userDto.getRole());
 
-        User savedUser = userService.registerUser(user);
+            // Attempt to register the user
+            User savedUser = userService.registerUser(user);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new CustomResponse<>(
-                        "User registered successfully. Please check your email to verify your account.", savedUser));
+            // Return success response
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new CustomResponse<>(
+                            "User registered successfully. Please check your email to verify your account.",
+                            savedUser));
+        } catch (IllegalArgumentException | InvalidUserException ex) {
+            // Handle exceptions like email already registered or invalid user input
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new CustomResponse<>(ex.getMessage(), null));
+        } catch (Exception ex) {
+            // Handle unexpected errors
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new CustomResponse<>("An unexpected error occurred. Please try again later.", null));
+        }
     }
 
-    // User login
     @Operation(summary = "Login a user", description = "Validates user credentials and returns a token for authenticated sessions.")
     @PostMapping("/login")
-    public ResponseEntity<CustomResponse<String>> loginUser(
+    public ResponseEntity<CustomResponse<Map<String, Object>>> loginUser(
             @Valid @RequestBody @Parameter(description = "User login credentials") UserLoginRequestDTO loginDto) {
 
-        String token = userService.loginUser(loginDto.getEmail(), loginDto.getPassword());
+        // Ensure the user is trying to login with the correct role
+        String token = userService.loginUser(loginDto.getEmail(), loginDto.getPassword(), loginDto.getRole());
+
         if (token != null) {
-            return ResponseEntity.ok(new CustomResponse<>("Login successful", token));
+            // Fetch user details (name, email, role, isVerified)
+            User user = userService.getUserByEmail(loginDto.getEmail());
+
+            if (user != null && user.isVerified()) {
+                // Create a response with user details and token
+                Map<String, Object> responseData = new HashMap<>();
+                responseData.put("token", token);
+                responseData.put("user", user); // Add user object to the response
+                return ResponseEntity.ok(new CustomResponse<>("Login successful", responseData));
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new CustomResponse<>("Account is not verified or role mismatch", null));
+            }
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new CustomResponse<>("Invalid email or password", null));
