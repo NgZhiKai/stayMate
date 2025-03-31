@@ -29,6 +29,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.example.staymate.entity.enums.UserRole;
 import com.example.staymate.entity.user.User;
 import com.example.staymate.exception.ResourceNotFoundException;
 import com.example.staymate.service.UserService;
@@ -66,7 +67,8 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(user)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("User registered successfully. Please check your email to verify your account."))
+                .andExpect(jsonPath("$.message")
+                        .value("User registered successfully. Please check your email to verify your account."))
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.email").value("test@example.com"));
     }
@@ -77,16 +79,16 @@ class UserControllerTest {
         user1.setId(1L);
         user1.setEmail("user1@example.com");
         user1.setFirstName("User1");
-    
+
         User user2 = new User();
         user2.setId(2L);
         user2.setEmail("user2@example.com");
         user2.setFirstName("User2");
-    
+
         List<User> users = List.of(user1, user2);
-    
+
         when(userService.getAllUsers()).thenReturn(users);
-    
+
         mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Users retrieved successfully"))
@@ -137,7 +139,8 @@ class UserControllerTest {
 
     @Test
     void testGetUserByEmail_NotFound() throws Exception {
-        when(userService.getUserByEmail("nonexistent@example.com")).thenThrow(new ResourceNotFoundException("User not found with email: nonexistent@example.com"));
+        when(userService.getUserByEmail("nonexistent@example.com"))
+                .thenThrow(new ResourceNotFoundException("User not found with email: nonexistent@example.com"));
 
         mockMvc.perform(get("/users/by-email/nonexistent@example.com"))
                 .andExpect(status().isNotFound())
@@ -169,7 +172,8 @@ class UserControllerTest {
         user.setFirstName("User");
         user.setPassword("Test");
 
-        doThrow(new ResourceNotFoundException("User not found with ID: 1")).when(userService).updateUser(anyLong(), any(User.class));
+        doThrow(new ResourceNotFoundException("User not found with ID: 1")).when(userService).updateUser(anyLong(),
+                any(User.class));
 
         mockMvc.perform(put("/users/1")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -202,20 +206,33 @@ class UserControllerTest {
         String email = "user@example.com";
         String password = "password123";
         String token = "sampleJwtToken";
-        
-        // Mock userService.loginUser
-        when(userService.loginUser(email, password)).thenReturn(token);
-
+        UserRole role = UserRole.ADMIN;  // Assuming the user is an admin in this test
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(password);  // Assume password check is mocked
+        user.setRole(role); // Set the role of the user
+        user.setVerified(true); // Set account as verified
+    
+        // Mock userService.loginUser to return a token
+        when(userService.loginUser(email, password, "admin")).thenReturn(token);
+        // Mock userService.getUserByEmail to return a user
+        when(userService.getUserByEmail(email)).thenReturn(user);
+    
         // Act & Assert
         mockMvc.perform(post("/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
+                        .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\", \"role\":\"admin\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Login successful"))
-                .andExpect(jsonPath("$.data").value(token));
-
-        verify(userService, times(1)).loginUser(email, password);
+                .andExpect(jsonPath("$.data.token").value(token))
+                .andExpect(jsonPath("$.data.user.email").value(email))
+                .andExpect(jsonPath("$.data.user.role").value("ADMIN"));
+    
+        // Verify that loginUser and getUserByEmail were called with the correct parameters
+        verify(userService, times(1)).loginUser(email, password, "admin");
+        verify(userService, times(1)).getUserByEmail(email);
     }
+    
 
     @Test
     public void testLoginUser_Failure_InvalidCredentials() throws Exception {
@@ -224,17 +241,17 @@ class UserControllerTest {
         String password = "wrongPassword";
 
         // Mock userService.loginUser to return null (invalid credentials)
-        when(userService.loginUser(email, password)).thenReturn(null);
+        when(userService.loginUser(email, password, "admin")).thenReturn(null);
 
         // Act & Assert
         mockMvc.perform(post("/users/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
+                        .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\", \"role\":\"admin\"}"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Invalid email or password"))
                 .andExpect(jsonPath("$.data").isEmpty());
 
-        verify(userService, times(1)).loginUser(email, password);
+        // Verify that loginUser was called with the correct parameters
+        verify(userService, times(1)).loginUser(email, password, "admin");
     }
-
 }

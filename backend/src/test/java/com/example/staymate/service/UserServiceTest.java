@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -262,21 +263,23 @@ class UserServiceTest {
         String email = "john.doe@example.com";
         String password = "testing";
         String expectedToken = "sampleJwtToken";
+        UserRole role = UserRole.ADMIN;
 
         // Create a mock of the UserService
         UserService userServiceMock = Mockito.spy(userService);
         User userSpy = Mockito.spy(user); // Use a spy on the user
+        userSpy.setRole(role);
 
         // Mock the behavior of userRepository and user
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(userSpy));  // Use userSpy here
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(userSpy)); // Use userSpy here
         when(userSpy.checkPassword(password)).thenReturn(true); // Simulate valid password
         when(userSpy.isVerified()).thenReturn(true); // Simulate verified user
 
         // Mock the token generation
-        when(userServiceMock.generateVerificationToken(userSpy)).thenReturn(expectedToken);  // Use userSpy here
+        when(userServiceMock.generateVerificationToken(userSpy)).thenReturn(expectedToken); // Use userSpy here
 
         // Act
-        String token = userServiceMock.loginUser(email, password);
+        String token = userServiceMock.loginUser(email, password, "admin");
 
         // Assert
         assertEquals(expectedToken, token);
@@ -295,7 +298,8 @@ class UserServiceTest {
         when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.empty());
 
         // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> userService.loginUser(email, password));
+        assertThrows(ResourceNotFoundException.class, () ->
+        userService.loginUser(email, password, "admin"));
     }
 
     @Test
@@ -311,32 +315,34 @@ class UserServiceTest {
         when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(userSpy));
 
         // Mock the checkPassword method on the spy object to return false
-        when(userSpy.checkPassword(password)).thenReturn(false); // Simulate invalid password
+        when(userSpy.checkPassword(password)).thenReturn(false); // Simulate invalid
 
         // Act & Assert
-        assertThrows(InvalidUserException.class, () -> userService.loginUser(email, password));
+        assertThrows(InvalidUserException.class, () -> userService.loginUser(email,
+            password, "admin"));
     }
 
     @Test
     public void testLoginUser_UnverifiedUser() {
-        // Arrange
-        String email = "user@example.com";
-        String password = "password123";
+    // Arrange
+    String email = "user@example.com";
+    String password = "password123";
 
-        // Simulate an unverified user
-        user.setVerified(false);
+    // Simulate an unverified user
+    user.setVerified(false);
 
-         // Create a spy to call actual methods but mock specific ones
-        User userSpy = Mockito.spy(user);
+    // Create a spy to call actual methods but mock specific ones
+    User userSpy = Mockito.spy(user);
 
-        // Mock the behavior of userRepository
-        when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(userSpy));
+    // Mock the behavior of userRepository
+    when(userRepository.findByEmail(email)).thenReturn(java.util.Optional.of(userSpy));
 
-        // Mock the checkPassword method on the spy object to return false
-        when(userSpy.checkPassword(password)).thenReturn(true); // Simulate invalid password
+    // Mock the checkPassword method on the spy object to return false
+    when(userSpy.checkPassword(password)).thenReturn(true); // Simulate invalid
 
-        // Act & Assert
-        assertThrows(InvalidUserException.class, () -> userService.loginUser(email, password));
+    // Act & Assert
+    assertThrows(InvalidUserException.class, () -> userService.loginUser(email,
+        password, "admin"));
     }
 
     @Test
@@ -346,7 +352,8 @@ class UserServiceTest {
         String password = "password123";
 
         // Act & Assert
-        assertThrows(InvalidUserException.class, () -> userService.loginUser(email, password));
+        assertThrows(InvalidUserException.class, () -> userService.loginUser(email,
+            password, "admin"));
     }
 
     @Test
@@ -356,6 +363,40 @@ class UserServiceTest {
         String password = null;
 
         // Act & Assert
-        assertThrows(InvalidUserException.class, () -> userService.loginUser(email, password));
+        assertThrows(InvalidUserException.class, () -> userService.loginUser(email,
+            password, "admin"));
     }
+
+    @Test
+    public void testLoginUser_RoleMismatch() {
+        // Arrange
+        String email = "user@example.com";
+        String password = "password123";
+        String providedRole = "admin";  // The role provided by the user (to be tested)
+        String userRole = "customer";  // The role actually assigned to the user in the system
+
+        // Create a mock user with the role that doesn't match the provided role
+        User user = mock(User.class);  // Use a mock User instead of a real one
+        user.setEmail(email);  // Set email for the mock
+        user.setPassword(password);  // Set password for the mock
+        user.setRole(UserRole.valueOf(userRole.toUpperCase()));  // Set role as "customer"
+        user.setVerified(true);  // Ensure the user is verified
+
+        // Mock the repository to return the user
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));  // Mock user retrieval
+        
+        // Mock the password check to return true (valid password)
+        when(user.checkPassword(password)).thenReturn(true);
+
+        // Act & Assert
+        // Ensure that the method throws an InvalidUserException for role mismatch
+        assertThrows(InvalidUserException.class, () -> userService.loginUser(email, password, providedRole));
+        
+        // Verify that the repository was called to fetch the user
+        verify(userRepository, times(1)).findByEmail(email);
+        
+        // Verify that the password check was performed
+        verify(user, times(1)).checkPassword(password);
+    }
+
 }
