@@ -6,6 +6,9 @@ import Header from "./components/Header";
 import AccountPage from "./Pages/AccountPage";
 import NearMePage from "./Pages/NearMePage";
 import RegisterPage from "./Pages/RegisterPage";
+import UserAccountSettings from "./Pages/UserAccountSettings";
+import SavedHotels from "./Pages/SavedHotelsPage";
+
 
 const App: React.FC = () => {
   const [isOpen, setIsOpen] = useState(() => {
@@ -34,6 +37,8 @@ const App: React.FC = () => {
               <Route path="/nearme" element={<NearMePage />} />
               <Route path="/account" element={<AccountPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/user-account-settings" element={<UserAccountSettings />} />
+              <Route path="/saved-hotels" element={<SavedHotels />} />
             </Routes>
           </div>
         </div>
