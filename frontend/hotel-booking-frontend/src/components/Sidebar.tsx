@@ -55,6 +55,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
             </div>
           )}
         </div>
+
+        <Link to="/booked-hotels" className="hover:bg-gray-700 p-2 rounded">
+          🏨 Booked Hotels
+        </Link>
       </nav>
     </div>
   );

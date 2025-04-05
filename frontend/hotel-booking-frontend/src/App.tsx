@@ -9,6 +9,7 @@ import RegisterPage from "./Pages/RegisterPage";
 import UserAccountSettings from "./Pages/UserAccountSettings";
 import SavedHotels from "./Pages/SavedHotelsPage";
 import HotelDetailsPage from "./Pages/HotelDetailsPage";
+import BookedHotelsPage from "./Pages/BookedHotelsPage";
 
 
 const App: React.FC = () => {
@@ -41,6 +42,7 @@ const App: React.FC = () => {
               <Route path="/user-account-settings" element={<UserAccountSettings />} />
               <Route path="/saved-hotels" element={<SavedHotels />} />
               <Route path="/hotel/:id" element={<HotelDetailsPage />} />
+              <Route path="/booked-hotels" element={<BookedHotelsPage />} />
             </Routes>
           </div>
         </div>

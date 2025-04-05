@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { FaStar, FaRegBookmark, FaBookmark } from "react-icons/fa";
-import { ClipLoader } from "react-spinners"; // You can install this with: npm install react-spinners
+import { ClipLoader } from "react-spinners";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { differenceInDays } from "date-fns";
 
 const HotelDetailsPage = () => {
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
-  const [hotel, setHotel] = useState<any>(null); // You can replace `any` with a `Hotel` type later
+  const [hotel, setHotel] = useState<any>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [checkInDate, setCheckInDate] = useState<Date | null>(null);
+  const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
+
+  const pricePerNight = 150; // Adjust or fetch this dynamically
 
   useEffect(() => {
-    // Simulate fetching hotel by ID
     setTimeout(() => {
       const dummyHotel = {
         image: "/images/sample-hotel.jpg",
@@ -40,9 +47,37 @@ const HotelDetailsPage = () => {
 
       setHotel(dummyHotel);
       setLoading(false);
-    }, 1000); // Simulate 1 second loading delay
+    }, 1000);
   }, [id]);
 
+  const totalNights = checkInDate && checkOutDate
+    ? differenceInDays(checkOutDate, checkInDate)
+    : 0;
+
+  const totalPrice = totalNights > 0 ? totalNights * pricePerNight : 0;
+
+  const handleConfirmBooking = () => {
+    const newBooking = {
+      id: id || Date.now().toString(), // fallback if no ID from params
+      name: hotel.name,
+      image: hotel.image,
+      checkInDate: checkInDate?.toLocaleDateString() || "",
+      checkOutDate: checkOutDate?.toLocaleDateString() || "",
+      totalPrice,
+    };
+  
+    const stored = localStorage.getItem("bookedHotels");
+    const bookings = stored ? JSON.parse(stored) : [];
+    bookings.push(newBooking);
+    localStorage.setItem("bookedHotels", JSON.stringify(bookings));
+  
+    alert(`Booking confirmed!\nCheck-in: ${newBooking.checkInDate}\nCheck-out: ${newBooking.checkOutDate}\nTotal: $${newBooking.totalPrice}`);
+  
+    setIsModalOpen(false);
+    setCheckInDate(null);
+    setCheckOutDate(null);
+  };
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -63,26 +98,26 @@ const HotelDetailsPage = () => {
         className="w-full h-80 object-cover rounded-xl shadow-md mb-6"
       />
 
-    <div className="mb-6 flex justify-between items-start">
-    <h1 className="text-3xl font-bold">{hotel.name}</h1>
-    
-    <div className="flex space-x-3 items-center">
-        {/* Bookmark Icon */}
-        <button
-        onClick={() => setIsBookmarked(!isBookmarked)}
-        className="text-gray-600 hover:text-blue-600 transition text-xl"
-        title={isBookmarked ? "Unsave Hotel" : "Save Hotel"}
-        >
-        {isBookmarked ? <FaBookmark /> : <FaRegBookmark />}
-        </button>
+      <div className="mb-6 flex justify-between items-start">
+        <h1 className="text-3xl font-bold">{hotel.name}</h1>
 
-        {/* Book Button */}
-        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-        Book
-        </button>
-    </div>
-    </div>
+        <div className="flex space-x-3 items-center">
+          <button
+            onClick={() => setIsBookmarked(!isBookmarked)}
+            className="text-gray-600 hover:text-blue-600 transition text-xl"
+            title={isBookmarked ? "Unsave Hotel" : "Save Hotel"}
+          >
+            {isBookmarked ? <FaBookmark /> : <FaRegBookmark />}
+          </button>
 
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
+            Book
+          </button>
+        </div>
+      </div>
 
       <p className="text-gray-700 mb-6">{hotel.description}</p>
 
@@ -126,6 +161,62 @@ const HotelDetailsPage = () => {
           ))}
         </div>
       </div>
+
+      {/* Booking Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+            <h2 className="text-2xl font-bold mb-4">Confirm Your Booking</h2>
+
+            <div className="mb-4">
+              <label className="block mb-1 font-medium">Check-In Date</label>
+              <DatePicker
+                selected={checkInDate}
+                onChange={(date) => setCheckInDate(date)}
+                selectsStart
+                startDate={checkInDate}
+                endDate={checkOutDate}
+                className="border rounded p-2 w-full"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block mb-1 font-medium">Check-Out Date</label>
+              <DatePicker
+                selected={checkOutDate ?? undefined}
+                onChange={(date) => setCheckOutDate(date)}
+                selectsEnd
+                startDate={checkInDate ?? undefined}
+                endDate={checkOutDate ?? undefined}
+                minDate={checkInDate ?? undefined}
+                className="border rounded p-2 w-full"
+              />
+            </div>
+
+            {totalNights > 0 && (
+              <p className="mb-4 text-gray-700">
+                <strong>Total Price:</strong> ${totalPrice} ({totalNights} nights)
+              </p>
+            )}
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmBooking}
+                disabled={totalNights <= 0}
+                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                Confirm Booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
