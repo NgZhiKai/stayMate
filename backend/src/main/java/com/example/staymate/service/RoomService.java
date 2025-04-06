@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.staymate.entity.booking.Booking;
-import com.example.staymate.entity.enums.RoomStatus;
 import com.example.staymate.entity.enums.RoomType;
 import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.entity.room.Room;
