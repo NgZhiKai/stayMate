@@ -17,7 +17,8 @@ import CreateUpdateHotelPage from "./Pages/CreateUpdateHotelPage";
 import ManageBookingsPage from './Pages/ManageBookingsPage';
 import ManageUsersPage from './Pages/ManageUsersPage';
 import { AuthProvider } from "./contexts/AuthContext";
-
+import BookedHotelsPage from "./Pages/BookedHotelsPage";
+import PaymentPage from "./Pages/PaymentPage";
 
 const App: React.FC = () => {
   const [isOpen, setIsOpen] = useState(() => {
@@ -52,11 +53,15 @@ const App: React.FC = () => {
                 <Route path="/create-hotel/:id?" element={<CreateUpdateHotelPage />} />
                 <Route path="/bookings" element={<BookingPage />} />
                 <Route path="/create-bookings/:hotelId" element={<CreateBookingPage />} />
+                <Route path="/booked-hotels" element={<BookedHotelsPage />} />
+                <Route path="/payment" element={<PaymentPage />} />
               </Routes>
             </div>
           </div>
         </div>
       </Router>
+
+
     </AuthProvider>
   );
 };

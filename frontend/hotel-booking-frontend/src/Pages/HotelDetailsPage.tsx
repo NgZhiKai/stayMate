@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa";
-import { useNavigate, useParams } from "react-router-dom"; // Import useNavigate
+import { useNavigate, useParams } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 import ConfirmationModal from "../components/ConfirmationModal";
 import HotelDetails from "../components/Hotel/HotelDetails";
@@ -9,13 +9,23 @@ import { getReviewsForHotel } from "../services/ratingApi";
 import { getUserInfo } from "../services/userApi";
 import { HotelData } from "../types/Hotels";
 import { Review } from "../types/Review";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { differenceInDays } from "date-fns";
 
 const useHotelData = (id: string) => {
   const [loading, setLoading] = useState(true);
   const [hotel, setHotel] = useState<HotelData | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [userInfo, setUserInfo] = useState<{ [key: string]: { firstName: string; lastName: string } }>({});
-  
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [checkInDate, setCheckInDate] = useState<Date | null>(null);
+  const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
+  const navigate = useNavigate();
+
+  const pricePerNight = 150; // Adjust or fetch this dynamically
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -28,7 +38,9 @@ const useHotelData = (id: string) => {
             const user = await getUserInfo(String(userId));
             return { userId, userInfo: user.user };
           })
-        ).then((data) => data.reduce((acc, { userId, userInfo }) => ({ ...acc, [userId]: userInfo }), {}));
+        ).then((data) =>
+          data.reduce((acc, { userId, userInfo }) => ({ ...acc, [userId]: userInfo }), {})
+        );
 
         setHotel(hotelData);
         setReviews(reviewsData);
@@ -73,28 +85,54 @@ const HotelDetailsPage = () => {
   const renderStars = (rating: number) => {
     const fullStars = Math.floor(rating);
     const halfStar = rating % 1 !== 0;
-    return (
-      <>
-        {[...Array(fullStars)].map((_, i) => <FaStar key={i} className="text-yellow-500" />)}
-        {halfStar && <FaStar className="text-yellow-500 opacity-50" />}
-      </>
-    );
+
+    if (loading) {
+      return (
+        <>
+          {[...Array(fullStars)].map((_, i) => (
+            <FaStar key={i} className="text-yellow-500" />
+          ))}
+          {halfStar && <FaStar className="text-yellow-500 opacity-50" />}
+        </>
+      );
+    }
   };
+
+  // const handleConfirmBooking = () => {
+  //   if (hotel && checkInDate && checkOutDate && totalNights > 0) {
+  //     setIsModalOpen(false);
+  //     navigate("/payment", {
+  //       state: {
+  //         hotel: {
+  //           name: hotel.name,
+  //           image: hotel.image,
+  //         },
+  //         checkInDate: checkInDate.toLocaleDateString(),
+  //         checkOutDate: checkOutDate.toLocaleDateString(),
+  //         totalPrice,
+  //       },
+  //     });
+  //     setCheckInDate(null);
+  //     setCheckOutDate(null);
+  //   } else {
+  //     alert("Please select valid check-in and check-out dates.");
+  //   }
+  // };
 
   const handleDeleteHotel = (hotelId: number) => {
     setHotelToDelete(hotelId);
     setModalMessage("Are you sure you want to delete this hotel?");
-    setIsModalOpen(true);  // Open the modal
+    setIsModalOpen(true);
   };
 
   const confirmDeletion = async () => {
     if (hotelToDelete) {
       try {
-        await deleteHotel(hotelToDelete); // Call the delete hotel API
+        await deleteHotel(hotelToDelete);
         setModalMessage("Hotel deleted successfully!");
-        setIsModalOpen(false);  // Close the modal
+        setIsModalOpen(false);
         setTimeout(() => {
-          navigate("/");  // Navigate to the hotel list page after deletion
+          navigate("/");
         }, 2000);
       } catch (error) {
         console.error("Error deleting hotel:", error);
@@ -105,7 +143,11 @@ const HotelDetailsPage = () => {
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen"><ClipLoader size={50} color="#2563EB" /></div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <ClipLoader size={50} color="#2563EB" />
+      </div>
+    );
   }
 
   if (!hotel) {
@@ -123,7 +165,7 @@ const HotelDetailsPage = () => {
         renderStars={renderStars}
         isBookmarked={isBookmarked}
         setIsBookmarked={setIsBookmarked}
-        handleDeleteHotel={handleDeleteHotel}  // Pass handleDeleteHotel as a prop
+        handleDeleteHotel={handleDeleteHotel}
       />
       <ConfirmationModal
         isOpen={isModalOpen}
