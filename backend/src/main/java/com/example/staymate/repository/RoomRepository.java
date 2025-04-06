@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.example.staymate.entity.enums.RoomStatus;
 import com.example.staymate.entity.room.Room;
 import com.example.staymate.entity.room.RoomId;
 
