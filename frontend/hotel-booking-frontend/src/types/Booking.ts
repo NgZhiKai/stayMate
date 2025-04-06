@@ -8,15 +8,17 @@ export interface Booking {
 }
 
 export interface DetailedBooking {
-    bookingId: number;
-    hotelId: number;
-    roomId: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
+    id: number;
+    bookingDate: string;
     checkInDate: string;
     checkOutDate: string;
+    status: 'CANCELLED' | 'CONFIRMED' | 'PENDING'; 
+    totalAmount: number; 
+    hotelId: number; 
+    roomId: number; 
+    userId: number;  
+    userFirstName: string;
+    userLastName: string;
+    hotelName: string;
     roomType: string;
-    status: string;
-  }
+}

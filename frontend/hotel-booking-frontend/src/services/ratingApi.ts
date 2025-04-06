@@ -1,7 +1,9 @@
 import axios from 'axios';
+import { BASE_URL } from '../constants/constants';
 import { Review } from '../types/Review';
 
-const API_BASE_URL = 'http://localhost:4200/reviews';
+// Base URL for the API
+const API_BASE_URL = `${BASE_URL}/reviews`;
 
 interface CustomResponse<T> {
   message: string;
@@ -65,7 +67,6 @@ export const deleteReview = async (id: number): Promise<string> => {
 export const getReviewsForHotel = async (hotelId: number): Promise<Review[]> => {
   try {
     const response = await axios.get<CustomResponse<Review[]>>(`${API_BASE_URL}/hotel/${hotelId}`);
-    console.log(response.data.data); // Logs the list of reviews
     return response.data.data;  // Return the list of reviews directly
   } catch (error) {
     console.error('Error fetching reviews for this hotel:', error);

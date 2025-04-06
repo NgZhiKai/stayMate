@@ -1,13 +1,15 @@
 import axios from 'axios';
 import { RegisterData, LoginData } from '../types/User';
 import { User } from '../types/User';
+import { BASE_URL } from '../constants/constants';
 
-const USER_API_BASE_URL = 'http://localhost:4200/users';
+// Base URL for the API
+const API_BASE_URL = `${BASE_URL}/users`;
 
 // Register a new user
 export const registerUser = async (userData: RegisterData) => {
   try {
-    const response = await axios.post(`${USER_API_BASE_URL}/register`, userData);
+    const response = await axios.post(`${API_BASE_URL}/register`, userData);
     return response.data; // Assuming the response will contain user data or a success message
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -20,7 +22,7 @@ export const registerUser = async (userData: RegisterData) => {
 
 export const loginUser = async (loginData: LoginData) => {
     try {
-      const response = await fetch(`${USER_API_BASE_URL}/login`, {
+      const response = await fetch(`${API_BASE_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,7 +45,7 @@ export const loginUser = async (loginData: LoginData) => {
   export const getAllUsers = async (): Promise<{ users: User[] }> => {
     try {
       // Make a request to fetch all users
-      const response = await fetch(`${USER_API_BASE_URL}/users`, {
+      const response = await fetch(`${API_BASE_URL}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -65,7 +67,7 @@ export const loginUser = async (loginData: LoginData) => {
   export const getUserInfo = async (userId: string) => {
     try {
       // Make a request to fetch user information based on userId
-      const response = await fetch(`${USER_API_BASE_URL}/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/${userId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -87,7 +89,7 @@ export const loginUser = async (loginData: LoginData) => {
   // API call to fetch user by email
 export const getUserByEmail = async (email: string) => {
   try {
-    const response = await fetch(`${USER_API_BASE_URL}/by-email/${email}`, {
+    const response = await fetch(`${API_BASE_URL}/by-email/${email}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -108,7 +110,7 @@ export const getUserByEmail = async (email: string) => {
 
 export const updateUser = async (id: string, userData: any) => {
   try {
-    const response = await fetch(`${USER_API_BASE_URL}/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -131,7 +133,7 @@ export const updateUser = async (id: string, userData: any) => {
 
 export const deleteUser = async (id: string) => {
   try {
-    const response = await fetch(`${USER_API_BASE_URL}/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -151,7 +153,7 @@ export const deleteUser = async (id: string) => {
 };
 
 export const verifyUser = async (token: string) => {
-  const response = await fetch(`${USER_API_BASE_URL}/verify?token=${token}`, {
+  const response = await fetch(`${API_BASE_URL}/verify?token=${token}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

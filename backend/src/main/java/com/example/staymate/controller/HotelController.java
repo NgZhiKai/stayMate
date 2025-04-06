@@ -1,12 +1,7 @@
 package com.example.staymate.controller;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -144,19 +138,47 @@ public class HotelController {
     }
 
     @Operation(summary = "Update hotel details", description = "Update the information of an existing hotel")
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CustomResponse<Map<String, Object>>> updateHotel(
             @Parameter(description = "ID of the hotel to update") @PathVariable Long id,
-            @Parameter(description = "Updated hotel information") @RequestBody Hotel hotel) {
+            @Parameter(description = "Updated hotel information") @RequestPart("hotelDetails") String hotelDetailsJson,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
         try {
             // Ensure the hotel exists
             Hotel existingHotel = hotelService.getHotelById(id);
             if (existingHotel == null) {
                 throw new RuntimeException("Hotel not found with id: " + id);
             }
+            HotelRequestDTO hotelRequestDTO = null;
+            try {
+                // Attempt to parse the hotelDetailsJson into HotelRequestDTO
+                hotelRequestDTO = new ObjectMapper().readValue(hotelDetailsJson, HotelRequestDTO.class);
+            } catch (JsonProcessingException e) {
+                // Handle JSON parsing error
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new CustomResponse<>("Invalid JSON format for hotel details", null));
+            }
 
-            // Set the ID to ensure the correct hotel is updated
+            Hotel hotel = new Hotel();
             hotel.setId(id);
+            hotel.setName(hotelRequestDTO.getName());
+            hotel.setAddress(hotelRequestDTO.getAddress());
+            hotel.setDescription(hotelRequestDTO.getDescription());
+            hotel.setLatitude(hotelRequestDTO.getLatitude());
+            hotel.setLongitude(hotelRequestDTO.getLongitude());
+            hotel.setContact(hotelRequestDTO.getContact());
+            hotel.setCheckIn(hotelRequestDTO.getCheckIn());
+            hotel.setCheckOut(hotelRequestDTO.getCheckOut());
+
+            try {
+                byte[] imageBytes = image.getResource().getInputStream().readAllBytes();
+                hotel.setImage(imageBytes); // Store image as byte array
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new CustomResponse<>("Error processing image", null));
+            }
+
+            // Save the hotel with or without an image (if provided)
             Hotel updatedHotel = hotelService.saveHotel(hotel);
 
             // Build response
@@ -167,6 +189,9 @@ public class HotelController {
             return ResponseEntity.ok(new CustomResponse<>("Hotel updated successfully", response));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponse<>(e.getMessage(), null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new CustomResponse<>(e.getMessage(), null));
         }
     }
@@ -213,34 +238,10 @@ public class HotelController {
         return ResponseEntity.ok(new CustomResponse<>("Hotels found successfully", response)); // 200 OK
     }
 
-    private boolean isBase64(String value) {
-        try {
-            Base64.getDecoder().decode(value);
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
-    }
-
-    // Method to download an image from a URL and convert it into a byte array
-    private byte[] imageUrlToByteArray(String imageUrl) throws IOException {
-        URL url = new URL(imageUrl);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-
-        try (InputStream inputStream = connection.getInputStream();
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                byteArrayOutputStream.write(buffer, 0, bytesRead);
-            }
-
-            return byteArrayOutputStream.toByteArray();
-        } catch (IOException e) {
-            throw new IOException("Error reading image from URL", e);
-        }
+    @Operation(summary = "Get hotels within 10 km", description = "Returns hotels within a 10 km radius of the current location")
+    @GetMapping("/hotels/nearby")
+    public ResponseEntity<List<Hotel>> getHotelsNearby(@RequestParam double latitude, @RequestParam double longitude) {
+        List<Hotel> nearbyHotels = hotelService.getNearbyHotels(latitude, longitude);
+        return ResponseEntity.ok(nearbyHotels);
     }
 }

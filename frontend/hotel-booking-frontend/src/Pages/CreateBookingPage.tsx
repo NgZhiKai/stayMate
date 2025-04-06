@@ -1,41 +1,71 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { createBooking } from "../services/bookingApi";
+import { getAvailableRooms } from "../services/roomApi";
 import { Booking } from "../types/Booking";
 import { Room } from "../types/Room";
-import { createBooking } from "../services/bookingApi";
-import { getAvailableRooms } from "../services/roomApi";  // Import the function to fetch available rooms
+import CreateBookingForm from "../components/Booking/CreateBookingForm";
+
+const Modal: React.FC<{ message: string; onClose: () => void }> = ({
+  message,
+  onClose,
+}) => {
+  return (
+    <div className="fixed inset-0 flex justify-center items-center bg-gray-800 bg-opacity-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+        <h2 className="text-xl font-semibold mb-4 text-center">Success</h2>
+        <p className="text-gray-800 text-center">{message}</p>
+        <div className="mt-4 text-center">
+          <button
+            onClick={onClose}
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const CreateBookingPage: React.FC = () => {
-  const { hotelId } = useParams<{ hotelId: string }>();  // Access hotelId from URL
+  const navigate = useNavigate();
+  const { hotelId } = useParams<{ hotelId: string }>();
   const [bookingData, setBookingData] = useState<Booking>({
-    userId: 0,  // Assuming the user ID will be fetched or passed from sessionStorage
+    userId: 0,
     hotelId: 0,
     roomId: 0,
-    checkInDate: '',
-    checkOutDate: '',
+    checkInDate: "",
+    checkOutDate: "",
     totalAmount: 0,
   });
 
   const [validationErrors, setValidationErrors] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [rooms, setRooms] = useState<Room[]>([]);  // State to store available rooms
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
-  // Get the userId from sessionStorage or other means
   const userId = sessionStorage.getItem("userId");
 
   useEffect(() => {
+    if (!userId) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
     if (userId && hotelId) {
       setBookingData((prevData) => ({
         ...prevData,
         userId: Number(userId),
-        hotelId: Number(hotelId), // Set the hotelId from the URL parameter
+        hotelId: Number(hotelId),
       }));
 
-      // Fetch available rooms for the hotel
       const fetchAvailableRooms = async () => {
         try {
-          const availableRooms = await getAvailableRooms(Number(hotelId));  // Fetch rooms for the hotel
-          setRooms(availableRooms);  // Set available rooms to the state
+          const availableRooms = await getAvailableRooms(Number(hotelId));
+          setRooms(availableRooms);
         } catch (error) {
           console.error("Failed to fetch available rooms", error);
         }
@@ -45,7 +75,9 @@ const CreateBookingPage: React.FC = () => {
     }
   }, [hotelId, userId]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setBookingData({
       ...bookingData,
@@ -53,9 +85,15 @@ const CreateBookingPage: React.FC = () => {
     });
   };
 
+  const handleRoomSelect = (roomId: number) => {
+    setBookingData((prevData) => ({
+      ...prevData,
+      roomId,
+    }));
+  };
+
   const validateForm = () => {
-    let errors = '';
-    // Validate the required fields
+    let errors = "";
     if (!bookingData.roomId || bookingData.roomId <= 0) {
       errors += "Room ID must be a valid number. ";
     }
@@ -83,9 +121,10 @@ const CreateBookingPage: React.FC = () => {
     } else {
       setIsSubmitting(true);
       try {
-        await createBooking(bookingData);  // Call the API to create the booking
+        await createBooking(bookingData);
         setIsSubmitting(false);
-        alert("Booking created successfully!");
+        setModalMessage("Booking created successfully!");
+        setShowModal(true);  // Show modal on success
       } catch (error) {
         setIsSubmitting(false);
         console.error("Error creating booking:", error);
@@ -93,78 +132,41 @@ const CreateBookingPage: React.FC = () => {
     }
   };
 
-  return (
-    <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-lg mx-auto">
-      <h2 className="text-3xl font-semibold mb-6 text-center">Create a New Booking</h2>
+  const handleModalClose = () => {
+    setShowModal(false);
+    navigate("/bookings");  // Redirect to the bookings page
+  };
 
-      {validationErrors && (
-        <div className="text-red-500 text-center mb-4">{validationErrors}</div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Room</label>
-            <select
-  name="roomId"
-  value={bookingData.roomId}
-  onChange={handleInputChange}
-  className="w-full p-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
->
-  <option value={0}>Select a room</option>
-  {rooms.map((room) => (
-    <option key={room.id.roomId} value={room.id.roomId}>
-      {`Room ${room.id.roomId} - ${room.room_type} - $${room.pricePerNight}/night`}
-    </option>
-  ))}
-</select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Check-in Date</label>
-            <input
-              type="date"
-              name="checkInDate"
-              value={bookingData.checkInDate}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Check-out Date</label>
-            <input
-              type="date"
-              name="checkOutDate"
-              value={bookingData.checkOutDate}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Total Amount</label>
-            <input
-              type="number"
-              name="totalAmount"
-              value={bookingData.totalAmount}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
-            />
-          </div>
-        </div>
-
+  if (showLoginPrompt) {
+    return (
+      <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-md mx-auto text-center">
+        <p className="text-lg text-gray-700 mb-4">
+          You must be logged in to create a booking.
+        </p>
         <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-blue-500 text-white px-4 py-3 rounded-md hover:bg-blue-600 transition duration-300"
+          onClick={() => navigate("/login")}
+          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
         >
-          {isSubmitting ? 'Submitting...' : 'Create Booking'}
+          Go to Login
         </button>
-      </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex justify-center items-center min-h-full bg-gray-100">
+      <div className="w-full max-w-screen-md p-6">
+        <CreateBookingForm
+          bookingData={bookingData}
+          rooms={rooms}
+          isSubmitting={isSubmitting}
+          validationErrors={validationErrors}
+          handleInputChange={handleInputChange}
+          handleRoomSelect={handleRoomSelect}
+          handleSubmit={handleSubmit}
+        />
+      </div>
+      {showModal && <Modal message={modalMessage} onClose={handleModalClose} />}
     </div>
   );
 };

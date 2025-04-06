@@ -2,6 +2,7 @@ package com.example.staymate.service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,5 +53,25 @@ public class HotelService {
         return hotelRepository.findById(hotelId)
                 .map(Hotel::getRooms)
                 .orElse(Collections.emptyList()); // If hotel exists, return rooms
+    }
+
+    private static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final double R = 6371; // Radius of the Earth in km
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distance = R * c; // Distance in km
+        return distance;
+    }
+
+    public List<Hotel> getNearbyHotels(double latitude, double longitude) {
+        List<Hotel> allHotels = hotelRepository.findAll();
+        return allHotels.stream()
+                .filter(hotel -> calculateDistance(latitude, longitude, hotel.getLatitude(),
+                        hotel.getLongitude()) <= 10)
+                .collect(Collectors.toList());
     }
 }

@@ -1,8 +1,9 @@
 import axios from 'axios';
-import { Hotel, HotelManagement } from '../types/Hotels';
+import { BASE_URL } from '../constants/constants';
+import { HotelData } from '../types/Hotels';
 
 // Base URL for the API
-const API_BASE_URL = 'http://localhost:4200/hotels';
+const API_BASE_URL = `${BASE_URL}/hotels`;
 
 // Create a new hotel (with rooms)
 export const createHotel = async (formData: FormData) => {
@@ -13,8 +14,6 @@ export const createHotel = async (formData: FormData) => {
     });
 
     const data = await response.json(); // Parse the response as JSON
-
-    console.log(data);
 
     // Check if the response is OK and if the success message is present
     if (!response.ok || data.message !== 'Hotel created successfully') {
@@ -52,13 +51,26 @@ export const fetchHotelById = async (id: number) => {
 };
 
 // Update hotel details
-export const updateHotel = async (id: number, hotelData: HotelManagement) => {
+export const updateHotel = async (id: number, formData: FormData) => {
   try {
-    const response = await axios.put(`${API_BASE_URL}/${id}`, hotelData);
-    return response.data; // Return the updated hotel details
+    
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+      method: 'PUT',
+      body: formData, // Send FormData as the request body
+    });
+
+    const data = await response.json(); // Parse the response as JSON
+    
+    // Check if the response is OK and if the success message is present
+    if (!response.ok || data.message !== 'Hotel updated successfully') {
+      throw new Error('Failed to update hotel');
+    }
+
+    // Return the data or handle it as needed
+    return data;
   } catch (error) {
     console.error("Error updating hotel:", error);
-    throw error;
+    throw new Error('An error occurred while updating the hotel. Please try again later.');
   }
 };
 
@@ -81,5 +93,22 @@ export const searchHotelsByName = async (name: string) => {
   } catch (error) {
     console.error("Error searching hotels by name:", error);
     throw error;
+  }
+};
+
+export const getHotelsNearby = async (latitude: number, longitude: number): Promise<HotelData[]> => {
+  try {
+    const response = await axios.get<HotelData[]>(`${API_BASE_URL}/hotels/nearby`, {
+      params: {
+        latitude,
+        longitude
+      }
+    });
+
+    // Return the list of hotels (HotelData objects) from the response
+    return response.data;  // This is already an array of HotelData
+  } catch (error) {
+    console.error('Error fetching nearby hotels:', error);
+    throw new Error('Unable to fetch nearby hotels');
   }
 };

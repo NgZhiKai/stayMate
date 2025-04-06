@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import HotelCard from '../components/Hotel/HotelCard';
 import SearchBar from '../components/SearchBar';
 import { fetchHotels } from '../services/hotelApi';
@@ -9,6 +10,12 @@ const HomePage: React.FC = () => {
   const [hotels, setHotels] = useState<HotelData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+
+  const userId = sessionStorage.getItem('userId');
+  const userRole = sessionStorage.getItem('role');
+  const isAdmin = userId && userRole === 'admin';
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadHotels = async () => {
@@ -48,6 +55,10 @@ const HomePage: React.FC = () => {
     console.log('Searching for:', query);
   };
 
+  const handleCreateHotel = () => {
+    navigate('/create-hotel');
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-8">
@@ -55,7 +66,15 @@ const HomePage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">Welcome to StayMate</h1>
           <p className="text-gray-600 mt-2">Find the best hotels near you with ease.</p>
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-4">
+          {isAdmin && (
+            <button
+              onClick={handleCreateHotel}
+              className="bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 duration-300 shadow-md transition hover:scale-110"
+            >
+              Create Hotel
+            </button>
+          )}
           <SearchBar onSearch={handleSearch} />
         </div>
       </div>

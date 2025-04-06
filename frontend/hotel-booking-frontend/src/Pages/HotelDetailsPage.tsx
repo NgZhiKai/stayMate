@@ -1,20 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";  // Import useNavigate
 import { ClipLoader } from "react-spinners";
 import HotelDetails from "../components/Hotel/HotelDetails";
-import { fetchHotelById } from "../services/hotelApi";
+import { deleteHotel, fetchHotelById } from "../services/hotelApi";
 import { getReviewsForHotel } from "../services/ratingApi";
 import { getUserInfo } from "../services/userApi";
 import { HotelData } from "../types/Hotels";
 import { Review } from "../types/Review";
+import MessageModal from "../components/MessageModal";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const useHotelData = (id: string) => {
   const [loading, setLoading] = useState(true);
   const [hotel, setHotel] = useState<HotelData | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [userInfo, setUserInfo] = useState<{ [key: string]: { firstName: string; lastName: string } }>({});
-
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -50,6 +52,10 @@ const HotelDetailsPage = () => {
   const { loading, hotel, reviews, userInfo } = useHotelData(id!);
 
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hotelToDelete, setHotelToDelete] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const formatToAMPM = useCallback((timeString: string) => {
     const [hours, minutes] = timeString.split(":").map(Number);
@@ -76,6 +82,29 @@ const HotelDetailsPage = () => {
     );
   };
 
+  const handleDeleteHotel = (hotelId: number) => {
+    setHotelToDelete(hotelId);
+    setModalMessage("Are you sure you want to delete this hotel?");
+    setIsModalOpen(true);  // Open the modal
+  };
+
+  const confirmDeletion = async () => {
+    if (hotelToDelete) {
+      try {
+        await deleteHotel(hotelToDelete); // Call the delete hotel API
+        setModalMessage("Hotel deleted successfully!");
+        setIsModalOpen(false);  // Close the modal
+        setTimeout(() => {
+          navigate("/");  // Navigate to the hotel list page after deletion
+        }, 2000);
+      } catch (error) {
+        console.error("Error deleting hotel:", error);
+        setModalMessage("There was an error deleting the hotel.");
+        setIsModalOpen(false);
+      }
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center items-center h-screen"><ClipLoader size={50} color="#2563EB" /></div>;
   }
@@ -85,16 +114,25 @@ const HotelDetailsPage = () => {
   }
 
   return (
-    <HotelDetails
-      hotel={hotel}
-      reviews={reviews}
-      userInfo={userInfo}
-      getPricingRange={getPricingRange}
-      formatToAMPM={formatToAMPM}
-      renderStars={renderStars}
-      isBookmarked={isBookmarked}
-      setIsBookmarked={setIsBookmarked}
-    />
+    <div className="p-6">
+      <HotelDetails
+        hotel={hotel}
+        reviews={reviews}
+        userInfo={userInfo}
+        getPricingRange={getPricingRange}
+        formatToAMPM={formatToAMPM}
+        renderStars={renderStars}
+        isBookmarked={isBookmarked}
+        setIsBookmarked={setIsBookmarked}
+        handleDeleteHotel={handleDeleteHotel}  // Pass handleDeleteHotel as a prop
+      />
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={confirmDeletion}
+        message={modalMessage}
+      />
+    </div>
   );
 };
 

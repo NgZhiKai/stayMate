@@ -68,7 +68,7 @@ public class RoomController {
         }
     }
 
-    @GetMapping("/available/{hotelId}")
+    @GetMapping("/{hotelId}")
     public ResponseEntity<List<Room>> getAvailableRooms(@PathVariable Long hotelId) {
         List<Room> availableRooms = roomService.getAvailableRoomsForHotel(hotelId);
         if (availableRooms.isEmpty()) {

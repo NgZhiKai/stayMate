@@ -92,6 +92,6 @@ public class RoomService {
     }
 
     public List<Room> getAvailableRoomsForHotel(Long hotelId) {
-        return roomRepository.findByHotelIdAndStatus(hotelId, RoomStatus.AVAILABLE);
+        return roomRepository.findByHotelIdAndStatus(hotelId);
     }
 }

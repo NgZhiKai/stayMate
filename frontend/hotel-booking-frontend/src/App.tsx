@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import HomePage from "./Pages/HomePage";
-import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
-// import AccountPage from "./Pages/AccountPage";
-import NearMePage from "./Pages/NearMePage";
-import RegisterPage from "./Pages/RegisterPage";
-import UserAccountSettings from "./Pages/UserAccountSettings";
-import SavedHotels from "./Pages/SavedHotelsPage";
+import Sidebar from "./components/Sidebar";
 import HotelDetailsPage from "./Pages/HotelDetailsPage";
 import LoginPage from "./Pages/LoginPage";
 import LogOutPage from "./Pages/LogoutPage";
+import NearMePage from "./Pages/NearMePage";
+import RegisterPage from "./Pages/RegisterPage";
+import SavedHotels from "./Pages/SavedHotelsPage";
+import UserAccountSettings from "./Pages/UserAccountSettings";
 import VerifyEmailPage from "./Pages/VerficationPage";
-import AdminHotelPage from "./Pages/AdminHotelPage";
-import AdminCreateHotelPage from "./Pages/AdminCreateHotelPage";
 import BookingPage from './Pages/BookingPage';
 import CreateBookingPage from './Pages/CreateBookingPage';
+import CreateUpdateHotelPage from "./Pages/CreateUpdateHotelPage";
+import ManageBookingsPage from './Pages/ManageBookingsPage';
+import ManageUsersPage from './Pages/ManageUsersPage';
 import { AuthProvider } from "./contexts/AuthContext";
 
 
@@ -47,8 +47,9 @@ const App: React.FC = () => {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/logout" element={<LogOutPage />} />
                 <Route path="/verify" element={<VerifyEmailPage />} />
-                <Route path="/admin/hotels" element={<AdminHotelPage />} />
-                <Route path="/admin/hotels/create" element={<AdminCreateHotelPage />} />
+                <Route path="/admin/users" element={<ManageUsersPage />} />
+                <Route path="/admin/bookings" element={<ManageBookingsPage />} />
+                <Route path="/create-hotel/:id?" element={<CreateUpdateHotelPage />} />
                 <Route path="/bookings" element={<BookingPage />} />
                 <Route path="/create-bookings/:hotelId" element={<CreateBookingPage />} />
               </Routes>

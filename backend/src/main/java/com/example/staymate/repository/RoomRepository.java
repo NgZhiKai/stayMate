@@ -14,7 +14,7 @@ import com.example.staymate.entity.room.RoomId;
 @Repository
 public interface RoomRepository extends JpaRepository<Room, RoomId> {
 
-    @Query("SELECT r FROM Room r WHERE r.id.hotelId = :hotelId AND r.status = :status")
-    List<Room> findByHotelIdAndStatus(@Param("hotelId") Long hotelId, @Param("status") RoomStatus status);
+    @Query("SELECT r FROM Room r WHERE r.id.hotelId = :hotelId")
+    List<Room> findByHotelIdAndStatus(@Param("hotelId") Long hotelId);
 
 }

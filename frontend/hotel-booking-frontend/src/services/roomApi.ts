@@ -1,11 +1,14 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:4200/rooms';  // Update with your actual backend URL
+import { BASE_URL } from '../constants/constants';
+
+// Base URL for the API
+const API_BASE_URL = `${BASE_URL}/rooms`;
 
 // Function to get available rooms for a specific hotel
 export const getAvailableRooms = async (hotelId: number) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/available/${hotelId}`);
+    const response = await axios.get(`${API_BASE_URL}/${hotelId}`);
     return response.data;  // Assuming the API returns an array of rooms
   } catch (error) {
     console.error("Error fetching available rooms:", error);

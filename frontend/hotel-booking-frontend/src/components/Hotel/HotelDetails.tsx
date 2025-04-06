@@ -1,8 +1,8 @@
 import React from "react";
 import { FaBookmark, FaRegBookmark } from "react-icons/fa"; // Import missing icons
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { HotelData } from "../../types/Hotels";
 import { Review } from "../../types/Review";
-import { useNavigate } from "react-router-dom";  // Import useNavigate
 
 type HotelDetailsProps = {
   hotel: HotelData | null;
@@ -13,6 +13,7 @@ type HotelDetailsProps = {
   renderStars: (rating: number) => React.ReactNode;
   isBookmarked: boolean;
   setIsBookmarked: (value: boolean) => void;
+  handleDeleteHotel: (hotelId: number) => void;
 };
 
 const HotelDetails: React.FC<HotelDetailsProps> = ({
@@ -24,9 +25,14 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
   renderStars,
   isBookmarked,
   setIsBookmarked,
+  handleDeleteHotel,
 }) => {
   const navigate = useNavigate();  // Initialize the navigate function
   const defaultImage = 'https://archive.org/download/placeholder-image/placeholder-image.jpg';
+
+  // Check if the user is an admin
+  const userRole = sessionStorage.getItem('role');
+  const isAdmin = userRole === 'admin';
 
   const handleBookmarkToggle = () => {
     setIsBookmarked(!isBookmarked);
@@ -34,6 +40,10 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
 
   const handleBookClick = () => {
     navigate(`/create-bookings/${hotel?.id}`);  // Navigate to create-bookings page when clicked
+  };
+
+  const handleUpdateHotel = () => {
+    navigate(`/create-hotel/${hotel?.id}`); // Navigate to update-hotel page when clicked
   };
 
   // Helper component for displaying hotel contact info
@@ -77,15 +87,33 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
       <div className="mb-6 flex justify-between items-start">
         <h1 className="text-3xl font-bold">{hotel?.name}</h1>
         <div className="flex space-x-3 items-center">
-          <button onClick={handleBookmarkToggle} className="text-gray-600 hover:text-blue-600 transition text-xl">
+          <button onClick={handleBookmarkToggle} className="text-gray-600 hover:text-blue-600 transition text-xl hover:scale-110">
             {isBookmarked ? <FaBookmark /> : <FaRegBookmark />}
           </button>
           <button
             onClick={handleBookClick}  // Added onClick handler for booking
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition hover:scale-110"
           >
             Book
           </button>
+
+          {/* Show the Update Hotel button if the user is an admin */}
+          {isAdmin && (
+            <>
+            <button
+              onClick={handleUpdateHotel}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition hover:scale-110"
+            >
+              Update Hotel
+            </button>
+            <button
+              onClick={() => handleDeleteHotel(hotel?.id!)} // Trigger the handleDeleteHotel prop
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition hover:scale-110"
+            >
+              Delete Hotel
+            </button>
+          </>
+          )}
         </div>
       </div>
       <p className="text-gray-700 mb-6">{hotel?.description}</p>

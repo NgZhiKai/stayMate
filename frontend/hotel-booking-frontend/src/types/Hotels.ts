@@ -29,14 +29,3 @@ export interface SearchFilters {
     checkIn: string;
     checkOut: string;
 }
-
-export interface HotelManagement {
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  description: string;
-  contact: string;
-  check_in: { hour: number, minute: number, second: number, nano: number }; // Time object for check-in
-  check_out: { hour: number, minute: number, second: number, nano: number }; // Time object for check-out
-}
