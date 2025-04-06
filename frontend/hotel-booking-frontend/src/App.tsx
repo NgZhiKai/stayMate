@@ -10,7 +10,7 @@ import UserAccountSettings from "./Pages/UserAccountSettings";
 import SavedHotels from "./Pages/SavedHotelsPage";
 import HotelDetailsPage from "./Pages/HotelDetailsPage";
 import BookedHotelsPage from "./Pages/BookedHotelsPage";
-
+import PaymentPage from "./Pages/PaymentPage";
 
 const App: React.FC = () => {
   const [isOpen, setIsOpen] = useState(() => {
@@ -43,6 +43,7 @@ const App: React.FC = () => {
               <Route path="/saved-hotels" element={<SavedHotels />} />
               <Route path="/hotel/:id" element={<HotelDetailsPage />} />
               <Route path="/booked-hotels" element={<BookedHotelsPage />} />
+              <Route path="/payment" element={<PaymentPage />} />
             </Routes>
           </div>
         </div>

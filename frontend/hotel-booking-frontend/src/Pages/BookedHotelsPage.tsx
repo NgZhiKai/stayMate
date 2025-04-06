@@ -19,6 +19,15 @@ const BookedHotelsPage: React.FC = () => {
     }
   }, []);
 
+  const handleCancelBooking = (id: string) => {
+    const confirmCancel = window.confirm("Are you sure you want to cancel this booking?");
+    if (!confirmCancel) return;
+  
+    const updatedBookings = bookedHotels.filter((hotel) => hotel.id !== id);
+    setBookedHotels(updatedBookings);
+    localStorage.setItem("bookedHotels", JSON.stringify(updatedBookings));
+  };
+  
   return (
     <div className="max-w-5xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Your Booked Hotels</h1>
@@ -44,6 +53,13 @@ const BookedHotelsPage: React.FC = () => {
               <p className="mt-2 font-semibold text-blue-600">
                 Total: ${hotel.totalPrice.toFixed(2)}
               </p>
+
+              <button
+                onClick={() => handleCancelBooking(hotel.id)}
+                className="mt-4 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition"
+              >
+                Cancel Booking
+              </button>
             </div>
           ))}
         </div>

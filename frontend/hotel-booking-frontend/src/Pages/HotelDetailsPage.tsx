@@ -5,6 +5,7 @@ import { ClipLoader } from "react-spinners";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { differenceInDays } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 const HotelDetailsPage = () => {
   const { id } = useParams();
@@ -14,6 +15,7 @@ const HotelDetailsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [checkInDate, setCheckInDate] = useState<Date | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
+  const navigate = useNavigate();
 
   const pricePerNight = 150; // Adjust or fetch this dynamically
 
@@ -57,26 +59,28 @@ const HotelDetailsPage = () => {
   const totalPrice = totalNights > 0 ? totalNights * pricePerNight : 0;
 
   const handleConfirmBooking = () => {
-    const newBooking = {
-      id: id || Date.now().toString(), // fallback if no ID from params
-      name: hotel.name,
-      image: hotel.image,
-      checkInDate: checkInDate?.toLocaleDateString() || "",
-      checkOutDate: checkOutDate?.toLocaleDateString() || "",
-      totalPrice,
-    };
+    if (hotel && checkInDate && checkOutDate && totalNights > 0) {
+      setIsModalOpen(false);
   
-    const stored = localStorage.getItem("bookedHotels");
-    const bookings = stored ? JSON.parse(stored) : [];
-    bookings.push(newBooking);
-    localStorage.setItem("bookedHotels", JSON.stringify(bookings));
+      navigate("/payment", {
+        state: {
+          hotel: {
+            name: hotel.name,
+            image: hotel.image,
+          },
+          checkInDate: checkInDate.toLocaleDateString(),
+          checkOutDate: checkOutDate.toLocaleDateString(),
+          totalPrice,
+        },
+      });
   
-    alert(`Booking confirmed!\nCheck-in: ${newBooking.checkInDate}\nCheck-out: ${newBooking.checkOutDate}\nTotal: $${newBooking.totalPrice}`);
-  
-    setIsModalOpen(false);
-    setCheckInDate(null);
-    setCheckOutDate(null);
+      setCheckInDate(null);
+      setCheckOutDate(null);
+    } else {
+      alert("Please select valid check-in and check-out dates.");
+    }
   };
+  
   
   if (loading) {
     return (
