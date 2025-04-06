@@ -1,14 +1,19 @@
 package com.example.staymate.controller;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +23,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.staymate.dto.custom.CustomResponse;
 import com.example.staymate.dto.hotel.HotelRequestDTO;
@@ -27,6 +34,8 @@ import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.entity.room.Room;
 import com.example.staymate.service.HotelService;
 import com.example.staymate.service.RoomService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -42,36 +51,52 @@ public class HotelController {
     private RoomService roomService;
 
     @Operation(summary = "Create a new hotel", description = "This operation creates a new hotel and its rooms")
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CustomResponse<Map<String, Object>>> createHotel(
-            @Parameter(description = "Details of the hotel to be created") @RequestBody HotelRequestDTO hotelRequestDTO) {
+            @RequestPart("hotelDetails") String hotelDetailsJson,
+            @RequestPart("image") MultipartFile image) {
+
+        HotelRequestDTO hotelRequestDTO = null;
+        try {
+            // Attempt to parse the hotelDetailsJson into HotelRequestDTO
+            hotelRequestDTO = new ObjectMapper().readValue(hotelDetailsJson, HotelRequestDTO.class);
+        } catch (JsonProcessingException e) {
+            // Handle JSON parsing error
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new CustomResponse<>("Invalid JSON format for hotel details", null));
+        }
+
+        // Validate hotel name
         if (hotelRequestDTO.getName() == null || hotelRequestDTO.getName().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new CustomResponse<>("Hotel name is required", null)); // 400 Bad Request
         }
 
+        // Create Hotel object and populate fields
         Hotel hotel = new Hotel();
         hotel.setName(hotelRequestDTO.getName());
         hotel.setAddress(hotelRequestDTO.getAddress());
+        hotel.setDescription(hotelRequestDTO.getDescription());
         hotel.setLatitude(hotelRequestDTO.getLatitude());
         hotel.setLongitude(hotelRequestDTO.getLongitude());
+        hotel.setContact(hotelRequestDTO.getContact());
+        hotel.setCheckIn(hotelRequestDTO.getCheckIn());
+        hotel.setCheckOut(hotelRequestDTO.getCheckOut());
 
-        // Save image to file storage (or database)
-        if (hotelRequestDTO.getImage() != null && !hotelRequestDTO.getImage().isEmpty()) {
-            try {
-                byte[] imageBytes = hotelRequestDTO.getImage().getBytes();
-                hotel.setImage(imageBytes); // Assuming you store as BLOB in DB
-            } catch (IOException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new CustomResponse<>("Error processing image", null));
-            }
+        try {
+            byte[] imageBytes = image.getResource().getInputStream().readAllBytes();
+            hotel.setImage(imageBytes); // Store image as byte array
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new CustomResponse<>("Error processing image", null));
         }
 
+        // Save hotel to the database
         Hotel savedHotel = hotelService.saveHotel(hotel);
 
+        // Process rooms
         List<Room> rooms = new ArrayList<>();
         long roomId = 100;
-
         for (RoomRequestDTO roomRequest : hotelRequestDTO.getRooms()) {
             if (roomRequest.getQuantity() <= 0) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -85,7 +110,6 @@ public class HotelController {
         }
 
         savedHotel.setRooms(rooms);
-        hotelService.saveHotel(savedHotel);
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Hotel created successfully");
@@ -187,5 +211,36 @@ public class HotelController {
         response.put("message", "Hotels found matching the name: " + name);
         response.put("hotels", hotels);
         return ResponseEntity.ok(new CustomResponse<>("Hotels found successfully", response)); // 200 OK
+    }
+
+    private boolean isBase64(String value) {
+        try {
+            Base64.getDecoder().decode(value);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    // Method to download an image from a URL and convert it into a byte array
+    private byte[] imageUrlToByteArray(String imageUrl) throws IOException {
+        URL url = new URL(imageUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        try (InputStream inputStream = connection.getInputStream();
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                byteArrayOutputStream.write(buffer, 0, bytesRead);
+            }
+
+            return byteArrayOutputStream.toByteArray();
+        } catch (IOException e) {
+            throw new IOException("Error reading image from URL", e);
+        }
     }
 }

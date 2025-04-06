@@ -1,116 +1,165 @@
-import React, { useState, useEffect  } from "react";
+import { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { getUserInfo, updateUser, deleteUser } from "../services/userApi";
+import { AuthContext } from "../contexts/AuthContext";
+import AccountSettingsForm from "../components/User/AccountSettingsForm";
+import MessageModal from "../components/MessageModal"; // Import MessageModal
 
 const UserAccountSettings = () => {
-  const [name, setName] = useState("John Doe");
-  const [email, setEmail] = useState("johndoe@example.com");
-  const [newEmail, setNewEmail] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-
-  // ✅ Load toggle state from localStorage on mount
-  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(() => {
-    const savedState = localStorage.getItem("settingsOpen");
-    return savedState ? JSON.parse(savedState) : true;
+  const [userInfo, setUserInfo] = useState({
+    name: "",
+    email: "",
+    phoneNumber: "",
+    role: "",
   });
+  const [passwords, setPasswords] = useState({
+    currentPassword: "",
+    newPassword: "",
+  });
+  const [newEmail, setNewEmail] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const { logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalType, setModalType] = useState<"success" | "error">("success");
+
+  const openModal = (message: string, type: "success" | "error") => {
+    setModalMessage(message);
+    setModalType(type);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
 
   useEffect(() => {
-    // ✅ Save to localStorage whenever isSettingsOpen changes
-    localStorage.setItem("settingsOpen", JSON.stringify(isSettingsOpen));
-  }, [isSettingsOpen]);
-  
+    const userId = sessionStorage.getItem("userId");
 
-  const handleEmailChange = () => {
+    if (userId) {
+      const fetchUserData = async () => {
+        try {
+          setLoading(true);
+          const { user } = await getUserInfo(userId);
+          setUserInfo({
+            name: `${user.firstName} ${user.lastName}`,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+            role: user.role,
+          });
+          setLoading(false);
+        } catch (err: unknown) {
+          setLoading(false);
+          openModal(
+            err instanceof Error ? err.message : "An unknown error occurred.",
+            "error"
+          );
+        }
+      };
+
+      fetchUserData();
+    } else {
+      setLoading(false);
+      openModal("User not logged in.", "error");
+    }
+  }, []);
+
+  const handleEmailChange = async () => {
     if (newEmail.trim() !== "") {
-      setEmail(newEmail);
-      setNewEmail("");
-      alert("Email updated successfully!");
+      try {
+        const userId = sessionStorage.getItem("userId");
+        if (!userId) {
+          throw new Error("User not logged in.");
+        }
+
+        const updatedUser = {
+          firstName: userInfo.name.split(" ")[0],
+          lastName: userInfo.name.split(" ")[1],
+          email: newEmail,
+          phoneNumber: userInfo.phoneNumber,
+          role: userInfo.role,
+        };
+
+        await updateUser(userId, updatedUser);
+        setUserInfo((prev) => ({ ...prev, email: newEmail }));
+        setNewEmail("");
+        openModal("Email updated successfully!", "success");
+      } catch (error) {
+        openModal(error instanceof Error ? error.message : "An error occurred.", "error");
+      }
     }
   };
 
-  const handlePasswordChange = () => {
-    if (currentPassword && newPassword) {
-      alert("Password changed successfully!");
-      setCurrentPassword("");
-      setNewPassword("");
+  const handlePasswordChange = async () => {
+    if (passwords.currentPassword && passwords.newPassword) {
+      try {
+        const userId = sessionStorage.getItem("userId");
+        if (!userId) {
+          throw new Error("User not logged in.");
+        }
+
+        const updatedUser = {
+          firstName: userInfo.name.split(" ")[0],
+          lastName: userInfo.name.split(" ")[1],
+          email: userInfo.email,
+          password: passwords.newPassword,
+          phoneNumber: userInfo.phoneNumber,
+          role: userInfo.role,
+        };
+
+        await updateUser(userId, updatedUser);
+        setPasswords({ currentPassword: "", newPassword: "" });
+        openModal("Password changed successfully!", "success");
+      } catch (error) {
+        openModal(error instanceof Error ? error.message : "An error occurred.", "error");
+      }
     }
   };
 
-  const handleDeleteAccount = () => {
-    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      alert("Account deleted.");
-      // Call API to delete account
+  const handleDeleteAccount = async () => {
+    const userId = sessionStorage.getItem("userId");
+
+    if (userId && window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      try {
+        const response = await deleteUser(userId);
+        alert(response.message);
+        logout();
+        navigate("/");
+      } catch (err) {
+        alert(err instanceof Error ? err.message : "An error occurred while deleting the account.");
+      }
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="max-w-lg mx-auto bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-semibold mb-4">Account Settings</h2>
-
-      {/* User Info */}
-      <div className="mb-6">
-        <label className="block text-gray-700">Name</label>
-        <p className="border px-3 py-2 rounded bg-gray-100">{name}</p>
-      </div>
-
-      <div className="mb-6">
-        <label className="block text-gray-700">Registered Email</label>
-        <p className="border px-3 py-2 rounded bg-gray-100">{email}</p>
-      </div>
-
-      {/* Change Email */}
-      <div className="mb-6">
-        <label className="block text-gray-700">Change Email</label>
-        <div className="flex space-x-2">
-          <input
-            type="email"
-            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter new email"
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-          />
-          <button
-            onClick={handleEmailChange}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Update
-          </button>
-        </div>
-      </div>
-
-      {/* Change Password */}
-      <div className="mb-6">
-        <label className="block text-gray-700">Change Password</label>
-        <input
-          type="password"
-          className="w-full border px-3 py-2 rounded mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Current password"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
+    <div className="flex justify-center items-center min-h-full bg-gray-100">
+      <div className="w-full max-w-lg p-6 bg-white shadow-md rounded-lg">
+        <AccountSettingsForm
+          userInfo={userInfo}
+          newEmail={newEmail}
+          setNewEmail={setNewEmail}
+          passwords={passwords}
+          setPasswords={setPasswords}
+          handleEmailChange={handleEmailChange}
+          handlePasswordChange={handlePasswordChange}
+          handleDeleteAccount={handleDeleteAccount}
         />
-        <input
-          type="password"
-          className="w-full border px-3 py-2 rounded mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="New password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-        />
-        <button
-          onClick={handlePasswordChange}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
-          Change Password
-        </button>
       </div>
 
-      {/* Delete Account */}
-      <div className="mt-6">
-        <button
-          onClick={handleDeleteAccount}
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-        >
-          Delete Account
-        </button>
-      </div>
+      {/* Modal Popup for Success/Error Message */}
+      <MessageModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        message={modalMessage}
+        type={modalType}
+      />
     </div>
   );
 };

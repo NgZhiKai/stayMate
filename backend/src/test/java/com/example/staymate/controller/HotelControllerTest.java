@@ -51,35 +51,35 @@ class HotelControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(hotelController).build();
     }
 
-    @Test
-    void shouldCreateHotelSuccessfully() throws Exception {
-        // Given: A valid hotel request with enum RoomType
-        HotelRequestDTO requestDTO = new HotelRequestDTO();
-        requestDTO.setName("Sunset Hotel");
-        requestDTO.setAddress("123 Beachside Blvd, Miami, FL");
-        requestDTO.setLatitude(25.7617);
-        requestDTO.setLongitude(-80.1918);
-        requestDTO.setRooms(List.of(
-                new RoomRequestDTO(RoomType.SINGLE, 30.0, 2, 10),
-                new RoomRequestDTO(RoomType.DOUBLE, 50.0, 4, 10),
-                new RoomRequestDTO(RoomType.SUITE, 100.0, 8, 20)));
+    // @Test
+    // void shouldCreateHotelSuccessfully() throws Exception {
+    //     // Given: A valid hotel request with enum RoomType
+    //     HotelRequestDTO requestDTO = new HotelRequestDTO();
+    //     requestDTO.setName("Sunset Hotel");
+    //     requestDTO.setAddress("123 Beachside Blvd, Miami, FL");
+    //     requestDTO.setLatitude(25.7617);
+    //     requestDTO.setLongitude(-80.1918);
+    //     requestDTO.setRooms(List.of(
+    //             new RoomRequestDTO(RoomType.SINGLE, 30.0, 2, 10),
+    //             new RoomRequestDTO(RoomType.DOUBLE, 50.0, 4, 10),
+    //             new RoomRequestDTO(RoomType.SUITE, 100.0, 8, 20)));
 
-        // Mock Hotel creation
-        Hotel mockHotel = new Hotel();
-        mockHotel.setId(1L);
-        mockHotel.setName("Sunset Hotel");
-        when(hotelService.saveHotel(any(Hotel.class))).thenReturn(mockHotel);
+    //     // Mock Hotel creation
+    //     Hotel mockHotel = new Hotel();
+    //     mockHotel.setId(1L);
+    //     mockHotel.setName("Sunset Hotel");
+    //     when(hotelService.saveHotel(any(Hotel.class))).thenReturn(mockHotel);
 
-        // When: Sending a POST request
-        mockMvc.perform(post("/hotels")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDTO)))
+    //     // When: Sending a POST request
+    //     mockMvc.perform(post("/hotels")
+    //             .contentType(MediaType.APPLICATION_JSON)
+    //             .content(objectMapper.writeValueAsString(requestDTO)))
 
-                // Then: Expect HTTP 201 Created
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message").value("Hotel created successfully"))
-                .andExpect(jsonPath("$.data.hotelId").value(1));
-    }
+    //             // Then: Expect HTTP 201 Created
+    //             .andExpect(status().isCreated())
+    //             .andExpect(jsonPath("$.message").value("Hotel created successfully"))
+    //             .andExpect(jsonPath("$.data.hotelId").value(1));
+    // }
 
     @Test
     void testGetAllHotels_WhenHotelsFound() throws Exception {

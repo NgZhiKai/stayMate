@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.staymate.dto.custom.CustomResponse;
 import com.example.staymate.dto.user.UserCreationRequestDTO;
 import com.example.staymate.dto.user.UserLoginRequestDTO;
+import com.example.staymate.dto.user.UserRequestUpdateDto;
 import com.example.staymate.entity.user.User;
 import com.example.staymate.exception.InvalidUserException;
 import com.example.staymate.exception.ResourceNotFoundException;
@@ -143,10 +144,20 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<CustomResponse<User>> updateUser(
             @PathVariable @Parameter(description = "ID of the user to be updated") Long id,
-            @Valid @RequestBody @Parameter(description = "Updated user details") User user) {
+            @Valid @RequestBody @Parameter(description = "Updated user details") UserRequestUpdateDto userRequestUpdateDto) {
 
         try {
+            // Map UserRequestUpdateDto to the existing User entity
+            User user = new User();
             user.setId(id);
+            user.setFirstName(userRequestUpdateDto.getFirstName());
+            user.setLastName(userRequestUpdateDto.getLastName());
+            user.setEmail(userRequestUpdateDto.getEmail());
+            user.setPassword(userRequestUpdateDto.getPassword());
+            user.setPhoneNumber(userRequestUpdateDto.getPhoneNumber());
+            user.setRole(userRequestUpdateDto.getRole());
+
+            // Call the service to update the user
             User updatedUser = userService.updateUser(id, user);
             return ResponseEntity.ok(new CustomResponse<>("User updated successfully", updatedUser));
         } catch (ResourceNotFoundException e) {
