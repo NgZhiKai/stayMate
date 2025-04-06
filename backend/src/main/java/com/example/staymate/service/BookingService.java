@@ -131,4 +131,8 @@ public class BookingService implements Subject {
     public List<Booking> getBookingsByUser(Long userId) {
         return bookingRepository.findBookingsByUserId(userId);
     }
+
+    public List<Booking> getAllBookings() {
+        return bookingRepository.findAll();
+    }
 }

@@ -26,10 +26,10 @@ public class UserService implements Subject {
     @Autowired
     private UserRepository userRepository;
 
-    @Value("#{dynamicBaseUrl}")
+    @Value("${frontend.host_ip}")
     private String baseUrl;
 
-    @Value("${server.port}")
+    @Value("${frontend.port}")
     private String serverPort;
 
     private final List<Observer> observers = new ArrayList<>();
@@ -46,7 +46,7 @@ public class UserService implements Subject {
         User savedUser = userRepository.save(user);
 
         String token = generateVerificationToken(savedUser);
-        String verificationLink = baseUrl + ":" + serverPort + "/users/verify?token=" + token;
+        String verificationLink = baseUrl + ":" + serverPort + "/verify?token=" + token;
 
         notifyObservers(savedUser, verificationLink);
 
@@ -85,15 +85,17 @@ public class UserService implements Subject {
         if (id == null || updatedUser == null) {
             throw new InvalidUserException("User ID and updated user data cannot be null.");
         }
+
+        // Fetch the existing user by ID
         User existingUser = getUserById(id);
 
-        existingUser.setFirstName(updatedUser.getFirstName());
-        existingUser.setLastName(updatedUser.getLastName());
-        existingUser.setEmail(updatedUser.getEmail());
-        existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
-        existingUser.setRole(updatedUser.getRole());
-
-        return userRepository.save(existingUser);
+        // If user is not found, throw an exception
+        if (existingUser == null) {
+            throw new InvalidUserException("User not found for ID: " + id);
+        }
+        updatedUser.setVerified(true);
+        // Save the updated user
+        return userRepository.save(updatedUser);
     }
 
     public void deleteUser(Long id) {
