@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa";
-import { useParams, useNavigate } from "react-router-dom";  // Import useNavigate
+import { useNavigate, useParams } from "react-router-dom"; // Import useNavigate
 import { ClipLoader } from "react-spinners";
+import ConfirmationModal from "../components/ConfirmationModal";
 import HotelDetails from "../components/Hotel/HotelDetails";
 import { deleteHotel, fetchHotelById } from "../services/hotelApi";
 import { getReviewsForHotel } from "../services/ratingApi";
 import { getUserInfo } from "../services/userApi";
 import { HotelData } from "../types/Hotels";
 import { Review } from "../types/Review";
-import MessageModal from "../components/MessageModal";
-import ConfirmationModal from "../components/ConfirmationModal";
 
 const useHotelData = (id: string) => {
   const [loading, setLoading] = useState(true);
