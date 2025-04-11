@@ -4,6 +4,7 @@ import { getBookingsForUser, cancelBooking } from "../services/bookingApi";
 import { fetchHotelById } from "../services/hotelApi";  // Assuming fetchHotelById is in hotelApi
 import BookingCard from "../components/Booking/BookingCard"; // Assuming BookingCard is in the components folder
 import MessageModal from "../components/MessageModal"; // Assuming MessageModal is in the components folder
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const BookingPage: React.FC = () => {
   const [bookings, setBookings] = useState<DetailedBooking[]>([]);
@@ -13,6 +14,7 @@ const BookingPage: React.FC = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false); // Modal state
   const [modalMessage, setModalMessage] = useState(""); // Modal message
   const [modalType, setModalType] = useState<"success" | "error">("success"); // Modal type
+  const navigate = useNavigate(); // Initialize useNavigate
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -20,7 +22,9 @@ const BookingPage: React.FC = () => {
       if (userId) {
         try {
           const bookingResponse = await getBookingsForUser(Number(userId));
+
           if (bookingResponse && bookingResponse.length > 0) {
+
             setBookings(bookingResponse);
             // Fetch hotel names for each booking
             bookingResponse.forEach(async (booking: DetailedBooking) => {
@@ -80,7 +84,16 @@ const BookingPage: React.FC = () => {
 
   // Handle making a payment
   const handleMakePayment = (bookingId: number) => {
-    // Implement the payment logic, e.g., call API for payment process
+    const booking = bookings.find((b) => b.bookingId === bookingId);
+    if (!booking) return;
+
+    // Navigate to the payment page with booking details
+    navigate("/payment", {
+      state: {
+        bookingId: booking.bookingId
+      },
+    });
+
     console.log("Make payment for booking with ID:", bookingId);
   };
 

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import CreateBookingForm from "../components/Booking/CreateBookingForm";
 import { createBooking } from "../services/bookingApi";
 import { getAvailableRooms } from "../services/roomApi";
 import { Booking } from "../types/Booking";
 import { Room } from "../types/Room";
-import CreateBookingForm from "../components/Booking/CreateBookingForm";
 
 const Modal: React.FC<{ message: string; onClose: () => void }> = ({
   message,

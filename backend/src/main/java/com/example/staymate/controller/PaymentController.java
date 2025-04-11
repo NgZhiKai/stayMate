@@ -59,6 +59,10 @@ public class PaymentController {
             Double updatedTotalPaid = totalPaid + paymentAmount;
             Double remainingAmount = booking.getTotalAmount() - totalPaid;
 
+            System.out.println(updatedTotalPaid);
+            System.out.println(booking.getTotalAmount());
+            System.out.println(updatedTotalPaid == booking.getTotalAmount());
+
             if (paymentAmount > remainingAmount) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new CustomResponse<>(
@@ -72,7 +76,7 @@ public class PaymentController {
             // 2. Process the payment (update status based on payment method)
             paymentService.processPayment(newPayment.getId(), paymentMethod);
 
-            if (updatedTotalPaid.equals(booking.getTotalAmount())) {
+            if (updatedTotalPaid == booking.getTotalAmount()) {
                 booking.setStatus(BookingStatus.CONFIRMED);
                 bookingService.updateBooking(booking); // Ensure this method saves the change in DB
             }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { RegisterData } from "../../types/User";
 import MessageModal from "../MessageModal";
 import 'react-phone-input-2/lib/style.css';
@@ -9,7 +9,9 @@ const RegisterForm: React.FC<{
   error: string | null;
   registerData: RegisterData;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
-}> = ({ onRegister, error, registerData, handleChange }) => {
+  confirmPassword: string;
+  setConfirmPassword: React.Dispatch<React.SetStateAction<string>>;
+}> = ({ onRegister, error, registerData, handleChange, confirmPassword, setConfirmPassword }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [modalMessage, setModalMessage] = useState<string>("");
@@ -19,13 +21,28 @@ const RegisterForm: React.FC<{
   const validateForm = () => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     const passwordMinLength = 8;
+    let errors: string[] = [];
 
+    // Validate email
     if (!emailRegex.test(registerData.email)) {
-      setValidationError("Please enter a valid email address.");
-      return false;
+      errors.push("Please enter a valid email address.");
     }
+
+    // Validate password length
     if (registerData.password.length < passwordMinLength) {
-      setValidationError(`Password must be at least ${passwordMinLength} characters long.`);
+      errors.push(`Password must be at least ${passwordMinLength} characters long.`);
+    }
+
+    // Validate passwords match
+    if (registerData.password !== confirmPassword) {
+      errors.push("Passwords do not match.");
+    }
+
+    if (errors.length > 0) {
+      // Create a bullet point list of errors
+      setValidationError(
+        `<ul>${errors.map(error => `<li>${error}</li>`).join('')}</ul>`
+      );
       return false;
     }
 
@@ -44,6 +61,17 @@ const RegisterForm: React.FC<{
       handleModal(true); // Open modal if validation fails
     }
   };
+
+  // Ensure modal message is updated based on error or validation error change
+  useEffect(() => {
+    if (validationError) {
+      setModalMessage(validationError);
+      handleModal(true); // Open modal when validation error is set
+    } else if (error) {
+      setModalMessage(error);
+      handleModal(true); // Open modal when there's an error
+    }
+  }, [validationError, error]); // Dependency array ensures update when validationError or error change
 
   const inputProps = "w-full p-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300";
 
@@ -109,16 +137,28 @@ const RegisterForm: React.FC<{
           </div>
         </div>
 
-        {/* Password */}
-        <div>
-          <label className="block text-gray-700 font-medium mb-1">Password</label>
-          <input
-            type="password"
-            name="password"
-            value={registerData.password}
-            onChange={handleChange}
-            className={inputProps}
-          />
+        {/* Password and Confirm Password side by side */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={registerData.password}
+              onChange={handleChange}
+              className={inputProps}
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Confirm Password</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={inputProps}
+            />
+          </div>
         </div>
 
         {/* Role */}
@@ -138,7 +178,7 @@ const RegisterForm: React.FC<{
 
         <button
           onClick={handleSubmit}
-          className="w-full bg-blue-500 text-white px-4 py-3 rounded-md hover:bg-blue-600 transition duration-300"
+          className="w-full bg-blue-500 text-white px-4 py-3 rounded-md hover:bg-blue-600 transition hover:scale-105 duration-300"
         >
           Register
         </button>

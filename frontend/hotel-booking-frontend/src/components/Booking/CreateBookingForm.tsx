@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Room } from "../../types/Room";
+import React, { useState } from "react";
 import { Booking } from "../../types/Booking";
+import { Room } from "../../types/Room";
 
 interface Props {
   bookingData: Booking;
@@ -56,7 +56,7 @@ const CreateBookingForm: React.FC<Props> = ({
     return 0;
   };
 
-  const totalAmount = calculateTotalAmount();
+  bookingData.totalAmount = calculateTotalAmount();
 
   // Handle room selection
   const handleRoomSelectWrapper = (roomId: number) => {
@@ -165,7 +165,7 @@ const CreateBookingForm: React.FC<Props> = ({
           <input
             type="number"
             name="totalAmount"
-            value={totalAmount}
+            value={bookingData.totalAmount}
             disabled
             className="w-full p-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
           />

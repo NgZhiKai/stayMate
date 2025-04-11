@@ -19,12 +19,12 @@ const formatDate = (date: string) => {
 const BookingCard: React.FC<BookingCardProps> = ({ booking, hotelName, onCancelBooking, onMakePayment }) => {
   const handleCancel = () => {
     // Call the cancel booking function passed via props
-    onCancelBooking(booking.id);
+    onCancelBooking(booking.bookingId);
   };
 
   const handlePayment = () => {
     // Call the make payment function passed via props
-    onMakePayment(booking.id);
+    onMakePayment(booking.bookingId);
   };
 
   return (
@@ -33,7 +33,6 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, hotelName, onCancelB
         <div className="text-sm font-semibold text-gray-700 col-span-2">
           <span className="font-bold">Hotel:</span> {hotelName || "Loading..."}
         </div>
-
         <div className="text-xs text-gray-600">
           <span className="font-bold">Check-in:</span> {formatDate(booking.checkInDate)}
         </div>

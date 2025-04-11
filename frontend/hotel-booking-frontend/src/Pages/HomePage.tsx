@@ -8,8 +8,11 @@ import { HotelData } from '../types/Hotels';
 
 const HomePage: React.FC = () => {
   const [hotels, setHotels] = useState<HotelData[]>([]);
+  const [filteredHotels, setFilteredHotels] = useState<HotelData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [hotelsPerPage] = useState<number>(8);
 
   const userId = sessionStorage.getItem('userId');
   const userRole = sessionStorage.getItem('role');
@@ -36,6 +39,7 @@ const HomePage: React.FC = () => {
           );
 
           setHotels(hotelsWithRatings);
+          setFilteredHotels(hotelsWithRatings);
         } else {
           throw new Error('Invalid data format received');
         }
@@ -52,12 +56,42 @@ const HomePage: React.FC = () => {
   }, []);
 
   const handleSearch = (query: string) => {
-    console.log('Searching for:', query);
+    if (!query.trim()) {
+      // If search box is empty or only spaces, show all hotels
+      setFilteredHotels(hotels);
+      return;
+    }
+
+    const lowercasedQuery = query.toLowerCase();
+    const filtered = hotels.filter((hotel) =>
+      hotel.name.toLowerCase().includes(lowercasedQuery)
+    );
+    setFilteredHotels(filtered);
   };
 
   const handleCreateHotel = () => {
     navigate('/create-hotel');
   };
+
+  // Get the hotels to display on the current page
+  const indexOfLastHotel = currentPage * hotelsPerPage;
+  const indexOfFirstHotel = indexOfLastHotel - hotelsPerPage;
+  const currentHotels = filteredHotels.slice(indexOfFirstHotel, indexOfLastHotel);
+
+  // Handle page change
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  // Handle next and previous page changes
+  const nextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredHotels.length / hotelsPerPage);
 
   return (
     <div className="p-6">
@@ -89,11 +123,44 @@ const HomePage: React.FC = () => {
         ) : hotels.length === 0 ? (
           <p>No hotels available at the moment.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-3">
-            {hotels.map((hotel) => (
-              <HotelCard key={hotel.id} hotel={hotel} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-3">
+              {currentHotels.map((hotel) => (
+                <HotelCard key={hotel.id} hotel={hotel} />
+              ))}
+            </div>
+
+            {/* Pagination with Arrows */}
+            <div className="flex justify-center mt-4 items-center gap-2">
+              <button
+                onClick={prevPage}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 rounded-md ${currentPage === 1 ? 'bg-gray-300 text-gray-800' : 'bg-blue-600 text-white'}`}
+              >
+                &lt;
+              </button>
+              <div className="flex gap-2">
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <button
+                    key={index + 1}
+                    onClick={() => paginate(index + 1)}
+                    className={`px-4 py-2 rounded-md ${
+                      currentPage === index + 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-800'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={nextPage}
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 rounded-md ${currentPage === totalPages ? 'bg-gray-300 text-gray-800' : 'bg-blue-600 text-white'}`}
+              >
+                &gt;
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

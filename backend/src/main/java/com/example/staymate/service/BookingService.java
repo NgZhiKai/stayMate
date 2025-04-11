@@ -85,6 +85,7 @@ public class BookingService implements Subject {
         // Notify observers when a booking is confirmed or canceled
         Notification notification = new Notification();
         notification.setUser(booking.getUser());
+        notification.setType(NotificationType.BOOKING);
         notification.setRead(false);
         notification.setCreatedAt(LocalDateTime.now());
 
