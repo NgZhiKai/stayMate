@@ -46,11 +46,9 @@ public class UserService implements Subject {
         User savedUser = userRepository.save(user);
 
         String token = generateVerificationToken(savedUser);
-        String verificationLink = "http://" + baseUrl + "/verify?token=" + token;
+        String verificationLink = "http://" + baseUrl + "/verify";
 
-        System.out.println(verificationLink);
-
-        notifyObservers(savedUser, verificationLink);
+        notifyObservers(savedUser, verificationLink, token);
 
         return savedUser;
     }
@@ -150,13 +148,14 @@ public class UserService implements Subject {
         }
     }
 
-    public void notifyObservers(User user, String verificationLink) {
-        if (user == null || verificationLink == null || verificationLink.isBlank()) {
+    public void notifyObservers(User user, String verificationLink, String token) {
+        if (user == null || verificationLink == null || verificationLink.isBlank() || token == null) {
             throw new InvalidUserException("User and verification link cannot be null or empty.");
         }
         Map<String, Object> data = new HashMap<>();
         data.put("verificationLink", verificationLink);
         data.put("user", user);
+        data.put("token", token);
         notifyObservers(data);
     }
 

@@ -21,16 +21,16 @@ public class EmailService {
     private String fromEmail;
 
     // Send email with verification link
-    public void sendVerificationEmail(String to, String verificationLink) {
+    public void sendVerificationEmail(String to, String verificationLink, String token) {
         String subject = "Email Verification";
 
         // Read the HTML content from the template
-        String body = getEmailContentWithVerificationLink(verificationLink);
+        String body = getEmailContentWithVerificationLink(verificationLink, token);
 
         sendSimpleEmail(to, subject, body);
     }
 
-    private String getEmailContentWithVerificationLink(String verificationLink) {
+    private String getEmailContentWithVerificationLink(String verificationLink, String token) {
         try {
             // Read the HTML content from the template
             var inputStream = Objects
@@ -39,6 +39,7 @@ public class EmailService {
 
             // Replace the placeholder with the actual verification link
             emailContent = emailContent.replace("{{verificationLink}}", verificationLink);
+            emailContent = emailContent.replace("{{token}}", token);
 
             return emailContent;
         } catch (Exception e) {
