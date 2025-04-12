@@ -77,12 +77,14 @@ public class HotelController {
         hotel.setCheckIn(hotelRequestDTO.getCheckIn());
         hotel.setCheckOut(hotelRequestDTO.getCheckOut());
 
-        try {
-            byte[] imageBytes = image.getResource().getInputStream().readAllBytes();
-            hotel.setImage(imageBytes); // Store image as byte array
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new CustomResponse<>("Error processing image", null));
+        if (image != null && !image.isEmpty()) {
+            try {
+                byte[] imageBytes = image.getResource().getInputStream().readAllBytes();
+                hotel.setImage(imageBytes); // Store image as byte array
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new CustomResponse<>("Error processing image", null));
+            }
         }
 
         // Save hotel to the database
@@ -170,12 +172,14 @@ public class HotelController {
             hotel.setCheckIn(hotelRequestDTO.getCheckIn());
             hotel.setCheckOut(hotelRequestDTO.getCheckOut());
 
-            try {
-                byte[] imageBytes = image.getResource().getInputStream().readAllBytes();
-                hotel.setImage(imageBytes); // Store image as byte array
-            } catch (IOException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new CustomResponse<>("Error processing image", null));
+            if (image != null && !image.isEmpty()) {
+                try {
+                    byte[] imageBytes = image.getResource().getInputStream().readAllBytes();
+                    hotel.setImage(imageBytes); // Store image as byte array
+                } catch (IOException e) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(new CustomResponse<>("Error processing image", null));
+                }
             }
 
             // Save the hotel with or without an image (if provided)
