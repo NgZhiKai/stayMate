@@ -20,6 +20,7 @@
     "class-validator": "^0.14.1",
     "date-fns": "^4.1.0",
     "leaflet": "^1.9.4",
+    "lucide-react": "^0.487.0",
     "react": "^19.0.0",
     "react-datepicker": "^8.2.1",
     "react-dom": "^19.0.0",

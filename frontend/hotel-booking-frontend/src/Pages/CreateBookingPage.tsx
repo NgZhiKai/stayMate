@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import CreateBookingForm from "../components/Booking/CreateBookingForm";
+import { useNotificationContext } from "../contexts/NotificationContext";
 import { createBooking } from "../services/bookingApi";
 import { getAvailableRooms } from "../services/roomApi";
 import { Booking } from "../types/Booking";
@@ -31,6 +32,8 @@ const Modal: React.FC<{ message: string; onClose: () => void }> = ({
 const CreateBookingPage: React.FC = () => {
   const navigate = useNavigate();
   const { hotelId } = useParams<{ hotelId: string }>();
+  const { refreshNotifications } = useNotificationContext();
+
   const [bookingData, setBookingData] = useState<Booking>({
     userId: 0,
     hotelId: 0,
@@ -122,9 +125,12 @@ const CreateBookingPage: React.FC = () => {
       setIsSubmitting(true);
       try {
         await createBooking(bookingData);
+
+        refreshNotifications();
+
         setIsSubmitting(false);
         setModalMessage("Booking created successfully!");
-        setShowModal(true);  // Show modal on success
+        setShowModal(true);
       } catch (error) {
         setIsSubmitting(false);
         console.error("Error creating booking:", error);
@@ -134,7 +140,7 @@ const CreateBookingPage: React.FC = () => {
 
   const handleModalClose = () => {
     setShowModal(false);
-    navigate("/bookings");  // Redirect to the bookings page
+    navigate("/bookings");
   };
 
   if (showLoginPrompt) {

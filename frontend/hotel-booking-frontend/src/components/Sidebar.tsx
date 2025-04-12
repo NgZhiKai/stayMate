@@ -1,9 +1,28 @@
+import {
+  Bell,
+  Calendar,
+  ClipboardList,
+  CreditCard,
+  Home,
+  Hotel,
+  LogIn,
+  LogOut,
+  MapPin,
+  Settings,
+  UserPlus,
+  Users
+} from "lucide-react";
 import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
+import { useNotificationContext } from "../contexts/NotificationContext";
 
 const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isOpen, toggleSidebar }) => {
   const { isLoggedIn, role } = useContext(AuthContext);
+  const { notifications } = useNotificationContext();
+
+  // 👇 Realtime unread count from context
+  const unreadCount = notifications.filter(n => !n.isread).length;
 
   return (
     <div
@@ -11,39 +30,82 @@ const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isO
       ${isOpen ? "translate-x-0" : "-translate-x-64"}`}
     >
       <nav className="flex flex-col space-y-3">
-        {/* Conditional rendering based on login status */}
         {(role === null || role === "customer") && (
           <>
-            <Link to="/" className="hover:bg-gray-700 p-2 rounded">🏠 Hotels</Link>
-            <Link to="/nearme" className="hover:bg-gray-700 p-2 rounded">📍 Near Me</Link>
+            <Link to="/" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <Home size={18} /> Hotels
+            </Link>
+            <Link to="/nearme" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <MapPin size={18} /> Near Me
+            </Link>
           </>
         )}
 
         {!isLoggedIn && (
           <>
-            <Link to="/login" className="hover:bg-gray-700 p-2 rounded">🔐 Login</Link>
-            <Link to="/register" className="hover:bg-gray-700 p-2 rounded">📝 Register</Link>
+            <Link to="/login" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <LogIn size={18} /> Login
+            </Link>
+            <Link to="/register" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <UserPlus size={18} /> Register
+            </Link>
           </>
         )}
 
         {isLoggedIn && role === "customer" && (
           <>
-            <Link to="/account" className="hover:bg-gray-700 p-2 rounded">🧑‍💼 Account</Link>
-            <Link to="/bookings" className="hover:bg-gray-700 p-2 rounded">📆 My Bookings</Link>
-            <Link to="/user-account-settings" className="hover:bg-gray-700 p-2 rounded">⚙️ User Settings</Link>
-            <Link to="/logout" className="hover:bg-gray-700 p-2 rounded">🚪 Logout</Link>
+            <Link to="/notifications" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <Bell size={18} />
+              Notifications
+              {unreadCount > 0 && (
+                <span className="ml-2 text-xs bg-red-500 text-white rounded-full px-2">{unreadCount}</span>
+              )}
+            </Link>
+            <Link to="/bookings" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <Calendar size={18} /> My Bookings
+            </Link>
+            <Link to="/my-payments" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <CreditCard size={18} /> My Payments
+            </Link>
+            <Link to="/user-account-settings" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <Settings size={18} /> User Settings
+            </Link>
+            <Link to="/logout" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <LogOut size={18} /> Logout
+            </Link>
           </>
         )}
 
         {isLoggedIn && role === "admin" && (
           <>
-            <Link to="/admin/dashboard" className="hover:bg-gray-700 p-2 rounded">📊 Dashboard</Link>
-            <Link to="/" className="hover:bg-gray-700 p-2 rounded">🏨 Manage Hotels</Link>
-            <Link to="/admin/users" className="hover:bg-gray-700 p-2 rounded">👥 Manage Users</Link>
-            <Link to="/admin/payments" className="hover:bg-gray-700 p-2 rounded">💳 Payments Overview</Link>
-            <Link to="/admin/bookings" className="hover:bg-gray-700 p-2 rounded">📝 Bookings Summary</Link>
-            <Link to="/user-account-settings" className="hover:bg-gray-700 p-2 rounded">⚙️ Admin Settings</Link>
-            <Link to="/logout" className="hover:bg-gray-700 p-2 rounded">🚪 Logout</Link>
+            <Link to="/" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <Hotel size={18} /> Manage Hotels
+            </Link>
+            <Link to="/notifications" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <Bell size={18} />
+              Notifications
+              {unreadCount > 0 && (
+                <span className="ml-2 text-xs bg-red-500 text-white rounded-full px-2">{unreadCount}</span>
+              )}
+            </Link>
+            <Link to="/bookings" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <Calendar size={18} /> My Bookings
+            </Link>
+            <Link to="/admin/users" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <Users size={18} /> Manage Users
+            </Link>
+            <Link to="/admin/payments" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <CreditCard size={18} /> Payments Overview
+            </Link>
+            <Link to="/admin/bookings" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <ClipboardList size={18} /> Bookings Summary
+            </Link>
+            <Link to="/user-account-settings" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <Settings size={18} /> Admin Settings
+            </Link>
+            <Link to="/logout" className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded">
+              <LogOut size={18} /> Logout
+            </Link>
           </>
         )}
       </nav>

@@ -48,8 +48,17 @@ export const getPaymentsByBookingId = async (bookingId: number): Promise<Payment
 
 export const getPaymentsByUserId = async (userId: number): Promise<Payment[]> => {
   try {
-    const response = await axios.get<Payment[]>(`${API_BASE_URL}/user/${userId}`);
-    return response.data;
+    const response = await axios.get<{ data: any[] }>(`${API_BASE_URL}/user/${userId}`);
+    
+    const mappedPayments: Payment[] = response.data.data.map((p) => ({
+      id: p.paymentId,
+      bookingId: p.bookingId,
+      amount: p.amountPaid,
+      status: p.paymentStatus,
+      transactionDate: p.paymentDateTime,
+    }));
+
+    return mappedPayments;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || 'Error retrieving payments for user');
   }

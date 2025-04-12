@@ -1,84 +1,90 @@
 import React from "react";
 import { DetailedBooking } from "../../types/Booking";
+import { CreditCard, XCircle } from 'lucide-react';
 
 interface BookingCardProps {
   booking: DetailedBooking;
   hotelName: string;
-  onCancelBooking: (bookingId: number) => void; // Callback for canceling booking
-  onMakePayment: (bookingId: number) => void; // Callback for making payment
+  onCancelBooking: (bookingId: number) => void;
+  onMakePayment: (bookingId: number) => void;
 }
 
 const formatDate = (date: string) => {
   const d = new Date(date);
-  const day = String(d.getDate()).padStart(2, '0'); // Ensure two digits
-  const month = d.toLocaleString('default', { month: 'short' }); // Get short month name (e.g., "Apr")
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = d.toLocaleString('default', { month: 'short' });
   const year = d.getFullYear();
-  return `${day} ${month} ${year}`; // Format as dd Mon yyyy
+  return `${day} ${month} ${year}`;
 };
 
 const BookingCard: React.FC<BookingCardProps> = ({ booking, hotelName, onCancelBooking, onMakePayment }) => {
   const handleCancel = () => {
-    // Call the cancel booking function passed via props
     onCancelBooking(booking.bookingId);
   };
 
   const handlePayment = () => {
-    // Call the make payment function passed via props
     onMakePayment(booking.bookingId);
   };
 
   return (
-    <div className="bg-white shadow-sm rounded-lg p-3 mb-4 w-full max-w-sm mx-auto">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="text-sm font-semibold text-gray-700 col-span-2">
-          <span className="font-bold">Hotel:</span> {hotelName || "Loading..."}
-        </div>
-        <div className="text-xs text-gray-600">
-          <span className="font-bold">Check-in:</span> {formatDate(booking.checkInDate)}
-        </div>
-        <div className="text-xs text-gray-600">
-          <span className="font-bold">Check-out:</span> {formatDate(booking.checkOutDate)}
-        </div>
-        <div className="text-xs text-gray-600">
-          <span className="font-bold">Room Type:</span> {booking.roomType}
-        </div>
-        <div className="text-xs text-gray-600">
-          <span className="font-bold">Booking Status:</span>{" "}
-          <span
-            className={`font-semibold ${
-              booking.status === "CONFIRMED"
-                ? "text-green-600"
-                : booking.status === "CANCELLED"
-                ? "text-red-600"
-                : "text-gray-600"
-            }`}
-          >
-            {booking.status}
-          </span>
-        </div>
-      </div>
+<div
+  className={`bg-gray-800 rounded-lg p-3 mb-3 w-full max-w-md mx-auto text-sm text-gray-300 shadow-sm hover:shadow-md transition ${
+    booking.status === "CANCELLED" ? "opacity-70" : ""
+  }`}
+>
+  {/* Top Row: Hotel name + status pill */}
+  <div className="flex justify-between items-center mb-2">
+    <h3 className="text-base font-semibold text-white">{hotelName || "Loading..."}</h3>
+    <span
+      className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+        booking.status === "CONFIRMED"
+          ? "bg-green-200 text-green-800"
+          : booking.status === "CANCELLED"
+          ? "bg-red-200 text-red-800"
+          : "bg-yellow-200 text-yellow-800"
+      }`}
+    >
+      {booking.status}
+    </span>
+  </div>
 
-      {/* Action buttons */}
-      {booking.status !== "CANCELLED" && (
-        <div className="flex justify-between mt-4">
-          {booking.status === "PENDING" && (
-            <button
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              onClick={handlePayment}
-            >
-              Make Payment
-            </button>
-          )}
-        
-          <button
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            onClick={handleCancel}
-          >
-            Cancel Booking
-          </button>
-        </div>
-      )}
+  {/* Dates + Room - compact inline format */}
+  <div className="flex flex-wrap justify-between gap-2 mb-2">
+    <div>
+      <span className="text-gray-400 font-medium">Check-in:</span> {formatDate(booking.checkInDate)}
     </div>
+    <div>
+      <span className="text-gray-400 font-medium">Check-out:</span> {formatDate(booking.checkOutDate)}
+    </div>
+    <div>
+      <span className="text-gray-400 font-medium">Room:</span> {booking.roomType}
+    </div>
+  </div>
+
+  {/* Buttons */}
+  {booking.status !== "CANCELLED" && (
+    <div className="flex justify-end gap-2 mt-2">
+      {booking.status === "PENDING" && (
+        <button
+          onClick={handlePayment}
+          className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded-md"
+        >
+          <CreditCard size={14} />
+          Pay
+        </button>
+      )}
+      <button
+        onClick={handleCancel}
+        className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded-md"
+      >
+        <XCircle size={14} />
+        Cancel
+      </button>
+    </div>
+  )}
+</div>
+
+
   );
 };
 

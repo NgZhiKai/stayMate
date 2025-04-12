@@ -178,7 +178,7 @@ const RegisterForm: React.FC<{
 
         <button
           onClick={handleSubmit}
-          className="w-full bg-blue-500 text-white px-4 py-3 rounded-md hover:bg-blue-600 transition hover:scale-105 duration-300"
+          className="w-full bg-blue-500 text-white px-4 py-3 rounded-full hover:bg-blue-600 shadow-md transition hover:scale-105 duration-300"
         >
           Register
         </button>
