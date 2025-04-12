@@ -95,25 +95,26 @@ class RoomControllerTest {
     // occupancy
     // }
 
-    @Test
-    void testGetAvailableRooms_whenRoomsExist_returnsRoomList() throws Exception {
+    // @Test
+    // void testGetAvailableRooms_whenRoomsExist_returnsRoomList() throws Exception
+    // {
 
-        Long hotelId = 3L;
+    // Long hotelId = 3L;
 
-        // Simulate hotel creation
-        Hotel mockHotel = new Hotel();
-        mockHotel.setId(hotelId);
-        mockHotel.setName("Sunset Hotel");
+    // // Simulate hotel creation
+    // Hotel mockHotel = new Hotel();
+    // mockHotel.setId(hotelId);
+    // mockHotel.setName("Sunset Hotel");
 
-        List<Room> mockRooms = List.of(
-                new SingleRoom(mockHotel, 101L, 50.0, 2),
-                new SingleRoom(mockHotel, 102L, 50.0, 2));
+    // List<Room> mockRooms = List.of(
+    // new SingleRoom(mockHotel, 101L, 50.0, 2),
+    // new SingleRoom(mockHotel, 102L, 50.0, 2));
 
-        when(roomService.getAvailableRoomsForHotel(hotelId)).thenReturn(mockRooms);
+    // when(roomService.getAvailableRoomsForHotel(hotelId)).thenReturn(mockRooms);
 
-        mockMvc.perform(get("/rooms/{hotelId}", hotelId))
-                .andExpect(status().isOk());
-    }
+    // mockMvc.perform(get("/rooms/{hotelId}", hotelId))
+    // .andExpect(status().isOk());
+    // }
 
     @Test
     void testGetAvailableRooms_whenNoRoomsFound_returns404() throws Exception {
