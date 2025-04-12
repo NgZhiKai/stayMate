@@ -59,6 +59,10 @@ public class PaymentController {
             Double updatedTotalPaid = totalPaid + paymentAmount;
             Double remainingAmount = booking.getTotalAmount() - totalPaid;
 
+            System.out.println(updatedTotalPaid);
+            System.out.println(booking.getTotalAmount());
+            System.out.println(updatedTotalPaid == booking.getTotalAmount());
+
             if (paymentAmount > remainingAmount) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new CustomResponse<>(
@@ -72,7 +76,7 @@ public class PaymentController {
             // 2. Process the payment (update status based on payment method)
             paymentService.processPayment(newPayment.getId(), paymentMethod);
 
-            if (updatedTotalPaid.equals(booking.getTotalAmount())) {
+            if (updatedTotalPaid == booking.getTotalAmount()) {
                 booking.setStatus(BookingStatus.CONFIRMED);
                 bookingService.updateBooking(booking); // Ensure this method saves the change in DB
             }
@@ -128,6 +132,25 @@ public class PaymentController {
             @Parameter(description = "ID of the user to retrieve payments for") @PathVariable Long userId) {
         try {
             List<Payment> payments = paymentService.getPaymentsByUserId(userId);
+
+            // Convert the list of Payment entities to PaymentIdResponseDTO objects
+            List<PaymentIdResponseDTO> paymentIdResponseDTOs = payments.stream()
+                    .map(PaymentIdResponseDTO::new)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(new CustomResponse<>("Payments retrieved successfully", paymentIdResponseDTOs));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponse<>("Payments not found", null));
+        }
+    }
+
+    @Operation(summary = "Get all payments", description = "Retrieve all payments in the system.")
+    @GetMapping()
+    public ResponseEntity<CustomResponse<List<PaymentIdResponseDTO>>> getAllPayments() {
+        try {
+            List<Payment> payments = paymentService.getAllPayments(); // Assuming this method exists in your service
+                                                                      // layer
 
             // Convert the list of Payment entities to PaymentIdResponseDTO objects
             List<PaymentIdResponseDTO> paymentIdResponseDTOs = payments.stream()

@@ -31,7 +31,7 @@ const MessageModal: React.FC<MessageModalProps> = ({ isOpen, onClose, message, t
             {icon}
             <h2 className="text-xl font-semibold">{title}</h2>
           </div>
-          <p className="mb-4">{message}</p>
+          <div className="mb-4" dangerouslySetInnerHTML={{ __html: message }} />
           <div className="flex justify-end">
             <button onClick={onClose} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
               Close

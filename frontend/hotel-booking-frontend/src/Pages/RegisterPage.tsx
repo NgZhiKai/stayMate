@@ -13,6 +13,7 @@ const RegisterPage: React.FC = () => {
     phoneNumber: "",
     role: "CUSTOMER", // Default role set to uppercase
   });
+  const [confirmPassword, setConfirmPassword] = useState(""); // State for confirm password
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -35,6 +36,12 @@ const RegisterPage: React.FC = () => {
   const handleRegister = async (registerData: RegisterData) => {
     if (!registerData.firstName || !registerData.lastName || !registerData.email || !registerData.password || !registerData.phoneNumber) {
       setError("Please fill in all fields.");
+      return;
+    }
+
+    // Check if the passwords match
+    if (registerData.password !== confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
 
@@ -63,6 +70,8 @@ const RegisterPage: React.FC = () => {
           error={error}
           registerData={registerData}
           handleChange={handleRegisterChange}
+          confirmPassword={confirmPassword} // Pass confirmPassword state
+          setConfirmPassword={setConfirmPassword} // Pass setConfirmPassword function
         />
       </div>
     </div>

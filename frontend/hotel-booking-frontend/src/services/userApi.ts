@@ -119,7 +119,6 @@ export const updateUser = async (id: string, userData: any) => {
     });
 
     const data = await response.json();
-    console.log(data);
 
     if (response.ok && data?.data) {
       return { user: data.data };
@@ -153,22 +152,20 @@ export const deleteUser = async (id: string) => {
 };
 
 export const verifyUser = async (token: string) => {
-  const response = await fetch(`${API_BASE_URL}/verify?token=${token}`, {
-    method: "GET",
+  const response = await fetch(`${API_BASE_URL}/verify`, {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify({ token }),
   });
 
+  const message = await response.text();
+
   if (response.ok) {
-    return { message: response.text() }; // success
+    return message;
   } else {
-    throw new Error("Invalid or expired token."); // pass backend message to frontend
+    throw new Error(message);
   }
 };
 
-
-
-
-
-  

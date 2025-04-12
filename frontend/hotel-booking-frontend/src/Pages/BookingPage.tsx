@@ -1,102 +1,117 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import BookingCard from "../components/Booking/BookingCard";
+import MessageModal from "../components/MessageModal";
+import { cancelBooking, getBookingsForUser } from "../services/bookingApi";
+import { fetchHotelById } from "../services/hotelApi";
 import { DetailedBooking } from "../types/Booking";
-import { getBookingsForUser, cancelBooking } from "../services/bookingApi";
-import { fetchHotelById } from "../services/hotelApi";  // Assuming fetchHotelById is in hotelApi
-import BookingCard from "../components/Booking/BookingCard"; // Assuming BookingCard is in the components folder
-import MessageModal from "../components/MessageModal"; // Assuming MessageModal is in the components folder
 
 const BookingPage: React.FC = () => {
   const [bookings, setBookings] = useState<DetailedBooking[]>([]);
   const [hotelNames, setHotelNames] = useState<{ [key: number]: string }>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const [bookingsPerPage] = useState(6); // 6 bookings per page (3 per row, 2 rows)
-  const [modalIsOpen, setModalIsOpen] = useState(false); // Modal state
-  const [modalMessage, setModalMessage] = useState(""); // Modal message
-  const [modalType, setModalType] = useState<"success" | "error">("success"); // Modal type
+  const bookingsPerPage = 6;
+
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalType, setModalType] = useState<"success" | "error">("success");
+  const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchBookings = async () => {
       const userId = sessionStorage.getItem("userId");
-      if (userId) {
-        try {
-          const bookingResponse = await getBookingsForUser(Number(userId));
-          if (bookingResponse && bookingResponse.length > 0) {
-            setBookings(bookingResponse);
-            // Fetch hotel names for each booking
-            bookingResponse.forEach(async (booking: DetailedBooking) => {
-              try {
-                const hotelData = await fetchHotelById(booking.hotelId);
-                setHotelNames((prev) => ({
-                  ...prev,
-                  [booking.hotelId]: hotelData.name,
-                }));
-              } catch (error) {
-                console.error(`Failed to fetch hotel name for Hotel ID ${booking.hotelId}:`, error);
-              }
-            });
-          }
-        } catch (error) {
-          console.error("Failed to fetch bookings:", error);
+      if (!userId) return console.error("User ID not found.");
+
+      try {
+        setLoading(true);
+        const bookingResponse = await getBookingsForUser(Number(userId));
+
+        if (Array.isArray(bookingResponse)) {
+          setBookings(bookingResponse);
+        } else {
+          setBookings([]);
         }
-      } else {
-        console.error("User ID not found in sessionStorage");
+
+        const hotelNameMap: { [key: number]: string } = {};
+        await Promise.all(
+          bookingResponse.map(async (booking: DetailedBooking) => {
+            const hotel = await fetchHotelById(booking.hotelId);
+            hotelNameMap[booking.hotelId] = hotel.name;
+          })
+        );
+        setHotelNames(hotelNameMap);
+      } catch (error) {
+        console.error("Error fetching bookings or hotels:", error);
+        setBookings([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchBookings();
   }, []);
 
-  // Calculate which bookings to display on the current page
   const indexOfLastBooking = currentPage * bookingsPerPage;
   const indexOfFirstBooking = indexOfLastBooking - bookingsPerPage;
   const currentBookings = bookings.slice(indexOfFirstBooking, indexOfLastBooking);
 
-  // Change page
+  const totalPages = Math.ceil(bookings.length / bookingsPerPage);
+
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
-  const handleCancelBooking = async (bookingId: number) => {
-    try {
-      // Call the API to cancel the booking
-      const result = await cancelBooking(bookingId);
-
-      // If the result contains an error, show the error message in the modal
-      if (result.error) {
-        setModalMessage(result.error);
-        setModalType("error");
-        setModalIsOpen(true);
-        return;
-      }
-
-      setModalMessage(`Booking with ID ${bookingId} has been successfully canceled.`);
-      setModalType("success");
-      setModalIsOpen(true);
-    } catch (error) {
-      console.error("An error occurred while canceling the booking:", error);
-      setModalMessage("An unexpected error occurred.");
-      setModalType("error");
-      setModalIsOpen(true);
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
     }
   };
 
-  // Handle making a payment
-  const handleMakePayment = (bookingId: number) => {
-    // Implement the payment logic, e.g., call API for payment process
-    console.log("Make payment for booking with ID:", bookingId);
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
   };
 
-  const closeModal = () => {
-    setModalIsOpen(false); // Close the modal when the "Close" button is clicked
+  const handleCancelBooking = async (bookingId: number) => {
+    try {
+      const result = await cancelBooking(bookingId);
+
+      if (result.error) {
+        showModal(result.error, "error");
+        return;
+      }
+
+      showModal(`Booking with ID ${bookingId} has been canceled.`, "success");
+    } catch {
+      showModal("An unexpected error occurred.", "error");
+    }
+  };
+
+  const handleMakePayment = (bookingId: number) => {
+    const booking = bookings.find((b) => b.bookingId === bookingId);
+    if (!booking) return;
+
+    navigate("/payment", { state: { bookingId: booking.bookingId } });
+  };
+
+  const showModal = (message: string, type: "success" | "error") => {
+    setModalMessage(message);
+    setModalType(type);
+    setModalIsOpen(true);
   };
 
   return (
-    <div className="bg-gray-100 min-h-full py-8">
-      <h2 className="text-3xl font-semibold text-center mb-6">Your Bookings</h2>
+    <div className="bg-gray-900 min-h-full py-8 px-4 sm:px-6 lg:px-12">
+      <h2 className="text-gray-100 text-3xl font-semibold text-center mb-8">Your Bookings</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {bookings.length === 0 ? (
-          <p className="text-gray-500 text-center col-span-3">You have no bookings.</p>
+      {loading && <div className="text-center text-gray-500">Loading bookings...</div>}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {bookings.length === 0 && !loading ? (
+          <p className="text-gray-500 text-center col-span-full">You have no bookings.</p>
         ) : (
-          currentBookings.map((booking: DetailedBooking) => (
+          currentBookings.map((booking) => (
             <BookingCard
               key={booking.bookingId}
               booking={booking}
@@ -108,31 +123,59 @@ const BookingPage: React.FC = () => {
         )}
       </div>
 
-      {/* Modal for Success/Error messages */}
+      <div className="flex justify-center mt-4 items-center gap-2">
+        {bookings.length > 0 && (
+          <>
+            <button
+              onClick={prevPage}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-md ${
+                currentPage === 1
+                  ? "bg-gray-300 text-gray-800 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-500 transition-colors duration-200"
+              }`}
+            >
+              &lt;
+            </button>
+
+            <div className="flex gap-2">
+              {Array.from({ length: totalPages }, (_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => paginate(index + 1)}
+                  className={`px-4 py-2 rounded-md ${
+                    currentPage === index + 1
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-300 text-gray-800 hover:bg-gray-200 transition-colors duration-200"
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={nextPage}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded-md ${
+                currentPage === totalPages
+                  ? "bg-gray-300 text-gray-800 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-500 transition-colors duration-200"
+              }`}
+            >
+              &gt;
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Modal */}
       <MessageModal
         isOpen={modalIsOpen}
-        onClose={closeModal}
+        onClose={() => setModalIsOpen(false)}
         message={modalMessage}
         type={modalType}
       />
-
-      {/* Pagination Controls at the Bottom */}
-      <div className="flex justify-center mt-6">
-        <button
-          onClick={() => paginate(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-400"
-        >
-          Prev
-        </button>
-        <button
-          onClick={() => paginate(currentPage + 1)}
-          disabled={currentPage * bookingsPerPage >= bookings.length}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-400 ml-2"
-        >
-          Next
-        </button>
-      </div>
     </div>
   );
 };

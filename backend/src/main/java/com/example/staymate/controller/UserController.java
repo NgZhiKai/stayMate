@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.staymate.dto.custom.CustomResponse;
@@ -184,10 +183,9 @@ public class UserController {
 
     // Verify user with token
     @Operation(summary = "Verify user account", description = "Verifies the user account using a token from the registration email.")
-    @GetMapping("/verify")
-    public ResponseEntity<String> verifyUser(
-            @RequestParam @Parameter(description = "Verification token for user verification") String token) {
-
+    @PostMapping("/verify")
+    public ResponseEntity<String> verifyUser(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
         boolean isVerified = userService.verifyUser(token);
         if (isVerified) {
             return ResponseEntity.ok("User verified successfully.");

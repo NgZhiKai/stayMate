@@ -212,7 +212,11 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
 
         {imagePreview && (
           <div className="mb-4">
-            <img src={imagePreview} alt="Image Preview" className="w-32 h-32 object-cover" />
+            {!hotelId ? (
+              <img src={imagePreview} alt="Image Preview" className="w-32 h-32 object-cover" />
+            ) : (
+              <img src={`data:image/jpeg;base64,${imagePreview}`} alt="Image Preview" className="w-32 h-32 object-cover" />
+            )}
           </div>
         )}
 
@@ -329,8 +333,9 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
         )}
 
         <div className="flex justify-end">
-          <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded-md">
-            {hotelId ? 'Update Hotel' : 'Save Hotel'}
+          <button type="submit" 
+          className="bg-blue-500 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out transform hover:bg-blue-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:bg-blue-700">
+          {hotelId ? 'Update Hotel' : 'Save Hotel'}
           </button>
         </div>
       </form>

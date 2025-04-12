@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { getAllBookings, cancelBooking } from '../services/bookingApi';
 import { DetailedBooking } from '../types/Booking';
-import { getUserInfo } from '../services/userApi'; // Assuming the API is defined for fetching user data
-import { fetchHotelById } from '../services/hotelApi'; // Assuming the API is defined for fetching hotel data
+import { getUserInfo } from '../services/userApi';
+import { fetchHotelById } from '../services/hotelApi';
+
+const ITEMS_PER_PAGE = 8;
 
 const ManageBookingsPage: React.FC = () => {
   const [bookings, setBookings] = useState<DetailedBooking[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [bookingsPerPage] = useState(10);
+  const [bookingsPerPage] = useState(ITEMS_PER_PAGE); // Changed from 10 to 5
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -43,6 +45,8 @@ const ManageBookingsPage: React.FC = () => {
 
   const currentBookings = bookings.slice(indexOfFirstBooking, indexOfLastBooking);
 
+  const totalPages = Math.ceil(bookings.length / bookingsPerPage);
+
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   const handleCancel = async (bookingId: number) => {
@@ -55,71 +59,84 @@ const ManageBookingsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 text-center">Admin - Manage Bookings</h1>
+    <div className="p-6 bg-gray-900 text-white min-h-full relative">
+      <h1 className="text-2xl mb-4">Manage Bookings</h1>
+
       {error && <p className="text-red-600 text-center">{error}</p>}
 
       {bookings.length === 0 ? (
-        <p className="text-center">No bookings found.</p>
+        <div>No bookings found.</div>
       ) : (
-        <div className="flex justify-center mt-8">
-          <table className="min-w-full table-auto border-collapse">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="py-2 px-4 text-left">Booking ID</th>
-                <th className="py-2 px-4 text-left">User</th> {/* Column for User */}
-                <th className="py-2 px-4 text-left">Hotel</th> {/* Column for Hotel */}
-                <th className="py-2 px-4 text-left">Check-in</th>
-                <th className="py-2 px-4 text-left">Check-out</th>
-                <th className="py-2 px-4 text-left">Status</th>
-                <th className="py-2 px-4 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentBookings.map((booking) => (
-                <tr key={booking.id} className="border-b">
-                  <td className="py-2 px-4">{booking.id}</td> {/* Booking ID */}
-                  <td className="py-2 px-4">{booking.userFirstName} {booking.userLastName}</td> {/* User Name */}
-                  <td className="py-2 px-4">{booking.hotelName}</td> {/* Hotel Name */}
-                  <td className="py-2 px-4">{booking.checkInDate}</td>
-                  <td className="py-2 px-4">{booking.checkOutDate}</td>
-                  <td className="py-2 px-4">
-                    {booking.status === 'CANCELLED' ? 'CANCELLED' : booking.status}
-                  </td> {/* Show 'Cancelled' only if booking is cancelled */}
-                  <td className="py-2 px-4">
-                    {booking.status !== 'CANCELLED' && (
-                      <button
-                        onClick={() => handleCancel(booking.id)}
-                        className="bg-red-500 text-white px-4 py-2 rounded"
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {currentBookings.map((booking) => (
+            <div
+              key={booking.id}
+              className={`flex flex-col p-3 rounded-lg ${booking.status === 'CANCELLED' ? 'bg-gray-700' : 'bg-gray-800'}`}
+            >
+              <h2 className="text-lg font-semibold">Booking ID: {booking.id}</h2>
+              <p className="text-sm">User: {booking.userFirstName} {booking.userLastName}</p>
+              <p className="text-sm">Hotel: {booking.hotelName}</p>
+              <p className="text-sm">Check-in: {new Date(booking.checkInDate).toLocaleString()}</p>
+              <p className="text-sm">Check-out: {new Date(booking.checkOutDate).toLocaleString()}</p>
+              <p className="text-sm">
+                <span
+                  className={`font-semibold py-1 px-3 rounded-full inline-block ${
+                    booking.status === 'CONFIRMED'
+                      ? 'bg-green-100 text-green-600'
+                      : booking.status === 'CANCELLED'
+                      ? 'bg-red-100 text-red-600'
+                      : 'bg-yellow-100 text-yellow-600'
+                  }`}
+                >
+                  {booking.status}
+                </span>
+              </p>
+
+              {booking.status !== 'CANCELLED' && (
+                <button
+                  onClick={() => handleCancel(booking.id)}
+                  className="bg-red-500 text-white px-3 py-1 mt-2 rounded transition-all duration-300 transform hover:bg-red-400 hover:scale-105"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
       {/* Pagination Controls */}
-      <div className="flex justify-center mt-6">
-        <button
-          onClick={() => paginate(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-400"
-        >
-          Prev
-        </button>
-        <button
-          onClick={() => paginate(currentPage + 1)}
-          disabled={currentPage * bookingsPerPage >= bookings.length}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:bg-gray-400 ml-2"
-        >
-          Next
-        </button>
-      </div>
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6 space-x-2">
+          <button
+            onClick={() => paginate(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => paginate(i + 1)}
+              className={`px-3 py-1 rounded ${
+                currentPage === i + 1
+                  ? "bg-blue-600"
+                  : "bg-gray-700 hover:bg-gray-600"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            onClick={() => paginate(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

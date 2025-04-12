@@ -10,29 +10,34 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const [query, setQuery] = useState("");
 
   const handleSearch = () => {
-    if (query.trim() !== "") {
-      onSearch(query);
-    }
+    onSearch(query); // always call, even if empty
   };
 
   const handleClear = () => {
     setQuery("");
+    onSearch(""); // reset search in parent
   };
 
   return (
-    <div className="relative w-[600px]"> {/* You can adjust this value */}
+    <div className="relative w-[600px]">
       <input
         type="text"
-        className="w-full px-5 py-3 pr-16 text-gray-800 bg-white border border-gray-300 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-5 py-3 pr-20 text-gray-800 bg-white border border-gray-300 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder="Search for hotels, locations..."
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value;
+          setQuery(value);
+          if (value === "") {
+            onSearch(""); // trigger reset immediately if input is cleared
+          }
+        }}
         onKeyDown={(e) => e.key === "Enter" && handleSearch()}
       />
 
       {query && (
         <button
-          className="absolute right-12 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+          className="absolute right-16 top-1/2 transform -translate-y-1/2 z-10 text-gray-500 hover:text-gray-700"
           onClick={handleClear}
         >
           <IoClose size={18} />

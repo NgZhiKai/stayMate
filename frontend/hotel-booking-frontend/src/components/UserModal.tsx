@@ -11,17 +11,15 @@ type UserModalProps = {
 const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit, currentUser }) => {
   const [user, setUser] = useState<User | null>(currentUser);
 
-  // Sync user state with currentUser prop when currentUser changes
   useEffect(() => {
     if (currentUser) {
       setUser({
         ...currentUser,
-        role: currentUser.role === "CUSTOMER" ? "USER" : currentUser.role, // Set role to 'USER' if CUSTOMER
+        role: currentUser.role === "CUSTOMER" ? "USER" : currentUser.role,
       });
     }
   }, [currentUser]);
 
-  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (user) {
       setUser({
@@ -31,12 +29,13 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit, curren
     }
   };
 
-  // Handle form submit
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (user) {
-      // Change role to 'CUSTOMER' only if it is 'USER'
-      const updatedUser = { ...user, role: user.role === "USER" ? "CUSTOMER" : user.role };
+      const updatedUser = {
+        ...user,
+        role: user.role === "USER" ? "CUSTOMER" : user.role,
+      };
       onSubmit(updatedUser);
     }
   };
@@ -45,66 +44,101 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit, curren
 
   return (
     <>
-      <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50" onClick={onClose}></div>
-      <div className="fixed inset-0 flex justify-center items-center z-50">
-        <div className="bg-white rounded-lg shadow-lg p-6 w-96">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">{currentUser ? "Edit User" : "Create User"}</h2>
-            <span className="cursor-pointer text-gray-500 text-2xl" onClick={onClose}>&times;</span>
-          </div>
-          <form onSubmit={handleSubmit}>
-            <label className="block mb-2">First Name</label>
-            <input
-              type="text"
-              name="firstName"
-              value={user?.firstName || ""}
-              onChange={handleChange}
-              className="w-full p-2 border rounded mb-4"
-              required
-            />
-            <label className="block mb-2">Last Name</label>
-            <input
-              type="text"
-              name="lastName"
-              value={user?.lastName || ""}
-              onChange={handleChange}
-              className="w-full p-2 border rounded mb-4"
-              required
-            />
-            <label className="block mb-2">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={user?.email || ""}
-              onChange={handleChange}
-              className="w-full p-2 border rounded mb-4"
-              required
-            />
-            <label className="block mb-2">Account Type</label>
-            <input
-              type="text"
-              name="role"
-              value={user?.role || ""}
-              onChange={handleChange}
-              className="w-full p-2 border rounded mb-4"
-              required
-              disabled // Disable the field
-            />
-            <label className="block mb-2">Phone Number</label>
-            <input
-              type="text"
-              name="phoneNumber"
-              value={user?.phoneNumber || ""}
-              onChange={handleChange}
-              className="w-full p-2 border rounded mb-4"
-              required
-            />
-            <div className="flex justify-end">
+      <div className="fixed inset-0 bg-black bg-opacity-40 z-40" onClick={onClose} />
+      <div className="fixed inset-0 flex justify-center items-center z-50 px-4">
+        <div className="bg-white text-black rounded-lg shadow-2xl w-full max-w-md p-6 relative">
+          {/* Close Button */}
+          <button
+            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl leading-none"
+            onClick={onClose}
+            aria-label="Close Modal"
+          >
+            &times;
+          </button>
+
+          <h2 className="text-2xl font-semibold mb-6 text-center">
+            {currentUser ? "Edit User" : "Create User"}
+          </h2>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* First Name */}
+            <div>
+              <label className="block text-sm font-medium mb-1">First Name</label>
+              <input
+                type="text"
+                name="firstName"
+                value={user?.firstName || ""}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            {/* Last Name */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Last Name</label>
+              <input
+                type="text"
+                name="lastName"
+                value={user?.lastName || ""}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={user?.email || ""}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            {/* Role */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Account Type</label>
+              <input
+                type="text"
+                name="role"
+                value={user?.role || ""}
+                disabled
+                className="w-full p-2 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Phone Number</label>
+              <input
+                type="text"
+                name="phoneNumber"
+                value={user?.phoneNumber || ""}
+                onChange={handleChange}
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
               >
-                {currentUser ? "Update User" : "Create User"}
+                {currentUser ? "Update" : "Create"}
               </button>
             </div>
           </form>
