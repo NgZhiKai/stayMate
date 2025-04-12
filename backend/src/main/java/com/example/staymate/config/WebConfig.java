@@ -10,7 +10,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173") // Replace with your frontend's URL
+                .allowedOrigins("https://ngzhikai.github.io/stayMate") // Replace with your frontend's URL
                 .allowedMethods("GET", "POST", "PUT", "DELETE") // Allow these methods
                 .allowedHeaders("*"); // Allow all headers
     }
