@@ -24,11 +24,12 @@ public class EmailObserver implements Observer {
         // Retrieve the user and verification link from the data map
         User user = (User) data.get("user");
         String verificationLink = (String) data.get("verificationLink");
+        String token = (String) data.get("token");
 
         // Make sure that both user and verificationLink are not null
         if (user != null && verificationLink != null) {
             // Send the verification email
-            emailService.sendVerificationEmail(user.getEmail(), verificationLink);
+            emailService.sendVerificationEmail(user.getEmail(), verificationLink, token);
         }
     }
 }

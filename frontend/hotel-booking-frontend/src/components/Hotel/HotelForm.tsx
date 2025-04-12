@@ -106,6 +106,8 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
 
     if (image) {
       formData.append('image', image);
+    } else if (imagePreview) {
+      formData.append('image', imagePreview);
     }
 
     await onSave(formData);
@@ -212,11 +214,15 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
 
         {imagePreview && (
           <div className="mb-4">
-            {!hotelId ? (
-              <img src={imagePreview} alt="Image Preview" className="w-32 h-32 object-cover" />
-            ) : (
-              <img src={`data:image/jpeg;base64,${imagePreview}`} alt="Image Preview" className="w-32 h-32 object-cover" />
-            )}
+            <img
+              src={
+                imagePreview.startsWith('data:')
+                  ? imagePreview
+                  : `data:image/jpeg;base64,${imagePreview}`
+              }
+              alt="Image Preview"
+              className="w-32 h-32 object-cover"
+            />
           </div>
         )}
 

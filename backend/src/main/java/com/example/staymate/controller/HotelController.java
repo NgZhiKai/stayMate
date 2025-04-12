@@ -48,7 +48,7 @@ public class HotelController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CustomResponse<Map<String, Object>>> createHotel(
             @RequestPart("hotelDetails") String hotelDetailsJson,
-            @RequestPart("image") MultipartFile image) {
+            @RequestPart(value = "image", required = false) MultipartFile image) {
 
         HotelRequestDTO hotelRequestDTO = null;
         try {
@@ -77,12 +77,14 @@ public class HotelController {
         hotel.setCheckIn(hotelRequestDTO.getCheckIn());
         hotel.setCheckOut(hotelRequestDTO.getCheckOut());
 
-        try {
-            byte[] imageBytes = image.getResource().getInputStream().readAllBytes();
-            hotel.setImage(imageBytes); // Store image as byte array
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new CustomResponse<>("Error processing image", null));
+        if (image != null && !image.isEmpty()) {
+            try {
+                byte[] imageBytes = image.getResource().getInputStream().readAllBytes();
+                hotel.setImage(imageBytes); // Store image as byte array
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new CustomResponse<>("Error processing image", null));
+            }
         }
 
         // Save hotel to the database
@@ -159,27 +161,27 @@ public class HotelController {
                         .body(new CustomResponse<>("Invalid JSON format for hotel details", null));
             }
 
-            Hotel hotel = new Hotel();
-            hotel.setId(id);
-            hotel.setName(hotelRequestDTO.getName());
-            hotel.setAddress(hotelRequestDTO.getAddress());
-            hotel.setDescription(hotelRequestDTO.getDescription());
-            hotel.setLatitude(hotelRequestDTO.getLatitude());
-            hotel.setLongitude(hotelRequestDTO.getLongitude());
-            hotel.setContact(hotelRequestDTO.getContact());
-            hotel.setCheckIn(hotelRequestDTO.getCheckIn());
-            hotel.setCheckOut(hotelRequestDTO.getCheckOut());
+            existingHotel.setName(hotelRequestDTO.getName());
+            existingHotel.setAddress(hotelRequestDTO.getAddress());
+            existingHotel.setDescription(hotelRequestDTO.getDescription());
+            existingHotel.setLatitude(hotelRequestDTO.getLatitude());
+            existingHotel.setLongitude(hotelRequestDTO.getLongitude());
+            existingHotel.setContact(hotelRequestDTO.getContact());
+            existingHotel.setCheckIn(hotelRequestDTO.getCheckIn());
+            existingHotel.setCheckOut(hotelRequestDTO.getCheckOut());
 
-            try {
-                byte[] imageBytes = image.getResource().getInputStream().readAllBytes();
-                hotel.setImage(imageBytes); // Store image as byte array
-            } catch (IOException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new CustomResponse<>("Error processing image", null));
+            if (image != null && !image.isEmpty()) {
+                try {
+                    byte[] imageBytes = image.getResource().getInputStream().readAllBytes();
+                    existingHotel.setImage(imageBytes); // Store image as byte array
+                } catch (IOException e) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(new CustomResponse<>("Error processing image", null));
+                }
             }
 
             // Save the hotel with or without an image (if provided)
-            Hotel updatedHotel = hotelService.saveHotel(hotel);
+            Hotel updatedHotel = hotelService.saveHotel(existingHotel);
 
             // Build response
             Map<String, Object> response = new HashMap<>();
