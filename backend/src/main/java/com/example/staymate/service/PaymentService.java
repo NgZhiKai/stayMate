@@ -194,5 +194,8 @@ public class PaymentService implements Subject {
     public double getTotalPaidAmount(Long bookingId) {
         return paymentRepository.findTotalPaidAmountByBookingId(bookingId).orElse(0.0);
     }
-    
+
+    public List<Payment> getAllPayments() {
+        return paymentRepository.findAll();
+    }
 }

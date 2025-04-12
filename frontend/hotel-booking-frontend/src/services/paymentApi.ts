@@ -63,3 +63,22 @@ export const getPaymentsByUserId = async (userId: number): Promise<Payment[]> =>
     throw new Error(error?.response?.data?.message || 'Error retrieving payments for user');
   }
 };
+
+export const getAllPayments = async (): Promise<Payment[]> => {
+  try {
+    const response = await axios.get<{ data: any[] }>(`${API_BASE_URL}`);  // Adjust the endpoint as needed
+
+    // Map the response data to the Payment type
+    const mappedPayments: Payment[] = response.data.data.map((p) => ({
+      id: p.paymentId,
+      bookingId: p.bookingId,
+      amount: p.amountPaid,
+      status: p.paymentStatus,
+      transactionDate: p.paymentDateTime,
+    }));
+
+    return mappedPayments;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || 'Error retrieving all payments');
+  }
+};

@@ -1,4 +1,4 @@
-import { Room, RoomRequestDTO } from './Room';
+import { Room } from './Room';
 
 export interface Hotel {
     id: number;

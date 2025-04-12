@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { fetchHotels, deleteHotel } from '../services/hotelApi'; // Importing deleteHotelById
-import { HotelData } from '../types/Hotels'; // Import HotelManagement type
 import { Link } from 'react-router-dom'; // Import Link for navigation
+import { fetchHotels } from '../services/hotelApi'; // Importing deleteHotelById
+import { HotelData } from '../types/Hotels'; // Import HotelManagement type
 
 const AdminHotelPage: React.FC = () => {
   const [hotels, setHotels] = useState<HotelData[]>([]);

@@ -46,7 +46,9 @@ public class UserService implements Subject {
         User savedUser = userRepository.save(user);
 
         String token = generateVerificationToken(savedUser);
-        String verificationLink = baseUrl + ":" + serverPort + "/verify?token=" + token;
+        String verificationLink = "http://" + baseUrl + "/verify?token=" + token;
+
+        System.out.println(verificationLink);
 
         notifyObservers(savedUser, verificationLink);
 
@@ -127,7 +129,6 @@ public class UserService implements Subject {
             return false;
         }
         user.setVerified(true);
-        user.setVerificationToken(null);
         userRepository.save(user);
         return true;
     }

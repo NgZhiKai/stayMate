@@ -70,6 +70,12 @@ const ManageUsers: React.FC = () => {
     <div className="p-6 bg-gray-900 text-white min-h-full relative">
       <h1 className="text-3xl font-bold mb-6 text-center">Admin - Manage Users</h1>
 
+      {error && (
+        <div className="bg-red-500 text-white p-2 rounded-md text-center mb-4">
+          {error}
+        </div>
+      )}
+
       {users.length === 0 ? (
         <p className="text-center">No users found.</p>
       ) : (

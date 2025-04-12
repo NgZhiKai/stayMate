@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
-import { FaStar } from "react-icons/fa";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 import ConfirmationModal from "../components/ConfirmationModal";
@@ -9,22 +8,13 @@ import { getReviewsForHotel } from "../services/ratingApi";
 import { getUserInfo } from "../services/userApi";
 import { HotelData } from "../types/Hotels";
 import { Review } from "../types/Review";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { differenceInDays } from "date-fns";
+import { FaStar } from "react-icons/fa";
 
 const useHotelData = (id: string) => {
   const [loading, setLoading] = useState(true);
   const [hotel, setHotel] = useState<HotelData | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [userInfo, setUserInfo] = useState<{ [key: string]: { firstName: string; lastName: string } }>({});
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [checkInDate, setCheckInDate] = useState<Date | null>(null);
-  const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
-  const navigate = useNavigate();
-
-  const pricePerNight = 150; // Adjust or fetch this dynamically
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,9 +24,8 @@ const useHotelData = (id: string) => {
 
         const userInfoMap = await Promise.all(
           reviewsData.map(async (review) => {
-            const { userId } = review;
-            const user = await getUserInfo(String(userId));
-            return { userId, userInfo: user.user };
+            const user = await getUserInfo(String(review.userId));
+            return { userId: review.userId, userInfo: user.user };
           })
         ).then((data) =>
           data.reduce((acc, { userId, userInfo }) => ({ ...acc, [userId]: userInfo }), {})
@@ -58,66 +47,42 @@ const useHotelData = (id: string) => {
   return { loading, hotel, reviews, userInfo };
 };
 
+const renderStars = (rating: number) => {
+  const fullStars = Math.floor(rating);
+  const halfStar = rating % 1 !== 0;
+
+  return (
+    <>
+      {[...Array(fullStars)].map((_, i) => (
+        <FaStar key={i} className="text-yellow-500" />
+      ))}
+      {halfStar && <FaStar className="text-yellow-500 opacity-50" />}
+    </>
+  );
+};
+
 const HotelDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const { loading, hotel, reviews, userInfo } = useHotelData(id!);
-
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hotelToDelete, setHotelToDelete] = useState<number | null>(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const navigate = useNavigate();
 
-  const formatToAMPM = useCallback((timeString: string) => {
+  const formatToAMPM = (timeString: string) => {
     const [hours, minutes] = timeString.split(":").map(Number);
     const period = hours >= 12 ? "PM" : "AM";
     const formattedHour = hours % 12 || 12;
     const formattedMinute = minutes < 10 ? `0${minutes}` : minutes;
     return `${formattedHour}:${formattedMinute} ${period}`;
-  }, []);
+  };
 
-  const getPricingRange = useCallback(() => {
+  const getPricingRange = () => {
     if (!hotel?.rooms?.length) return "$0 - $0";
     const prices = hotel.rooms.map((room) => room.pricePerNight);
     return `$${Math.min(...prices)} - $${Math.max(...prices)}`;
-  }, [hotel]);
-
-  const renderStars = (rating: number) => {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 !== 0;
-
-    if (loading) {
-      return (
-        <>
-          {[...Array(fullStars)].map((_, i) => (
-            <FaStar key={i} className="text-yellow-500" />
-          ))}
-          {halfStar && <FaStar className="text-yellow-500 opacity-50" />}
-        </>
-      );
-    }
   };
-
-  // const handleConfirmBooking = () => {
-  //   if (hotel && checkInDate && checkOutDate && totalNights > 0) {
-  //     setIsModalOpen(false);
-  //     navigate("/payment", {
-  //       state: {
-  //         hotel: {
-  //           name: hotel.name,
-  //           image: hotel.image,
-  //         },
-  //         checkInDate: checkInDate.toLocaleDateString(),
-  //         checkOutDate: checkOutDate.toLocaleDateString(),
-  //         totalPrice,
-  //       },
-  //     });
-  //     setCheckInDate(null);
-  //     setCheckOutDate(null);
-  //   } else {
-  //     alert("Please select valid check-in and check-out dates.");
-  //   }
-  // };
 
   const handleDeleteHotel = (hotelId: number) => {
     setHotelToDelete(hotelId);
@@ -162,8 +127,8 @@ const HotelDetailsPage = () => {
         userInfo={userInfo}
         getPricingRange={getPricingRange}
         formatToAMPM={formatToAMPM}
-        renderStars={renderStars}
         isBookmarked={isBookmarked}
+        renderStars={renderStars}
         setIsBookmarked={setIsBookmarked}
         handleDeleteHotel={handleDeleteHotel}
       />

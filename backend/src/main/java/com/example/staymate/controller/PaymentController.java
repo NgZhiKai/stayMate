@@ -145,4 +145,23 @@ public class PaymentController {
         }
     }
 
+    @Operation(summary = "Get all payments", description = "Retrieve all payments in the system.")
+    @GetMapping()
+    public ResponseEntity<CustomResponse<List<PaymentIdResponseDTO>>> getAllPayments() {
+        try {
+            List<Payment> payments = paymentService.getAllPayments(); // Assuming this method exists in your service
+                                                                      // layer
+
+            // Convert the list of Payment entities to PaymentIdResponseDTO objects
+            List<PaymentIdResponseDTO> paymentIdResponseDTOs = payments.stream()
+                    .map(PaymentIdResponseDTO::new)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(new CustomResponse<>("Payments retrieved successfully", paymentIdResponseDTOs));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponse<>("Payments not found", null));
+        }
+    }
+
 }

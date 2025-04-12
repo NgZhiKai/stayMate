@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import { AuthProvider } from "./contexts/AuthContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
+import AdminPaymentsPage from "./Pages/AdminPaymentsPage";
 import BookedHotelsPage from "./Pages/BookedHotelsPage";
 import BookingPage from './Pages/BookingPage';
 import CreateBookingPage from './Pages/CreateBookingPage';
@@ -19,7 +20,6 @@ import NearMePage from "./Pages/NearMePage";
 import NotifcationsPage from "./Pages/NotificationPage";
 import PaymentPage from "./Pages/PaymentPage";
 import RegisterPage from "./Pages/RegisterPage";
-import SavedHotels from "./Pages/SavedHotelsPage";
 import UserAccountSettings from "./Pages/UserAccountSettings";
 import VerifyEmailPage from "./Pages/VerficationPage";
 
@@ -47,7 +47,6 @@ const App: React.FC = () => {
                   <Route path="/nearme" element={<NearMePage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/user-account-settings" element={<UserAccountSettings />} />
-                  <Route path="/saved-hotels" element={<SavedHotels />} />
                   <Route path="/hotel/:id" element={<HotelDetailsPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/logout" element={<LogOutPage />} />
@@ -61,6 +60,7 @@ const App: React.FC = () => {
                   <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/notifications" element={<NotifcationsPage />} />
                   <Route path="/my-payments" element={<MyPaymentsPage />} />
+                  <Route path="/admin/payments" element={<AdminPaymentsPage />} />
                 </Routes>
               </div>
             </div>
