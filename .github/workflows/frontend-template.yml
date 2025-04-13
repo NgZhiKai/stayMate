@@ -16,6 +16,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
 
+      - name: List all files
+        run: |
+          echo "Project structure:"
+          ls -R
+
       - name: Install dependencies
         run: |
           cd frontend/hotel-booking-frontend
