@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Redirecting...</title>
+    <meta http-equiv="refresh" content="0; URL=/stayMate/" />
+    <script>
+      // Redirect all unknown paths back to the React app
+      const pathname = location.pathname.replace(/^\/stayMate/, "");
+      const search = location.search || "";
+      const hash = location.hash || "";
+      const newUrl = "/stayMate/index.html" + search + hash;
+      location.replace(newUrl);
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>
