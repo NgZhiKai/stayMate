@@ -7,4 +7,4 @@ on:
 
 jobs:
   backend-build:
-    uses: ./.github/workflows/frontend-deploy.yml
+    uses: ./.github/workflows/frontend-template.yml
