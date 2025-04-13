@@ -98,7 +98,7 @@ const HomePage: React.FC = () => {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Welcome to StayMate</h1>
-          <p className="text-gray-600 mt-2">Find the best hotels near you with.</p>
+          <p className="text-gray-600 mt-2">Find the best hotels near you with ease.</p>
         </div>
         <div className="ml-auto flex items-center gap-4">
           {isAdmin && (

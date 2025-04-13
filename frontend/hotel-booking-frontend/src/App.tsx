@@ -36,7 +36,7 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <Router basename="/stayMate">
+        <Router basename={import.meta.env.BASE_URL}>
           <div className="flex flex-col min-h-screen">
             <Header toggleSidebar={() => setIsOpen(!isOpen)} />
             <div className="flex flex-1 pt-16">
