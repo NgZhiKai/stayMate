@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { getAllUsers, deleteUser, updateUser } from '../services/userApi';
-import { User } from '../types/User';
+import { getAllUsers, deleteUser, updateUser, registerUser } from '../services/userApi';
+import { User, RegisterData } from '../types/User';
 import UserModal from '../components/UserModal';
 import { Edit, Trash, User as UserIcon, Shield as AdminIcon } from 'lucide-react';
+import MessageModal from '../components/MessageModal';
 
-const ITEMS_PER_PAGE = 3;
+type RegisterResponse = {
+  message?: string;
+  data: User;
+};
+
+type UpdateResponse = {
+  message?: string;
+  user: User;
+};
+
+const ITEMS_PER_PAGE = 6;
 
 const ManageUsers: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -12,22 +23,25 @@ const ManageUsers: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [error, setError] = useState('');
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
+  const [messageContent, setMessageContent] = useState('');
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const result = await getAllUsers();
-        console.log('Fetched users:', result.users); // Log the fetched users
         setUsers(result.users);
         setError('');
       } catch (err: any) {
         setError(err.message || 'Failed to load users');
+        setTimeout(() => setError(''), 5000); // Hide error after 5 seconds
       }
     };
     fetchUsers();
   }, []);
 
-  const totalPages = Math.ceil((users.length || 1) / ITEMS_PER_PAGE); // Ensure totalPages always has a value
+  const totalPages = Math.ceil((users.length || 1) / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentUsers = users.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
@@ -46,75 +60,119 @@ const ManageUsers: React.FC = () => {
     try {
       await deleteUser(String(userId));
       setUsers((prev) => prev.filter((u) => u.id !== userId));
+
+      if (currentPage > totalPages) {
+        setCurrentPage(totalPages);
+      }
+
+      setMessageType('success');
+      setMessageContent('User deleted successfully!');
+      setMessageModalOpen(true);
     } catch (err: any) {
       setError(err.message || 'Failed to delete user');
+      setMessageType('error');
+      setMessageContent(err.message || 'Failed to delete user');
+      setMessageModalOpen(true);
     }
   };
 
-  const handleSubmit = async (user: User) => {
+  const handleSubmit = async (userData: User | RegisterData) => {
     try {
-      const response = await updateUser(String(user.id), user);
-      if (response?.user) {
-        setUsers((prev) =>
-          prev.map((u) => (u.id === user.id ? response.user : u))
-        );
-        setIsModalOpen(false);
-        setCurrentUser(null);
+      if (userData.id === 0) {
+        const { id, ...newUserData } = userData;
+        const response: RegisterResponse = await registerUser(newUserData as RegisterData);
+
+        if (response?.data) {
+          setUsers((prev) => [...prev, response.data]);
+          setIsModalOpen(false);
+          setCurrentUser(null);
+
+          setMessageType('success');
+          setMessageContent(response.message || 'User added successfully!');
+          setMessageModalOpen(true);
+
+          setTimeout(() => setMessageModalOpen(false), 3000);
+        }
+      } else {
+        const response: UpdateResponse = await updateUser(String(userData.id), userData);
+
+        if (response?.user) {
+          setUsers((prev) =>
+            prev.map((u) => (u.id === userData.id ? response.user : u))
+          );
+          setIsModalOpen(false);
+          setCurrentUser(null);
+
+          setMessageType('success');
+          setMessageContent('User updated successfully!');
+          setMessageModalOpen(true);
+
+          setTimeout(() => setMessageModalOpen(false), 3000);
+        }
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to update user');
+      setError(err.message || 'Failed to submit user');
+      setMessageType('error');
+      setMessageContent(err.message || 'Something went wrong. Please try again.');
+      setMessageModalOpen(true);
     }
+  };
+
+  const handleAddUser = () => {
+    setCurrentUser(null);
+    setIsModalOpen(true);
   };
 
   return (
-    <div className="p-6 bg-gray-900 text-white min-h-full relative">
-      <h1 className="text-3xl font-bold mb-6 text-center">Admin - Manage Users</h1>
+    <div className="p-8 bg-gray-900 text-white min-h-screen relative">
+      <h1 className="text-4xl font-semibold mb-8 text-center">Admin - Manage Users</h1>
 
-      {error && (
-        <div className="bg-red-500 text-white p-2 rounded-md text-center mb-4">
-          {error}
-        </div>
-      )}
+      <button
+        onClick={handleAddUser}
+        className="mb-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500 transition-all transform hover:scale-110 absolute top-8 right-8"
+      >
+        Add User
+      </button>
 
       {users.length === 0 ? (
-        <p className="text-center">No users found.</p>
+        <p className="text-center text-lg">No users found.</p>
       ) : (
-        <ul className="space-y-4 max-w-4xl mx-auto">
+        <ul className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {currentUsers.map((user) => (
             <li
               key={user.id}
-              className="flex items-center justify-between gap-3 p-3 bg-gray-800 rounded-md shadow-sm hover:shadow-md transition-all duration-300 text-sm"
+              className="flex flex-col items-center gap-4 p-4 bg-gray-800 rounded-md shadow-md hover:shadow-xl transition-all duration-300"
             >
-              <div className="flex-1 space-y-1">
+              <div className="flex items-center gap-3 text-center w-full">
                 <div className="flex items-center gap-2">
-                  <p className="font-medium text-white">
-                    {user.firstName} {user.lastName}
-                  </p>
                   {user.role === 'ADMIN' ? (
                     <AdminIcon size={18} className="text-blue-500" />
                   ) : (
                     <UserIcon size={18} className="text-green-500" />
                   )}
                 </div>
-                <p className="text-gray-400">{user.email}</p>
-                <p className="text-gray-400">Phone: {user.phoneNumber}</p>
+                <p className="font-semibold text-lg text-white flex-shrink-0">
+                  {user.firstName} {user.lastName}
+                </p>
+                <div className="ml-auto flex gap-3">
+                  <button
+                    onClick={() => handleEdit(user)}
+                    className="p-2 bg-green-600 hover:bg-green-500 rounded-md transform hover:scale-110 transition-all"
+                    title="Edit"
+                  >
+                    <Edit size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(user.id)}
+                    className="p-2 bg-red-600 hover:bg-red-500 rounded-md transform hover:scale-110 transition-all"
+                    title="Delete"
+                  >
+                    <Trash size={18} />
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => handleEdit(user)}
-                  className="p-1.5 bg-green-600 hover:bg-green-500 rounded transition-all"
-                  title="Edit"
-                >
-                  <Edit size={16} />
-                </button>
-                <button
-                  onClick={() => handleDelete(user.id)}
-                  className="p-1.5 bg-red-600 hover:bg-red-500 rounded transition-all"
-                  title="Delete"
-                >
-                  <Trash size={16} />
-                </button>
-              </div>
+              <p className="text-gray-400">{user.email}</p>
+              <p className="text-gray-400">Phone: {user.phoneNumber}</p>
             </li>
           ))}
         </ul>
@@ -122,11 +180,11 @@ const ManageUsers: React.FC = () => {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex justify-center mt-6 space-x-2">
+        <div className="flex justify-center mt-6 space-x-4">
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
           >
             Prev
           </button>
@@ -134,10 +192,8 @@ const ManageUsers: React.FC = () => {
             <button
               key={i + 1}
               onClick={() => goToPage(i + 1)}
-              className={`px-3 py-1 rounded ${
-                currentPage === i + 1
-                  ? 'bg-blue-600'
-                  : 'bg-gray-700 hover:bg-gray-600'
+              className={`px-4 py-2 rounded ${
+                currentPage === i + 1 ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'
               }`}
             >
               {i + 1}
@@ -146,7 +202,7 @@ const ManageUsers: React.FC = () => {
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
           >
             Next
           </button>
@@ -161,6 +217,13 @@ const ManageUsers: React.FC = () => {
         }}
         onSubmit={handleSubmit}
         currentUser={currentUser}
+      />
+
+      <MessageModal
+        isOpen={messageModalOpen}
+        onClose={() => setMessageModalOpen(false)}
+        type={messageType}
+        message={messageContent || error}
       />
     </div>
   );

@@ -1,7 +1,9 @@
-name: Java Build with Maven
+name: Frontend Build with React
 
 on:
   push:
+    branches:
+      - master
     paths:
       - "frontend/hotel-booking-frontend/**"
 

@@ -66,12 +66,22 @@ const NotificationsPage: React.FC = () => {
     }
   };
 
-  const totalPages = Math.ceil(notifications.length / ITEMS_PER_PAGE);
+  const sortedNotifications = [...notifications].sort((a, b) => {
+    if (a.isread === b.isread) {
+      // Both read or both unread → sort by createdAt descending
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
+    // Unread first
+    return a.isread ? 1 : -1;
+  });
+  
+  const totalPages = Math.ceil(sortedNotifications.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentNotifications = notifications.slice(
+  const currentNotifications = sortedNotifications.slice(
     startIndex,
     startIndex + ITEMS_PER_PAGE
   );
+  
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {

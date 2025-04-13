@@ -22,4 +22,6 @@ export interface DetailedBooking {
     userLastName: string;
     hotelName: string;
     roomType: string;
+    hotelCheckInTime: string;
+    hotelCheckOutTime: string;
 }

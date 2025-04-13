@@ -155,6 +155,7 @@ class UserControllerTest {
         user.setFirstName("Test User");
         user.setPassword("Test");
 
+        lenient().when(userService.getUserById(1L)).thenReturn(user);
         lenient().when(userService.updateUser(1L, user)).thenReturn(user);
 
         mockMvc.perform(put("/users/1")
@@ -171,6 +172,8 @@ class UserControllerTest {
         user.setEmail("user@example.com");
         user.setFirstName("User");
         user.setPassword("Test");
+
+        lenient().when(userService.getUserById(1L)).thenReturn(user);
 
         doThrow(new ResourceNotFoundException("User not found with ID: 1")).when(userService).updateUser(anyLong(),
                 any(User.class));

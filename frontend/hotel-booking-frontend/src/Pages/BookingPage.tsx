@@ -8,7 +8,9 @@ import { DetailedBooking } from "../types/Booking";
 
 const BookingPage: React.FC = () => {
   const [bookings, setBookings] = useState<DetailedBooking[]>([]);
-  const [hotelNames, setHotelNames] = useState<{ [key: number]: string }>({});
+  const [hotelDetails, setHotelDetails] = useState<{
+    [key: number]: { name: string; checkIn: string; checkOut: string };
+  }>({});
   const [currentPage, setCurrentPage] = useState(1);
   const bookingsPerPage = 6;
 
@@ -34,14 +36,20 @@ const BookingPage: React.FC = () => {
           setBookings([]);
         }
 
-        const hotelNameMap: { [key: number]: string } = {};
+        const hotelDetailMap: {
+          [key: number]: { name: string; checkIn: string; checkOut: string };
+        } = {};
         await Promise.all(
           bookingResponse.map(async (booking: DetailedBooking) => {
             const hotel = await fetchHotelById(booking.hotelId);
-            hotelNameMap[booking.hotelId] = hotel.name;
+            hotelDetailMap[booking.hotelId] = {
+              name: hotel.name,
+              checkIn: hotel.checkIn,
+              checkOut: hotel.checkOut,
+            };
           })
         );
-        setHotelNames(hotelNameMap);
+        setHotelDetails(hotelDetailMap);
       } catch (error) {
         console.error("Error fetching bookings or hotels:", error);
         setBookings([]);
@@ -115,7 +123,9 @@ const BookingPage: React.FC = () => {
             <BookingCard
               key={booking.bookingId}
               booking={booking}
-              hotelName={hotelNames[booking.hotelId] || "Loading..."}
+              hotelName={hotelDetails[booking.hotelId]?.name || "Loading..."}
+              hotelCheckIn={hotelDetails[booking.hotelId]?.checkIn || "N/A"}
+              hotelCheckOut={hotelDetails[booking.hotelId]?.checkOut || "N/A"}
               onCancelBooking={handleCancelBooking}
               onMakePayment={handleMakePayment}
             />

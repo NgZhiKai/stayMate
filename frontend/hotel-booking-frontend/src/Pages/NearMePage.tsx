@@ -6,7 +6,6 @@ import { getHotelsNearby } from '../services/hotelApi';
 import { getReviewsForHotel } from '../services/ratingApi';
 import { HotelData } from '../types/Hotels';
 
-// Fix marker icons directly in the component
 const createCustomIcon = () => {
   return L.icon({
     iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
@@ -19,7 +18,56 @@ const createCustomIcon = () => {
   });
 };
 
-// ✅ Fix: Properly extend L.Control to avoid TS error
+const createHotelIcon = () => {
+  return L.icon({
+    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
+};
+
+const LegendControl = () => {
+  const map = useMap();
+
+  useEffect(() => {
+    const Legend = L.Control.extend({
+      options: {
+        position: "bottomright"
+      },
+
+      onAdd: () => {
+        const div = L.DomUtil.create("div", "info legend");
+        div.innerHTML = `
+          <h4 class="text-sm font-semibold mb-1">Legend</h4>
+          <div class="flex items-center mb-1">
+            <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" 
+                 style="height: 25px; margin-right: 5px;" /> You
+          </div>
+          <div class="flex items-center">
+            <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" 
+                 style="height: 25px; margin-right: 5px;" /> Hotel
+          </div>
+        `;
+        return div;
+      }
+    });
+
+    const legend = new Legend();
+
+    legend.addTo(map);
+
+    return () => {
+      map.removeControl(legend);
+    };
+  }, [map]);
+
+  return null;
+};
+
+
 class LocateControlClass extends L.Control {
   constructor(private onLocationFound: (latlng: L.LatLng) => void) {
     super({ position: "topleft" });
@@ -83,21 +131,19 @@ const NearMePage = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Create icon instance once
   const customIcon = createCustomIcon();
+  const hotelIcon = createHotelIcon(); 
 
   const handleLocationFound = (latlng: L.LatLng) => {
     setUserLocation([latlng.lat, latlng.lng]);
     setLoading(false);
   };
 
-  // Fetch hotels within a 10 km radius when the user's location is found
   useEffect(() => {
     const fetchHotelsWithRatings = async () => {
       if (userLocation) {
         try {
           const nearbyHotels = await getHotelsNearby(userLocation[0], userLocation[1]);
-          
           const hotelsWithRatings = await Promise.all(
             nearbyHotels.map(async (hotel) => {
               const reviews = await getReviewsForHotel(hotel.id);
@@ -178,12 +224,11 @@ const NearMePage = () => {
               </Popup>
             </Marker>
           )}
-          {/* Render markers for nearby hotels */}
           {hotels.map((hotel) => (
             <Marker
               key={hotel.id}
               position={[hotel.latitude, hotel.longitude]}
-              icon={customIcon}
+              icon={hotelIcon}
             >
               <Popup>
                 <div className="font-semibold">{hotel.name}</div>
@@ -194,6 +239,7 @@ const NearMePage = () => {
             </Marker>
           ))}
           <LocateControl onLocationFound={handleLocationFound} />
+          <LegendControl />
         </MapContainer>
       ) : (
         <div className="flex justify-center items-center h-64">
