@@ -77,6 +77,7 @@ const HotelDetailsPage = () => {
   const navigate = useNavigate();
 
   const currentUserId = Number(sessionStorage.getItem("userId"));
+  console.log(currentUserId);
 
   const formatToAMPM = (timeString: string) => {
     const [hours, minutes] = timeString.split(":").map(Number);
