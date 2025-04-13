@@ -2,8 +2,6 @@ name: Java Build with Maven
 
 on:
   push:
-    branches:
-      - master
     paths:
       - "frontend/hotel-booking-frontend/**"
 
