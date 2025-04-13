@@ -6,5 +6,5 @@ on:
       - "frontend/hotel-booking-frontend/**"
 
 jobs:
-  backend-build:
+  frontend-build:
     uses: ./.github/workflows/frontend-template.yml
