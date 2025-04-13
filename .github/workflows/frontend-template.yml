@@ -21,17 +21,6 @@ jobs:
           npm install
           npm run build
 
-      # - name: List all files
-      #   run: |
-      #     echo "Project structure:"
-      #     ls -R
-
-      # - name: Upload Artifacts
-      #   uses: actions/upload-pages-artifact@v3
-      #   with:
-      #     name: github-pages
-      #     path: dist
-
       - name: Deploy with gh-pages
         run: |
           git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
