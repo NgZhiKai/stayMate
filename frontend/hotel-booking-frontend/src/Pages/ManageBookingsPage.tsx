@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { getAllBookings, cancelBooking } from '../services/bookingApi';
-import { DetailedBooking } from '../types/Booking';
-import { getUserInfo } from '../services/userApi';
+import React, { useEffect, useState } from 'react';
+import { cancelBooking, getAllBookings } from '../services/bookingApi';
 import { fetchHotelById } from '../services/hotelApi';
+import { getUserInfo } from '../services/userApi';
+import { DetailedBooking } from '../types/Booking';
 
 const ITEMS_PER_PAGE = 8;
 
@@ -21,8 +21,6 @@ const ManageBookingsPage: React.FC = () => {
           const userInfo = await getUserInfo(String(booking.userId));
           // Fetch hotel details
           const hotelInfo = await fetchHotelById(booking.hotelId);
-
-          console.log(hotelInfo);
 
           return {
             ...booking,

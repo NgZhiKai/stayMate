@@ -1,7 +1,6 @@
 import axios from 'axios';
-import { RegisterData, LoginData } from '../types/User';
-import { User } from '../types/User';
 import { BASE_URL } from '../constants/constants';
+import { LoginData, RegisterData, User } from '../types/User';
 
 // Base URL for the API
 const API_BASE_URL = `${BASE_URL}/users`;

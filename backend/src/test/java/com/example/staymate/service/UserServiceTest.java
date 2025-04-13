@@ -2,10 +2,15 @@ package com.example.staymate.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,6 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import com.example.staymate.entity.enums.UserRole;
 import com.example.staymate.entity.user.User;
@@ -91,7 +97,7 @@ class UserServiceTest {
     @Test
     void testGetAllUsers() {
         // Mock userRepository.findAll to return a list of users
-        when(userRepository.findAll()).thenReturn(List.of(user));
+        when(userRepository.findAllActiveUsers()).thenReturn(List.of(user));
 
         // Call the service method
         List<User> users = userService.getAllUsers();
@@ -102,7 +108,7 @@ class UserServiceTest {
         assertEquals("John", users.get(0).getFirstName());
 
         // Verify the repository method was called
-        verify(userRepository, times(1)).findAll();
+        verify(userRepository, times(1)).findAllActiveUsers();
     }
 
     // Test for getUserById method (user exists)
@@ -200,31 +206,38 @@ class UserServiceTest {
         verify(userRepository, times(1)).findById(user.getId());
     }
 
-    // Test for deleteUser method (user exists)
     @Test
-    void testDeleteUser_Success() {
-        // Mock userRepository.existsById to return true (user exists)
-        when(userRepository.existsById(user.getId())).thenReturn(true);
+    void testDeleteUser_SoftDeleteOnConstraintViolation() {
+        Long userId = 1L;
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("test@example.com");
+        user.setDeleted(false);
 
-        // Call the service method
-        userService.deleteUser(user.getId());
+        // Simulate constraint violation on hard delete
+        doThrow(DataIntegrityViolationException.class).when(userRepository).deleteById(userId);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        // Verify the repository method was called
-        verify(userRepository, times(1)).existsById(user.getId());
-        verify(userRepository, times(1)).deleteById(user.getId());
+        userService.deleteUser(userId);
+
+        assertTrue(user.isDeleted());
+        assertNull(user.getEmail()); // email should now be null
+        verify(userRepository).save(user);
+        verify(userRepository).deleteById(userId);
     }
 
-    // Test for deleteUser method (user not found)
     @Test
-    void testDeleteUser_NotFound() {
-        // Mock userRepository.existsById to return false (user not found)
-        when(userRepository.existsById(user.getId())).thenReturn(false);
+    void testDeleteUser_HardDeleteSuccess() {
+        Long userId = 1L;
 
-        // Call the service method and expect ResourceNotFoundException
-        assertThrows(ResourceNotFoundException.class, () -> userService.deleteUser(user.getId()));
+        // No exception thrown, simulate successful hard delete
+        doNothing().when(userRepository).deleteById(userId);
 
-        // Verify the repository method was called
-        verify(userRepository, times(1)).existsById(user.getId());
+        userService.deleteUser(userId);
+
+        verify(userRepository).deleteById(userId);
+        verify(userRepository, never()).save(any());
+        verify(userRepository, never()).findById(userId);
     }
 
     @Test

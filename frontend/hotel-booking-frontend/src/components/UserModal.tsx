@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { User } from "../types/User";
-import 'react-phone-input-2/lib/style.css';
+import React, { useEffect, useState } from "react";
 import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+import { User } from "../types/User";
 
 type UserModalProps = {
   isOpen: boolean;
@@ -22,6 +22,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit, curren
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
+  const [nameError, setNameError] = useState<string>("");
 
   // Reset form when the modal is closed or when `currentUser` changes
   useEffect(() => {
@@ -43,9 +44,10 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit, curren
         setPassword("");
         setConfirmPassword("");
         setPasswordError("");
+        setNameError("");
       }
     }
-  }, [isOpen, currentUser]); // Dependencies should include `isOpen` and `currentUser`
+  }, [isOpen, currentUser]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -54,6 +56,18 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit, curren
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     name === "password" ? setPassword(value) : setConfirmPassword(value);
+  };
+
+  // Prevent non-letter characters for first and last name and set error message
+  const handleNameInput = (e: React.FormEvent<HTMLInputElement>, name: 'firstName' | 'lastName') => {
+    const value = e.currentTarget.value;
+    const regex = /^[a-zA-Z ]*$/; // Allow letters and spaces only
+    if (regex.test(value)) {
+      setUser({ ...user, [name]: value });
+      setNameError(""); // Clear error if valid input
+    } else {
+      setNameError("Names can only contain letters and spaces.");
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -69,6 +83,10 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit, curren
         setPasswordError("Password must be at least 6 characters.");
         return;
       }
+    }
+
+    if (nameError) {
+      return; // Prevent submission if there's a name error
     }
 
     setPasswordError("");
@@ -112,10 +130,11 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit, curren
                   type="text"
                   name="firstName"
                   value={user.firstName}
-                  onChange={handleChange}
+                  onInput={(e) => handleNameInput(e, 'firstName')}
                   className={inputClass}
                   required
                 />
+                {nameError && <div className="text-red-400 text-sm">{nameError}</div>}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Last Name</label>
@@ -123,10 +142,11 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit, curren
                   type="text"
                   name="lastName"
                   value={user.lastName}
-                  onChange={handleChange}
+                  onInput={(e) => handleNameInput(e, 'lastName')}
                   className={inputClass}
                   required
                 />
+                {nameError && <div className="text-red-400 text-sm">{nameError}</div>}
               </div>
             </div>
 

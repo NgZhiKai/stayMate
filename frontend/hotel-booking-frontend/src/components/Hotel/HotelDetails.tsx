@@ -14,6 +14,7 @@ type HotelDetailsProps = {
   isBookmarked: boolean;
   setIsBookmarked: (value: boolean) => void;
   handleDeleteHotel: (hotelId: number) => void;
+  setIsReviewModalOpen: (open: boolean) => void;
 };
 
 const HotelDetails: React.FC<HotelDetailsProps> = ({
@@ -26,6 +27,7 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
   isBookmarked,
   setIsBookmarked,
   handleDeleteHotel,
+  setIsReviewModalOpen,
 }) => {
   const navigate = useNavigate();  // Initialize the navigate function
   const defaultImage = 'https://archive.org/download/placeholder-image/placeholder-image.jpg';
@@ -117,10 +119,23 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
         </div>
       </div>
       <p className="text-gray-700 mb-6">{hotel?.description}</p>
-      <div className="grid md:grid-cols-2 gap-6 mb-6">
+
+      <div className="grid md:grid-cols-2 gap-6 mb-10">
         <ContactInfo hotel={hotel} />
         <PricingTiming hotel={hotel} />
       </div>
+
+      {/* Review Button */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold">Reviews</h2>
+        <button
+          onClick={() => setIsReviewModalOpen(true)}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition hover:scale-105"
+        >
+          Write a Review
+        </button>
+      </div>
+
       <Reviews reviews={reviews} userInfo={userInfo} />
     </div>
   );
