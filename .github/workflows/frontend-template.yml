@@ -21,8 +21,13 @@ jobs:
           npm install
           npm run build
 
-      - name: Deploy frontend
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: dist
-          branch: gh-pages
+      - name: List all files
+        run: |
+          echo "Project structure:"
+          ls -R
+
+      # - name: Deploy frontend
+      #   uses: JamesIves/github-pages-deploy-action@v4
+      #   with:
+      #     folder: dist
+      #     branch: gh-pages
