@@ -19,5 +19,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Deploy frontend
         run: npm run deploy
