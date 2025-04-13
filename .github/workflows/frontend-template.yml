@@ -17,7 +17,9 @@ jobs:
         uses: actions/setup-node@v4
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd frontend\hotel-booking-frontend
+          npm install
 
       - name: Configure Git identity
         run: |
@@ -25,4 +27,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Deploy frontend
-        run: npm run deploy
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          echo "Deploying frontend..."
+          cd frontend\hotel-booking-frontend
+          npm run deploy
