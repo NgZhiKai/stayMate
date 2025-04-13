@@ -43,7 +43,7 @@ public class UserService implements Subject {
         User savedUser = userRepository.save(user);
 
         String token = generateVerificationToken(savedUser);
-        String verificationLink = baseUrl + "/stayMate/verify";
+        String verificationLink = baseUrl + "/verify";
 
         notifyObservers(savedUser, verificationLink, token);
 
