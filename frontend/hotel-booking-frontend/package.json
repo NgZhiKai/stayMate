@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist -r https://x-access-token:${GH_TOKEN}@github.com/ngzhikai/stayMate.git"
+    "deploy": "gh-pages -d dist -r https://x-access-token:${GH_TOKEN}@github.com/NgZhiKai/stayMate.git"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
