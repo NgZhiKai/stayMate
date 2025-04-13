@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
+import { FaStar } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 import ConfirmationModal from "../components/ConfirmationModal";
 import HotelDetails from "../components/Hotel/HotelDetails";
 import MessageModal from "../components/MessageModal"; // <-- NEW IMPORT
+import ReviewModal from "../components/ReviewModal"; // <-- NEW IMPORT
 import { deleteHotel, fetchHotelById } from "../services/hotelApi";
 import { getReviewsForHotel } from "../services/ratingApi";
 import { getUserInfo } from "../services/userApi";
 import { HotelData } from "../types/Hotels";
 import { Review } from "../types/Review";
-import { FaStar } from "react-icons/fa";
 
 const useHotelData = (id: string) => {
   const [loading, setLoading] = useState(true);
@@ -45,7 +46,7 @@ const useHotelData = (id: string) => {
     fetchData();
   }, [id]);
 
-  return { loading, hotel, reviews, userInfo };
+  return { loading, hotel, reviews, userInfo, setReviews };
 };
 
 const renderStars = (rating: number) => {
@@ -64,15 +65,18 @@ const renderStars = (rating: number) => {
 
 const HotelDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { loading, hotel, reviews, userInfo } = useHotelData(id!);
+  const { loading, hotel, reviews, userInfo, setReviews } = useHotelData(id!);
   const [modalMessage, setModalMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hotelToDelete, setHotelToDelete] = useState<number | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [messageModalOpen, setMessageModalOpen] = useState(false); // <-- NEW
-  const [messageModalType, setMessageModalType] = useState<"success" | "error">("success"); // <-- NEW
-  const [messageModalContent, setMessageModalContent] = useState(""); // <-- NEW
+  const [messageModalOpen, setMessageModalOpen] = useState(false); 
+  const [messageModalType, setMessageModalType] = useState<"success" | "error">("success");
+  const [messageModalContent, setMessageModalContent] = useState("");
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const navigate = useNavigate();
+
+  const currentUserId = Number(sessionStorage.getItem("userId"));
 
   const formatToAMPM = (timeString: string) => {
     const [hours, minutes] = timeString.split(":").map(Number);
@@ -116,6 +120,16 @@ const HotelDetailsPage = () => {
     }
   };
 
+  const handleCloseReviewModal = () => {
+    setIsReviewModalOpen(false);
+  };
+
+  const handleReviewSubmitted = (review: Review | null) => {
+    if (!review) return;
+    setReviews((prev) => [...prev, review]);
+    handleCloseReviewModal();
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -140,6 +154,7 @@ const HotelDetailsPage = () => {
         renderStars={renderStars}
         setIsBookmarked={setIsBookmarked}
         handleDeleteHotel={handleDeleteHotel}
+        setIsReviewModalOpen={setIsReviewModalOpen}
       />
       <ConfirmationModal
         isOpen={isModalOpen}
@@ -152,6 +167,14 @@ const HotelDetailsPage = () => {
         onClose={() => setMessageModalOpen(false)}
         message={messageModalContent}
         type={messageModalType}
+      />
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={handleCloseReviewModal}
+        hotelId={hotel.id}
+        userId={currentUserId!}
+        onReviewSubmitted={handleReviewSubmitted}
       />
     </div>
   );

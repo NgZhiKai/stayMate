@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +41,7 @@ public class UserService implements Subject {
         }
 
         user.setVerified(false);
+        user.setDeleted(false);
         User savedUser = userRepository.save(user);
 
         String token = generateVerificationToken(savedUser);
@@ -51,7 +53,7 @@ public class UserService implements Subject {
     }
 
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        return userRepository.findAllActiveUsers();
     }
 
     public User getUserById(Long id) {
@@ -99,10 +101,16 @@ public class UserService implements Subject {
         if (id == null) {
             throw new InvalidUserException("User ID cannot be null.");
         }
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException("User not found with ID: " + id);
+
+        try {
+            userRepository.deleteById(id); // Try hard delete first
+        } catch (DataIntegrityViolationException e) {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+            user.setDeleted(true);
+            user.setEmail(null);
+            userRepository.save(user);
         }
-        userRepository.deleteById(id);
     }
 
     public String generateVerificationToken(User user) {

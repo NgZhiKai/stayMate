@@ -153,10 +153,10 @@ public class UserController {
             user.setEmail(userRequestUpdateDto.getEmail());
             user.setPhoneNumber(userRequestUpdateDto.getPhoneNumber());
 
-            if(!userRequestUpdateDto.getPassword().equals(user.getPassword())) {
+            if (!userRequestUpdateDto.getPassword().equals(user.getPassword())) {
                 user.setPassword(userRequestUpdateDto.getPassword());
             }
-            
+
             // Call the service to update the user
             User updatedUser = userService.updateUser(id, user);
             return ResponseEntity.ok(new CustomResponse<>("User updated successfully", updatedUser));
@@ -172,6 +172,8 @@ public class UserController {
     public ResponseEntity<CustomResponse<Void>> deleteUser(
             @PathVariable @Parameter(description = "ID of the user to be deleted") Long id) {
 
+        System.out.println(id);
+
         try {
             userService.deleteUser(id);
             return ResponseEntity.status(HttpStatus.NO_CONTENT)
@@ -179,6 +181,9 @@ public class UserController {
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new CustomResponse<>("User not found with ID: " + id, null));
+        } catch (InvalidUserException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new CustomResponse<>(e.getMessage(), null));
         }
     }
 

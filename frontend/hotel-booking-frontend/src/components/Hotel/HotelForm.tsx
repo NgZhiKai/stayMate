@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 import { OPEN_CAGE_API_KEY } from '../../constants/constants';
 import { RoomRequestDTO } from '../../types/Room';
 
@@ -76,11 +78,27 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
     }
   }, [hotelId, hotelData]);
 
+  const handleNameInput = (e: React.FormEvent<HTMLInputElement>) => {
+    const value = e.currentTarget.value;
+    const regex = /^[a-zA-Z ]*$/; // Allow letters and spaces only
+    if (regex.test(value)) {
+      setName(value);
+      setError(""); // Clear error if valid input
+    } else {
+      setError("Names can only contain letters and spaces.");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !address || (!hotelId && rooms.every(room => room.quantity === 0)) || !check_in || !check_out) {
       setError('Please fill in all required fields and add at least one room if creating a new hotel');
+      return;
+    }
+
+    if (!isNaN(Number(name))) {
+      setError('Hotel name cannot be a number');
       return;
     }
 
@@ -148,7 +166,7 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
             type="text"
             id="name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onInput={(e) => handleNameInput(e)}
             className="mt-1 p-2 border rounded-md w-full"
             required
           />
@@ -215,11 +233,7 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
         {imagePreview && (
           <div className="mb-4">
             <img
-              src={
-                imagePreview.startsWith('data:')
-                  ? imagePreview
-                  : `data:image/jpeg;base64,${imagePreview}`
-              }
+              src={imagePreview.startsWith('data:') ? imagePreview : `data:image/jpeg;base64,${imagePreview}`}
               alt="Image Preview"
               className="w-32 h-32 object-cover"
             />
@@ -273,14 +287,17 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
           <label htmlFor="contact" className="block text-sm font-medium text-gray-700">
             Contact Info
           </label>
-          <input
-            type="text"
-            id="contact"
+          {/* Use PhoneInput here */}
+          <PhoneInput
+            country={'sg'}  // Set the default country to Singapore
+            inputClass="!w-full p-2 border rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            containerClass="w-full flex justify-end"  // Ensure the container takes the full width
             value={contact}
-            onChange={(e) => setContact(e.target.value)}
-            className="mt-1 p-2 border rounded-md w-full"
+            onChange={(value: string) => setContact(value)}  // Directly set the value to state
           />
         </div>
+
+
 
         {!hotelId && (
           <div className="mb-4">
@@ -339,9 +356,8 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
         )}
 
         <div className="flex justify-end">
-          <button type="submit" 
-          className="bg-blue-500 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out transform hover:bg-blue-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:bg-blue-700">
-          {hotelId ? 'Update Hotel' : 'Save Hotel'}
+          <button type="submit" className="bg-blue-500 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out transform hover:bg-blue-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:bg-blue-700">
+            {hotelId ? 'Update Hotel' : 'Save Hotel'}
           </button>
         </div>
       </form>

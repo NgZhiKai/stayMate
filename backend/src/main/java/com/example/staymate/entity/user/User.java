@@ -27,11 +27,11 @@ public class User {
     @Column(nullable = false)
     private String lastName;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String email;
 
     @Column(nullable = false)
-    private String password; // Must be hashed before saving!
+    private String password;
 
     private String phoneNumber;
 
@@ -43,6 +43,9 @@ public class User {
 
     @Column(name = "verified")
     private boolean verified;
+
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
 
     // Default constructor
     public User() {
@@ -140,6 +143,14 @@ public class User {
 
     public void setVerified(boolean verified) {
         this.verified = verified;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.example.staymate.entity.enums.UserRole;
@@ -21,4 +22,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByLastNameContaining(String lastName);
 
     User findByVerificationToken(String verificationToken);
+
+    @Query("SELECT u FROM User u WHERE u.isDeleted = false")
+    List<User> findAllActiveUsers();
 }
