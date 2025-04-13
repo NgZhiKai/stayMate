@@ -1,0 +1,10 @@
+name: Java Build with Maven
+
+on:
+  push:
+    paths:
+      - "backend/**"
+
+jobs:
+  backend-build:
+    uses: ./.github/workflows/backend-template.yml

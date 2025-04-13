@@ -1,0 +1,10 @@
+name: Java Build with Maven
+
+on:
+  push:
+    paths:
+      - "frontend/hotel-booking-frontend/**"
+
+jobs:
+  backend-build:
+    uses: ./.github/workflows/frontend-template.yml

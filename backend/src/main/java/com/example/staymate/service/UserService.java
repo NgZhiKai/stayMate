@@ -26,11 +26,8 @@ public class UserService implements Subject {
     @Autowired
     private UserRepository userRepository;
 
-    @Value("${frontend.host_ip}")
+    @Value("${frontend.host_url}")
     private String baseUrl;
-
-    @Value("${frontend.port}")
-    private String serverPort;
 
     private final List<Observer> observers = new ArrayList<>();
 
@@ -46,7 +43,7 @@ public class UserService implements Subject {
         User savedUser = userRepository.save(user);
 
         String token = generateVerificationToken(savedUser);
-        String verificationLink = "https://" + baseUrl + "/verify";
+        String verificationLink = baseUrl + "/stayMate/verify";
 
         notifyObservers(savedUser, verificationLink, token);
 

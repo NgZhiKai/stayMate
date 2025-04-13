@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import MessageModal from "../MessageModal";
 import { LoginData } from "../../types/User";
+import { useNavigate } from "react-router-dom";
 
 interface LoginFormProps {
   onLogin: (loginData: LoginData) => void;
@@ -16,6 +17,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   handleChange,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsModalOpen(!!error);
@@ -78,12 +80,15 @@ const LoginForm: React.FC<LoginFormProps> = ({
           Login
         </button>
 
-        {/* Register Link */}
+        {/* Register Link with navigate */}
         <div className="mt-4 text-center">
           <span>Don't have an account? </span>
-          <a href="/register" className="text-blue-500 hover:text-blue-600 transition duration-300">
+          <button
+            onClick={() => navigate("/register")}
+            className="text-blue-500 hover:text-blue-600 transition duration-300 underline"
+          >
             Register here
-          </a>
+          </button>
         </div>
       </div>
     </div>
