@@ -59,12 +59,16 @@ const ManageUsers: React.FC = () => {
   const handleDelete = async (userId: number) => {
     try {
       await deleteUser(String(userId));
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
-
-      if (currentPage > totalPages) {
-        setCurrentPage(totalPages);
-      }
-
+  
+      setUsers((prev) => {
+        const updatedUsers = prev.filter((u) => u.id !== userId);
+        const newTotalPages = Math.ceil(updatedUsers.length / ITEMS_PER_PAGE);
+        if (currentPage > newTotalPages) {
+          setCurrentPage(newTotalPages || 1);
+        }
+        return updatedUsers;
+      });
+  
       setMessageType('success');
       setMessageContent('User deleted successfully!');
       setMessageModalOpen(true);
@@ -74,7 +78,7 @@ const ManageUsers: React.FC = () => {
       setMessageContent(err.message || 'Failed to delete user');
       setMessageModalOpen(true);
     }
-  };
+  };  
 
   const handleSubmit = async (userData: User | RegisterData) => {
     try {
