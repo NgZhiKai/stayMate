@@ -18,7 +18,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd frontend\hotel-booking-frontend
+          cd frontend/hotel-booking-frontend
           npm install
 
       - name: Configure Git identity
@@ -31,5 +31,5 @@ jobs:
           GH_TOKEN: ${{ secrets.TOKEN }}
         run: |
           echo "Deploying frontend..."
-          cd frontend\hotel-booking-frontend
+          cd frontend/hotel-booking-frontend
           npm run deploy
