@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 import ConfirmationModal from "../components/ConfirmationModal";
 import HotelDetails from "../components/Hotel/HotelDetails";
+import MessageModal from "../components/MessageModal"; // <-- NEW IMPORT
 import { deleteHotel, fetchHotelById } from "../services/hotelApi";
 import { getReviewsForHotel } from "../services/ratingApi";
 import { getUserInfo } from "../services/userApi";
@@ -68,6 +69,9 @@ const HotelDetailsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hotelToDelete, setHotelToDelete] = useState<number | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [messageModalOpen, setMessageModalOpen] = useState(false); // <-- NEW
+  const [messageModalType, setMessageModalType] = useState<"success" | "error">("success"); // <-- NEW
+  const [messageModalContent, setMessageModalContent] = useState(""); // <-- NEW
   const navigate = useNavigate();
 
   const formatToAMPM = (timeString: string) => {
@@ -94,15 +98,20 @@ const HotelDetailsPage = () => {
     if (hotelToDelete) {
       try {
         await deleteHotel(hotelToDelete);
-        setModalMessage("Hotel deleted successfully!");
         setIsModalOpen(false);
+        setMessageModalContent("Hotel deleted successfully!");
+        setMessageModalType("success");
+        setMessageModalOpen(true);
         setTimeout(() => {
+          setMessageModalOpen(false);
           navigate("/");
         }, 2000);
       } catch (error) {
         console.error("Error deleting hotel:", error);
-        setModalMessage("There was an error deleting the hotel.");
         setIsModalOpen(false);
+        setMessageModalContent("There was an error deleting the hotel.");
+        setMessageModalType("error");
+        setMessageModalOpen(true);
       }
     }
   };
@@ -137,6 +146,12 @@ const HotelDetailsPage = () => {
         onClose={() => setIsModalOpen(false)}
         onConfirm={confirmDeletion}
         message={modalMessage}
+      />
+      <MessageModal
+        isOpen={messageModalOpen}
+        onClose={() => setMessageModalOpen(false)}
+        message={messageModalContent}
+        type={messageModalType}
       />
     </div>
   );

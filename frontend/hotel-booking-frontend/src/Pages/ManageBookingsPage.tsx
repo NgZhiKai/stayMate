@@ -22,12 +22,15 @@ const ManageBookingsPage: React.FC = () => {
           // Fetch hotel details
           const hotelInfo = await fetchHotelById(booking.hotelId);
 
-          // Return updated booking object with user and hotel names
+          console.log(hotelInfo);
+
           return {
             ...booking,
             userFirstName: userInfo.user.firstName,
             userLastName: userInfo.user.lastName,
-            hotelName: hotelInfo.name,  // Assuming `name` is the field for hotel name
+            hotelName: hotelInfo.name,
+            hotelCheckInTime: hotelInfo.checkIn || 'N/A',
+            hotelCheckOutTime: hotelInfo.checkOut || 'N/A'
           };
         }));
 
@@ -76,8 +79,12 @@ const ManageBookingsPage: React.FC = () => {
               <h2 className="text-lg font-semibold">Booking ID: {booking.id}</h2>
               <p className="text-sm">User: {booking.userFirstName} {booking.userLastName}</p>
               <p className="text-sm">Hotel: {booking.hotelName}</p>
-              <p className="text-sm">Check-in: {new Date(booking.checkInDate).toLocaleString()}</p>
-              <p className="text-sm">Check-out: {new Date(booking.checkOutDate).toLocaleString()}</p>
+              <p className="text-sm">
+                Check-in: {new Date(booking.checkInDate).toLocaleDateString()} at {booking.hotelCheckInTime?.slice(0, 5)}
+              </p>
+              <p className="text-sm">
+                Check-out: {new Date(booking.checkOutDate).toLocaleDateString()} at {booking.hotelCheckOutTime?.slice(0, 5)}
+              </p>
               <p className="text-sm">
                 <span
                   className={`font-semibold py-1 px-3 rounded-full inline-block ${

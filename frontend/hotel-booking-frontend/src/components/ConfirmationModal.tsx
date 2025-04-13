@@ -11,26 +11,40 @@ const ConfirmationModal: React.FC<ModalProps> = ({ isOpen, onClose, onConfirm, m
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-600 bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-lg shadow-md max-w-sm w-full">
-        <h2 className="text-xl font-semibold mb-4">Confirm Action</h2>
-        <p>{message}</p>
-        <div className="mt-4 flex justify-end space-x-4">
-          <button
-            onClick={onClose}
-            className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 transition"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
-          >
-            Delete
-          </button>
+    <>
+      <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50" onClick={onClose}></div>
+      <div className="fixed inset-0 flex justify-center items-center z-50">
+        <div className="bg-gray-900 rounded-lg shadow-lg p-6 w-96">
+          <div className="flex items-center mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-yellow-500 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+            </svg>
+            <h2 className="text-xl font-semibold text-gray-300">Confirm Action</h2>
+          </div>
+          <div className="mb-4 text-gray-300" dangerouslySetInnerHTML={{ __html: message }} />
+          <div className="flex justify-end space-x-4">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Delete
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

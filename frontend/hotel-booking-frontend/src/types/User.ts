@@ -14,6 +14,7 @@ export interface User {
   }
 
 export interface RegisterData {
+  id?: number;
   firstName: string;
   lastName: string;
   email: string;

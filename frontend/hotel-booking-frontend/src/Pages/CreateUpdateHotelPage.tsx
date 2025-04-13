@@ -40,14 +40,18 @@ const CreateUpdateHotelPage: React.FC = () => {
         setModalMessage('Hotel created successfully!');
         setModalType('success');
       }
-      console.log('Setting modal to open');
+  
       setIsModalOpen(true);
-      navigate('/');
+  
+      setTimeout(() => {
+        setIsModalOpen(false);
+        navigate('/');
+      }, 3000);
     } catch (error) {
       console.error('Failed to save hotel:', error);
       setModalMessage('Failed to save hotel data.');
       setModalType('error');
-      setIsModalOpen(true);  // Make sure this gets called
+      setIsModalOpen(true);
     }
   };  
 

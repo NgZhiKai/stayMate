@@ -147,15 +147,16 @@ public class UserController {
 
         try {
             // Map UserRequestUpdateDto to the existing User entity
-            User user = new User();
-            user.setId(id);
+            User user = userService.getUserById(id);
             user.setFirstName(userRequestUpdateDto.getFirstName());
             user.setLastName(userRequestUpdateDto.getLastName());
             user.setEmail(userRequestUpdateDto.getEmail());
-            user.setPassword(userRequestUpdateDto.getPassword());
             user.setPhoneNumber(userRequestUpdateDto.getPhoneNumber());
-            user.setRole(userRequestUpdateDto.getRole());
 
+            if(!userRequestUpdateDto.getPassword().equals(user.getPassword())) {
+                user.setPassword(userRequestUpdateDto.getPassword());
+            }
+            
             // Call the service to update the user
             User updatedUser = userService.updateUser(id, user);
             return ResponseEntity.ok(new CustomResponse<>("User updated successfully", updatedUser));
