@@ -90,6 +90,13 @@ const BookingPage: React.FC = () => {
         return;
       }
 
+      setBookings((prevBookings) =>
+        prevBookings.map((booking) =>
+          booking.bookingId === bookingId
+            ? { ...booking, status: "CANCELLED" }
+            : booking
+        )
+      );
       showModal(`Booking with ID ${bookingId} has been canceled.`, "success");
     } catch {
       showModal("An unexpected error occurred.", "error");
