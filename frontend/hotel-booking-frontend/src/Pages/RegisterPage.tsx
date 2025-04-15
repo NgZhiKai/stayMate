@@ -19,18 +19,10 @@ const RegisterPage: React.FC = () => {
 
   const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-
-    if (name === "role") {
-      setRegisterData((prevData) => ({
-        ...prevData,
-        [name]: value.toUpperCase() as "CUSTOMER" | "ADMIN",
-      }));
-    } else {
-      setRegisterData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
-    }
+    setRegisterData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   const handleRegister = async (registerData: RegisterData) => {

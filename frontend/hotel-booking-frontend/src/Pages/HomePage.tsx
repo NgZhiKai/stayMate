@@ -95,24 +95,27 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Welcome to StayMate</h1>
-          <p className="text-gray-600 mt-2">Find the best hotels near you with ease.</p>
+      <div className="relative bg-white py-16 px-6 md:px-20 rounded-lg">
+        {/* Centered Content */}
+        <div className="text-center max-w-3xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            Welcome to StayMate
+          </h1>
+          {/* Search Bar centered */}
+          <div className="w-full max-w-xl mx-auto">
+            <SearchBar onSearch={handleSearch} />
+          </div>
         </div>
-        <div className="ml-auto flex items-center gap-4">
+          {/* Create Hotel button - bottom right */}
           {isAdmin && (
             <button
               onClick={handleCreateHotel}
-              className="bg-blue-600 text-white px-5 py-2 rounded-full hover:bg-blue-700 duration-300 shadow-md transition hover:scale-110"
-            >
+              className="fixed bottom-6 right-6 bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-all z-50">
               Create Hotel
             </button>
           )}
-          <SearchBar onSearch={handleSearch} />
-        </div>
-      </div>
 
+      </div>
       <div>
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recommended Hotels</h2>
 
