@@ -13,17 +13,23 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.staymate.entity.booking.Booking;
 import com.example.staymate.entity.enums.BookingStatus;
 import com.example.staymate.entity.enums.NotificationType;
+import com.example.staymate.entity.enums.RoomStatus;
 import com.example.staymate.entity.notification.Notification;
+import com.example.staymate.entity.room.Room;
 import com.example.staymate.observer.NotificationObserver;
 import com.example.staymate.observer.Observer;
 import com.example.staymate.observer.Subject;
 import com.example.staymate.repository.BookingRepository;
+import com.example.staymate.repository.RoomRepository;
 
 @Service
 public class BookingService implements Subject {
 
     @Autowired
     private final BookingRepository bookingRepository;
+
+    @Autowired
+    private RoomRepository roomRepository;
 
     private final List<Observer> observers = new ArrayList<>();
 
@@ -101,11 +107,21 @@ public class BookingService implements Subject {
     }
 
     // Cancel a booking and notify observers
+    @Transactional
     public Booking cancelBooking(Long id) {
         Booking booking = getBookingById(id);
         if (booking != null) {
             booking.setStatus(BookingStatus.CANCELLED);
             Booking canceledBooking = bookingRepository.save(booking);
+
+            // Make the room available again
+            Room room = roomRepository.findById(booking.getRoom().getId()).orElse(null);
+            System.out.println("Fetched Room: " + (room != null ? room.getId() : "null"));
+            if (room != null) {
+                room.setStatus(RoomStatus.AVAILABLE);
+                roomRepository.save(room);
+            }
+
 
             Notification notification = new Notification();
             notification.setUser(booking.getUser());
