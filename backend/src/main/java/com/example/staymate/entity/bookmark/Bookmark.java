@@ -3,14 +3,12 @@ package com.example.staymate.entity.bookmark;
 import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.entity.user.User;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "bookmark")
+@IdClass(BookmarkId.class)
+
 public class Bookmark {
 
     @ManyToOne(fetch = FetchType.LAZY)
