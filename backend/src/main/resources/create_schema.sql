@@ -95,3 +95,13 @@ CREATE TABLE IF NOT EXISTS Notification (
     created_at DATETIME NOT NULL,
     FOREIGN KEY (user_id) REFERENCES Users(id)
 );
+
+--Bookmark table
+CREATE TABLE `bookmark` (
+  `userid` bigint NOT NULL,
+  `hotelid` bigint DEFAULT NULL,
+  PRIMARY KEY (`userid`),
+  KEY `fk_bookmark_hotel` (`hotelid`),
+  CONSTRAINT `fk_bookmark_hotel` FOREIGN KEY (`hotelid`) REFERENCES `hotel` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_bookmark_user` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='		';
