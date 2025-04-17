@@ -24,6 +24,9 @@ const CreateBookingForm: React.FC<Props> = ({
   handleSubmit,
 }) => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const uniqueRoomTypes = Array.from(
+    new Map(rooms.map((room) => [room.room_type, room])).values()
+  );
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,7 +35,7 @@ const CreateBookingForm: React.FC<Props> = ({
   // Calculate room slices for pagination
   const indexOfLastRoom = currentPage * roomsPerPage;
   const indexOfFirstRoom = indexOfLastRoom - roomsPerPage;
-  const currentRooms = rooms.slice(indexOfFirstRoom, indexOfLastRoom);
+  const currentRooms = uniqueRoomTypes.slice(indexOfFirstRoom, indexOfLastRoom);
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -58,12 +61,17 @@ const CreateBookingForm: React.FC<Props> = ({
 
   bookingData.totalAmount = calculateTotalAmount();
 
-  // Handle room selection
-  const handleRoomSelectWrapper = (roomId: number) => {
-    const room = rooms.find((r) => r.id.roomId === roomId);
-    if (room) {
-      setSelectedRoom(room);
-      handleRoomSelect(roomId); // Keep the existing logic intact
+  const handleRoomSelectWrapper = (roomType: string) => {
+    // Find the first AVAILABLE room of that type
+    const availableRoom = rooms.find(
+      (r) => r.room_type === roomType && r.status === "AVAILABLE"
+    );
+  
+    if (availableRoom) {
+      setSelectedRoom(availableRoom);
+      handleRoomSelect(availableRoom.id.roomId);
+    } else {
+      alert(`No available rooms of type ${roomType}`);
     }
   };
 
@@ -95,25 +103,42 @@ const CreateBookingForm: React.FC<Props> = ({
             {/* Room Grid */}
             <div className="grid grid-cols-3 gap-2">
               {currentRooms.map((room) => {
-                const isSelected = room.id.roomId === bookingData.roomId;
+                const isAvailable = rooms.some(
+                  (r) => r.room_type === room.room_type && r.status === "AVAILABLE"
+                );
+
+                const isSelected = selectedRoom?.room_type === room.room_type;
+
                 return (
                   <button
                     key={room.id.roomId}
                     type="button"
-                    onClick={() => handleRoomSelectWrapper(room.id.roomId)}
-                    className={`relative group border rounded-md p-3 text-center transition duration-300
+                    disabled={!isAvailable}
+                    onClick={() =>
+                      isAvailable && handleRoomSelectWrapper(room.room_type)
+                    }
+                    className={`relative group border rounded-md px-2 py-1.5 text-center text-xs font-medium transition duration-300
                       ${
                         isSelected
                           ? "bg-blue-500 text-white border-blue-600"
-                          : "bg-gray-100 hover:bg-blue-100"
-                      }`}
+                          : isAvailable
+                          ? "bg-gray-100 hover:bg-blue-100"
+                          : "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
+                      }
+                    `}
                   >
-                    <div className="font-medium text-sm">Room {room.id.roomId}</div>
+                    <div className="font-medium text-sm">{room.room_type} Room</div>
 
                     {/* Tooltip on hover */}
                     <div className="absolute z-10 left-1/2 transform -translate-x-1/2 bottom-full mb-2 flex-col bg-white text-gray-800 border border-gray-300 rounded-md p-2 shadow-md text-xs w-40 opacity-0 group-hover:opacity-100 pointer-events-none transition duration-200">
-                      <span className="font-medium">{room.room_type}</span>
-                      <span>${room.pricePerNight}/night</span>
+                      {isAvailable ? (
+                        <>
+                          <span className="font-medium">{room.room_type}</span>
+                          <span>${room.pricePerNight}/night</span>
+                        </>
+                      ) : (
+                        <span className="text-red-500">Fully booked</span>
+                      )}
                     </div>
                   </button>
                 );
