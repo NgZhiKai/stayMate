@@ -161,7 +161,7 @@ const RegisterForm: React.FC<{
           </div>
         </div>
 
-        {/* Role */}
+        {/* Role
         <div>
           <label className="block text-gray-700 font-medium mb-1">Account Type</label>
           <select
@@ -174,7 +174,7 @@ const RegisterForm: React.FC<{
             <option value="CUSTOMER">User</option>
             <option value="ADMIN" disabled={registerData.email.indexOf('@ncs.com.sg') === -1}>Admin</option>
           </select>
-        </div>
+        </div> */}
 
         <button
           onClick={handleSubmit}

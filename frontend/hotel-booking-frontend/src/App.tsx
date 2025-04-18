@@ -41,7 +41,7 @@ const App: React.FC = () => {
             <Header toggleSidebar={() => setIsOpen(!isOpen)} />
             <div className="flex flex-1 pt-16">
               <Sidebar isOpen={isOpen} toggleSidebar={() => setIsOpen(!isOpen)} />
-              <div className={`flex-1 transition-all duration-300 p-4 ${isOpen ? "ml-64" : "ml-0"}`}>
+              <div className={`flex-1 transition-all duration-300 p-4 ${isOpen ? "md:ml-64" : "ml-0"}`}>
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/nearme" element={<NearMePage />} />

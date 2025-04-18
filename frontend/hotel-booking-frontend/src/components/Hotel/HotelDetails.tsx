@@ -36,6 +36,16 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
   const userRole = sessionStorage.getItem('role');
   const isAdmin = userRole === 'admin';
 
+  const formatPhoneNumber = (rawPhone: string) => {
+    if (!rawPhone || rawPhone.length < 5) return rawPhone;
+  
+    // Assuming the first 2 digits are country code (e.g., 65 for Singapore)
+    const countryCode = rawPhone.slice(0, 2);
+    const localNumber = rawPhone.slice(2);
+  
+    return `(+${countryCode}) ${localNumber}`;
+  };  
+
   const handleBookmarkToggle = () => {
     setIsBookmarked(!isBookmarked);
   };
@@ -53,7 +63,7 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
     <div>
       <h3 className="text-xl font-semibold mb-2">Contact Info</h3>
       <p><strong>Address:</strong> {hotel?.address || 'N/A'}</p>
-      <p><strong>Contact:</strong> {hotel?.contact || 'N/A'}</p>
+      <p><strong>Contact:</strong> {hotel?.contact ? formatPhoneNumber(hotel.contact) : 'N/A'}</p>
     </div>
   );
 
@@ -92,25 +102,26 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
           <button onClick={handleBookmarkToggle} className="text-gray-600 hover:text-blue-600 transition text-xl hover:scale-110">
             {isBookmarked ? <FaBookmark /> : <FaRegBookmark />}
           </button>
-          <button
-            onClick={handleBookClick}  // Added onClick handler for booking
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition hover:scale-110"
-          >
-            Book
-          </button>
-
+          {!isAdmin && (
+            <button
+              onClick={handleBookClick}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition hover:scale-110"
+            >
+              Book
+            </button>
+          )}
           {/* Show the Update Hotel button if the user is an admin */}
           {isAdmin && (
             <>
             <button
               onClick={handleUpdateHotel}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition hover:scale-110"
+              className="bg-blue-600 text-white text-sm px-3 py-1.5 rounded hover:bg-blue-700 transition hover:scale-105"
             >
               Update Hotel
             </button>
             <button
               onClick={() => handleDeleteHotel(hotel?.id!)}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition hover:scale-110"
+              className="bg-red-600 text-white text-sm px-3 py-1.5 rounded hover:bg-red-700 transition hover:scale-105"
             >
               Delete Hotel
             </button>
