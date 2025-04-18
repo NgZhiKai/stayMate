@@ -10,7 +10,7 @@ const BookmarkedHotelsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
 
-  const userId = sessionStorage.getItem('userId');
+  const userId = Number(sessionStorage.getItem('userId'));
 
   useEffect(() => {
     const loadBookmarkedHotels = async () => {
