@@ -1,12 +1,8 @@
 name: Frontend Build with React
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - "frontend/hotel-booking-frontend/**"
-
+  workflow_call:
+    
 jobs:
   frontend-build:
     uses: ./.github/workflows/frontend-template.yml
