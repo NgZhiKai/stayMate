@@ -80,7 +80,7 @@ const HotelDetailsPage = () => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  const currentUserId = sessionStorage.getItem("userId");
+  const currentUserId = Number(sessionStorage.getItem("userId"));
 
   const formatToAMPM = (timeString: string) => {
     const [hours, minutes] = timeString.split(":").map(Number);

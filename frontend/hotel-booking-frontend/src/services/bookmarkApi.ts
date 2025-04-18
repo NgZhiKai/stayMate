@@ -6,7 +6,7 @@ const API_BASE_URL = `${BASE_URL}/api/bookmarks`;
 /**
  * Get all bookmarked hotel IDs for a user.
  */
-export const getBookmarkedHotelIds = async (userId: string): Promise<number[] | { error: string }> => {
+export const getBookmarkedHotelIds = async (userId: number): Promise<number[] | { error: string }> => {
   try {
     const response = await axios.get(`${API_BASE_URL}/${userId}`);
     return response.data; // The backend returns a List<Long>, which we can handle as number[] in TypeScript
@@ -21,7 +21,7 @@ export const getBookmarkedHotelIds = async (userId: string): Promise<number[] | 
 /**
  * Add a bookmark (supports adding multiple hotelIds but we'll just send one).
  */
-export const addBookmark = async (userId: string, hotelId: number) => {
+export const addBookmark = async (userId: number, hotelId: number) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/add`, {
       userId: Number(userId),
@@ -39,7 +39,7 @@ export const addBookmark = async (userId: string, hotelId: number) => {
 /**
  * Remove a bookmark.
  */
-export const removeBookmark = async (userId: string, hotelId: number) => {
+export const removeBookmark = async (userId: number, hotelId: number) => {
   try {
     const response = await axios.delete(`${API_BASE_URL}/remove`, {
       params: { userId, hotelId },
