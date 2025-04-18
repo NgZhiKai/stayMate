@@ -180,10 +180,10 @@ jobs:
 
       - name: Load Database Properties
         run: |
-          if [ -f backend/src/main/resources/database-config.properties ]; then
-            export DB_URL=$(grep '^db.url=' backend/src/main/resources/database-config.properties | cut -d '=' -f2-)
-            export DB_USERNAME=$(grep '^db.username=' backend/src/main/resources/database-config.properties | cut -d '=' -f2)
-            export DB_PASSWORD=$(grep '^db.password=' backend/src/main/resources/database-config.properties | cut -d '=' -f2)
+          if [ -f backend/src/main/resources/application-prod.properties ]; then
+            export DB_URL=$(grep '^db.url=' backend/src/main/resources/application-prod.properties | cut -d '=' -f2-)
+            export DB_USERNAME=$(grep '^db.username=' backend/src/main/resources/application-prod.properties | cut -d '=' -f2)
+            export DB_PASSWORD=$(grep '^db.password=' backend/src/main/resources/application-prod.properties | cut -d '=' -f2)
             
             # Debug output
             echo "DB_URL=$DB_URL"
@@ -194,7 +194,7 @@ jobs:
             echo "DB_USERNAME=$DB_USERNAME" >> $GITHUB_ENV
             echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
           else
-            echo "Error: database-config.properties not found!"
+            echo "Error: application-prod.properties not found!"
             exit 1
           fi
 
