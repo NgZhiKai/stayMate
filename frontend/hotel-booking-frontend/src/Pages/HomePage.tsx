@@ -22,6 +22,8 @@ const HomePage: React.FC = () => {
 
   const navigate = useNavigate();
 
+  console.log(import.meta.env);
+
   useEffect(() => {
     refreshNotifications();
 
@@ -102,7 +104,7 @@ const HomePage: React.FC = () => {
         {/* Centered Content */}
         <div className="text-center max-w-3xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Welcome to StayMate hello
+            Welcome to StayMate
           </h1>
           {/* Search Bar centered */}
           <div className="w-full max-w-xl mx-auto">
