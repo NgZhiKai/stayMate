@@ -112,3 +112,15 @@ export const getHotelsNearby = async (latitude: number, longitude: number): Prom
     throw new Error('Unable to fetch nearby hotels');
   }
 };
+
+
+// Fetch multiple hotels by an array of hotel IDs
+export const fetchHotelsByIds = async (hotelIds: number[]): Promise<HotelData[]> => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/bulk`, { hotelIds });
+    return response.data.data; // Assuming the backend returns hotel list in `data`
+  } catch (error) {
+    console.error("Error fetching hotels by IDs:", error);
+    throw new Error("Failed to fetch hotels by IDs");
+  }
+};

@@ -31,21 +31,25 @@ jobs:
 
       - name: Load Database Properties
         run: |
-          if [ -f backend/src/main/resources/database-config.properties ]; then
-            export DB_URL=$(grep '^db.url=' backend/src/main/resources/database-config.properties | cut -d '=' -f2-)
-            export DB_USERNAME=$(grep '^db.username=' backend/src/main/resources/database-config.properties | cut -d '=' -f2)
-            export DB_PASSWORD=$(grep '^db.password=' backend/src/main/resources/database-config.properties | cut -d '=' -f2)
-            
-            # Debug output
+          PROP_FILE=backend/src/main/resources/application-prod.properties
+
+          if [ -f "$PROP_FILE" ]; then
+            # Extract DB config values from the properties file
+            export DB_URL=$(grep '^db.url=' "$PROP_FILE" | cut -d '=' -f2-)
+            export DB_USERNAME=$(grep '^db.username=' "$PROP_FILE" | cut -d '=' -f2-)
+            export DB_PASSWORD=$(grep '^db.password=' "$PROP_FILE" | cut -d '=' -f2-)
+
+            # Print values for debug (hide password)
             echo "DB_URL=$DB_URL"
             echo "DB_USERNAME=$DB_USERNAME"
             echo "DB_PASSWORD=[HIDDEN]"
 
-            echo "DB_URL=$DB_URL" >> $GITHUB_ENV
-            echo "DB_USERNAME=$DB_USERNAME" >> $GITHUB_ENV
-            echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
+            # Set GitHub Actions environment variables
+            echo "DB_URL=$DB_URL" >> "$GITHUB_ENV"
+            echo "DB_USERNAME=$DB_USERNAME" >> "$GITHUB_ENV"
+            echo "DB_PASSWORD=$DB_PASSWORD" >> "$GITHUB_ENV"
           else
-            echo "Error: database-config.properties not found!"
+            echo "Error: $PROP_FILE not found!"
             exit 1
           fi
 
@@ -157,7 +161,7 @@ jobs:
 
       - name: Load Application Host IP
         run: |
-          export APP_HOST_IP=$(grep '^app.host_ip=' backend/src/main/resources/application.properties | cut -d '=' -f2)
+          export APP_HOST_IP=$(grep '^app.host_ip=' backend/src/main/resources/application-prod.properties | cut -d '=' -f2)
 
           echo "APP_HOST_IP=$APP_HOST_IP"
           echo "APP_HOST_IP=$APP_HOST_IP" >> $GITHUB_ENV
@@ -178,23 +182,27 @@ jobs:
           nc -zv ${{ env.APP_HOST_IP }} 22
         continue-on-error: true # Continue the deployment even if the check fails
 
-      - name: Load Database Properties
+      - name: Load Database Properties from application-prod.properties
         run: |
-          if [ -f backend/src/main/resources/database-config.properties ]; then
-            export DB_URL=$(grep '^db.url=' backend/src/main/resources/database-config.properties | cut -d '=' -f2-)
-            export DB_USERNAME=$(grep '^db.username=' backend/src/main/resources/database-config.properties | cut -d '=' -f2)
-            export DB_PASSWORD=$(grep '^db.password=' backend/src/main/resources/database-config.properties | cut -d '=' -f2)
-            
-            # Debug output
+          PROP_FILE=backend/src/main/resources/application-prod.properties
+
+          if [ -f "$PROP_FILE" ]; then
+            # Extract DB config values from the properties file
+            export DB_URL=$(grep '^db.url=' "$PROP_FILE" | cut -d '=' -f2-)
+            export DB_USERNAME=$(grep '^db.username=' "$PROP_FILE" | cut -d '=' -f2-)
+            export DB_PASSWORD=$(grep '^db.password=' "$PROP_FILE" | cut -d '=' -f2-)
+
+            # Print values for debug (hide password)
             echo "DB_URL=$DB_URL"
             echo "DB_USERNAME=$DB_USERNAME"
             echo "DB_PASSWORD=[HIDDEN]"
 
-            echo "DB_URL=$DB_URL" >> $GITHUB_ENV
-            echo "DB_USERNAME=$DB_USERNAME" >> $GITHUB_ENV
-            echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
+            # Set GitHub Actions environment variables
+            echo "DB_URL=$DB_URL" >> "$GITHUB_ENV"
+            echo "DB_USERNAME=$DB_USERNAME" >> "$GITHUB_ENV"
+            echo "DB_PASSWORD=$DB_PASSWORD" >> "$GITHUB_ENV"
           else
-            echo "Error: database-config.properties not found!"
+            echo "Error: $PROP_FILE not found!"
             exit 1
           fi
 
