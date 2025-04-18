@@ -22,8 +22,6 @@ const HomePage: React.FC = () => {
 
   const navigate = useNavigate();
 
-  console.log(import.meta.env);
-
   useEffect(() => {
     refreshNotifications();
 
