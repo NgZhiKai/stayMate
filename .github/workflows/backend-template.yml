@@ -157,7 +157,7 @@ jobs:
 
       - name: Load Application Host IP
         run: |
-          export APP_HOST_IP=$(grep '^app.host_ip=' backend/src/main/resources/application.properties | cut -d '=' -f2)
+          export APP_HOST_IP=$(grep '^app.host_ip=' backend/src/main/resources/application-prod.properties | cut -d '=' -f2)
 
           echo "APP_HOST_IP=$APP_HOST_IP"
           echo "APP_HOST_IP=$APP_HOST_IP" >> $GITHUB_ENV
