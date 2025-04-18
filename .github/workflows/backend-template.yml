@@ -7,12 +7,14 @@ jobs:
   build_and_test:
     name: Build and Test
     runs-on: ubuntu-latest
+    outputs:
+      db_url: ${{ steps.set-db.outputs.db_url }}
+      db_username: ${{ steps.set-db.outputs.db_username }}
+      db_password: ${{ steps.set-db.outputs.db_password }}
 
     steps:
-      # Checkout the repository
       - uses: actions/checkout@v4
 
-      # Set up JDK for Java build and tests
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -20,7 +22,6 @@ jobs:
           distribution: "temurin"
           cache: maven
 
-      # Cache Maven dependencies
       - name: Cache Maven dependencies
         uses: actions/cache@v3
         with:
@@ -30,24 +31,22 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Load Database Properties
+        id: set-db
         run: |
           PROP_FILE=backend/src/main/resources/application-prod.properties
 
           if [ -f "$PROP_FILE" ]; then
-            # Extract DB config values from the properties file
             export DB_URL=$(grep '^db.url=' "$PROP_FILE" | cut -d '=' -f2-)
             export DB_USERNAME=$(grep '^db.username=' "$PROP_FILE" | cut -d '=' -f2-)
             export DB_PASSWORD=$(grep '^db.password=' "$PROP_FILE" | cut -d '=' -f2-)
 
-            # Print values for debug (hide password)
             echo "DB_URL=$DB_URL"
             echo "DB_USERNAME=$DB_USERNAME"
             echo "DB_PASSWORD=[HIDDEN]"
 
-            # Set GitHub Actions environment variables
-            echo "DB_URL=$DB_URL" >> "$GITHUB_ENV"
-            echo "DB_USERNAME=$DB_USERNAME" >> "$GITHUB_ENV"
-            echo "DB_PASSWORD=$DB_PASSWORD" >> "$GITHUB_ENV"
+            echo "db_url=$DB_URL" >> "$GITHUB_OUTPUT"
+            echo "db_username=$DB_USERNAME" >> "$GITHUB_OUTPUT"
+            echo "db_password=$DB_PASSWORD" >> "$GITHUB_OUTPUT"
           else
             echo "Error: $PROP_FILE not found!"
             exit 1
@@ -56,10 +55,10 @@ jobs:
       - name: Build and Test with Maven
         run: |
           cd backend
-          mvn -B package test --file pom.xml \
-          -Ddb.url="${{ env.DB_URL }}" \
-          -Ddb.username="${{ env.DB_USERNAME }}" \
-          -Ddb.password="${{ env.DB_PASSWORD }}"
+          mvn -B verify --file pom.xml \
+            -Ddb.url="${{ steps.set-db.outputs.db_url }}" \
+            -Ddb.username="${{ steps.set-db.outputs.db_username }}" \
+            -Ddb.password="${{ steps.set-db.outputs.db_password }}"
 
   deploy_to_ec2:
     name: Deploy to EC2
@@ -67,82 +66,57 @@ jobs:
     needs: [build_and_test]
 
     steps:
-      # Checkout the repository
       - uses: actions/checkout@v4
 
       - name: Load Application Host IP
         run: |
           export APP_HOST_IP=$(grep '^app.host_ip=' backend/src/main/resources/application-prod.properties | cut -d '=' -f2)
-
           echo "APP_HOST_IP=$APP_HOST_IP"
           echo "APP_HOST_IP=$APP_HOST_IP" >> $GITHUB_ENV
 
-      # Set up SSH for SCP
       - name: Set up SSH for SCP
         run: |
           mkdir -p ~/.ssh
           cp pemFiles/staymateApplication.pem ~/.ssh/staymateApplication.pem
           chmod 400 ~/.ssh/staymateApplication.pem
-          # Add EC2 host to known hosts to avoid SSH prompt
           ssh-keyscan -H ${{ env.APP_HOST_IP }} >> ~/.ssh/known_hosts
 
-      # Check if EC2 is reachable
       - name: Check if EC2 is reachable
         run: |
           echo "Checking if EC2 is reachable..."
           nc -zv ${{ env.APP_HOST_IP }} 22
-        continue-on-error: true # Continue the deployment even if the check fails
-
-      - name: Load Database Properties from application-prod.properties
-        run: |
-          PROP_FILE=backend/src/main/resources/application-prod.properties
-
-          if [ -f "$PROP_FILE" ]; then
-            # Extract DB config values from the properties file
-            export DB_URL=$(grep '^db.url=' "$PROP_FILE" | cut -d '=' -f2-)
-            export DB_USERNAME=$(grep '^db.username=' "$PROP_FILE" | cut -d '=' -f2-)
-            export DB_PASSWORD=$(grep '^db.password=' "$PROP_FILE" | cut -d '=' -f2-)
-
-            # Print values for debug (hide password)
-            echo "DB_URL=$DB_URL"
-            echo "DB_USERNAME=$DB_USERNAME"
-            echo "DB_PASSWORD=[HIDDEN]"
-
-            # Set GitHub Actions environment variables
-            echo "DB_URL=$DB_URL" >> "$GITHUB_ENV"
-            echo "DB_USERNAME=$DB_USERNAME" >> "$GITHUB_ENV"
-            echo "DB_PASSWORD=$DB_PASSWORD" >> "$GITHUB_ENV"
-          else
-            echo "Error: $PROP_FILE not found!"
-            exit 1
-          fi
+        continue-on-error: true
 
       - name: Build and Install with Maven
         run: |
           cd backend
           mvn clean install --file pom.xml \
-          -Ddb.url="${{ env.DB_URL }}" \
-          -Ddb.username="${{ env.DB_USERNAME }}" \
-          -Ddb.password="${{ env.DB_PASSWORD }}"
+            -Ddb.url="${{ needs.build_and_test.outputs.db_url }}" \
+            -Ddb.username="${{ needs.build_and_test.outputs.db_username }}" \
+            -Ddb.password="${{ needs.build_and_test.outputs.db_password }}"
 
-      # List files in target folder
       - name: List files in target folder
         run: |
           echo "Listing files in ./backend/target/"
           ls -al backend/target/
 
-      # Copy files to EC2 using SCP
+      - name: Upload JAR as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: staymate-backend
+          path: backend/target/*.jar
+
       - name: Copy files to EC2 using SCP
         run: |
-          scp -i ~/.ssh/staymateApplication.pem backend/target/staymate-0.0.1-SNAPSHOT.jar ec2-user@${{ env.APP_HOST_IP }}:/home/ec2-user
+          JAR_FILE=$(ls backend/target/*.jar | grep -v "original" | head -n 1)
+          scp -i ~/.ssh/staymateApplication.pem "$JAR_FILE" ec2-user@${{ env.APP_HOST_IP }}:/home/ec2-user
 
-      # Run the jar in the background
       - name: SSH into EC2 and run the Jar in the background
         run: |
           ssh -i ~/.ssh/staymateApplication.pem ec2-user@${{ env.APP_HOST_IP }} << 'EOF'
             cd /home/ec2-user
             echo "Stopping old application..."
-            PID=$(pgrep -f "staymate-0.0.1-SNAPSHOT.jar")
+            PID=$(pgrep -f "staymate-*.jar")
             if [ -n "$PID" ]; then
               echo "Killing process $PID"
               kill -9 $PID
@@ -150,6 +124,6 @@ jobs:
               echo "No existing process found."
             fi
             echo "Starting new application..."
-            nohup java -jar staymate-0.0.1-SNAPSHOT.jar > staymate.log 2>&1 &
+            nohup java -jar staymate-*.jar > staymate.log 2>&1 &
             disown
           EOF
