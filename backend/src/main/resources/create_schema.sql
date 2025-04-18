@@ -100,5 +100,8 @@ CREATE TABLE IF NOT EXISTS Notification (
 CREATE TABLE `bookmark` (
   `userid` bigint NOT NULL,
   `hotelid` bigint NOT NULL,
-  PRIMARY KEY (`userid`,`hotelid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='		';
+  PRIMARY KEY (`userid`, `hotelid`),
+  KEY `FK_bookmark_hotel` (`hotelid`),
+  CONSTRAINT `FK_bookmark_hotel` FOREIGN KEY (`hotelid`) REFERENCES `hotel` (`id`),
+  CONSTRAINT `FK_bookmark_user` FOREIGN KEY (`userid`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Bookmark table linking users to hotels';

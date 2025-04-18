@@ -14,11 +14,27 @@ public class BookmarkId implements Serializable {
         this.hotel = hotel;
     }
 
-    // equals and hashCode are required for composite keys
+    public Long getUser() {
+        return user;
+    }
+
+    public void setUser(Long user) {
+        this.user = user;
+    }
+
+    public Long getHotel() {
+        return hotel;
+    }
+
+    public void setHotel(Long hotel) {
+        this.hotel = hotel;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof BookmarkId that)) return false;
+        if (!(o instanceof BookmarkId)) return false;
+        BookmarkId that = (BookmarkId) o;
         return Objects.equals(user, that.user) && Objects.equals(hotel, that.hotel);
     }
 

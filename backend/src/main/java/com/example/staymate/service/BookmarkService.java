@@ -27,6 +27,7 @@ public class BookmarkService {
         this.hotelRepository = hotelRepository;
     }
 
+    // Add a bookmark for a user and a hotel
     public void addBookmark(Long userId, Long hotelId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(() -> new RuntimeException("Hotel not found"));
@@ -35,10 +36,12 @@ public class BookmarkService {
         bookmarkRepository.save(bookmark);
     }
 
+    // Get all hotel ids for a specific user
     public List<Long> getHotelIdsByUserId(Long userId) {
         return bookmarkRepository.findHotelIdsByUserId(userId);
     }
 
+    // Remove a bookmark based on userId and hotelId
     public void removeBookmark(Long userId, Long hotelId) {
         bookmarkRepository.deleteByUserIdAndHotelId(userId, hotelId);
     }
