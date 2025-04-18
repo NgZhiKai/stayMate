@@ -1,10 +1,7 @@
 package com.example.staymate.controller;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,22 +14,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.example.staymate.dto.hotel.HotelRequestDTO;
-import com.example.staymate.dto.room.RoomRequestDTO;
-import com.example.staymate.entity.enums.RoomType;
 import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.exception.ResourceNotFoundException;
 import com.example.staymate.service.HotelService;
 import com.example.staymate.service.RoomService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @ExtendWith(MockitoExtension.class)
 class HotelControllerTest {
@@ -48,52 +36,10 @@ class HotelControllerTest {
     @InjectMocks
     private HotelController hotelController;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
-
     @BeforeEach
     void setup() {
         mockMvc = MockMvcBuilders.standaloneSetup(hotelController).build();
     }
-
-    // Given: A valid hotel request with enum RoomType and an image file
-    // @Test
-    // void shouldCreateHotelSuccessfully() throws Exception {
-    //     // Given: A valid hotel request with enum RoomType
-    //     HotelRequestDTO requestDTO = new HotelRequestDTO();
-    //     requestDTO.setName("Sunset Hotel");
-    //     requestDTO.setAddress("123 Beachside Blvd, Miami, FL");
-    //     requestDTO.setLatitude(25.7617);
-    //     requestDTO.setLongitude(-80.1918);
-    //     requestDTO.setRooms(List.of(
-    //             new RoomRequestDTO(RoomType.SINGLE, 30.0, 2, 10),
-    //             new RoomRequestDTO(RoomType.DOUBLE, 50.0, 4, 10),
-    //             new RoomRequestDTO(RoomType.SUITE, 100.0, 8, 20)));
-
-    //     // Prepare Mock Hotel creation
-    //     Hotel mockHotel = new Hotel();
-    //     mockHotel.setId(1L);
-    //     mockHotel.setName("Sunset Hotel");
-
-    //     when(hotelService.saveHotel(any(Hotel.class))).thenReturn(mockHotel);
-
-    //     // Mock the image file - make sure you provide a valid mock image here
-    //     byte[] imageBytes = "dummyImageData".getBytes();
-    //     MockMultipartFile imageFile = new MockMultipartFile("image", "hotelImage.jpg", "image/jpeg", imageBytes);
-
-    //     // When: Sending a POST request with multipart data
-    //     MvcResult result = mockMvc.perform(MockMvcRequestBuilders.multipart("/hotels")
-    //             .file(imageFile)
-    //             .param("hotelDetails", objectMapper.writeValueAsString(requestDTO))
-    //             .contentType(MediaType.MULTIPART_FORM_DATA))
-    //             .andDo(print()) // This will print the request and response details to the console
-    //             .andExpect(status().isCreated())
-    //             .andExpect(jsonPath("$.message").value("Hotel created successfully"))
-    //             .andExpect(jsonPath("$.data.hotelId").value(1))
-    //             .andReturn();
-
-    //     // If the test fails, we will log the response body
-    //     System.out.println("Response: " + result.getResponse().getContentAsString());
-    // }
 
     @Test
     void testGetAllHotels_WhenHotelsFound() throws Exception {
@@ -161,33 +107,6 @@ class HotelControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Hotel not found with ID: 1"));
     }
-
-    // @Test
-    // void testUpdateHotel_WhenHotelFoundAndUpdated() throws Exception {
-    // // Given: A hotel with ID 1
-    // Long hotelId = 1L;
-    // String hotelName = "Mock Hotel";
-    // String hotelNameUpdated = "Updated Hotel";
-
-    // Hotel mockHotel = new Hotel();
-    // mockHotel.setId(hotelId);
-    // mockHotel.setName(hotelName);
-
-    // Hotel updatedHotel = new Hotel();
-    // updatedHotel.setId(hotelId);
-    // updatedHotel.setName(hotelNameUpdated);
-
-    // when(hotelService.getHotelById(hotelId)).thenReturn(mockHotel);
-    // when(hotelService.saveHotel(any(Hotel.class))).thenReturn(updatedHotel);
-
-    // // When & Then: Expect HTTP 200 OK with the update confirmation
-    // mockMvc.perform(put("/hotels/{id}", hotelId)
-    // .contentType(MediaType.APPLICATION_JSON)
-    // .content(objectMapper.writeValueAsString(updatedHotel)))
-    // .andExpect(status().isOk())
-    // .andExpect(jsonPath("$.message").value("Hotel updated successfully"))
-    // .andExpect(jsonPath("$.data.hotelId").value(hotelId));
-    // }
 
     @Test
     void testSearchHotelsByName_WhenSearchQueryEmpty() throws Exception {

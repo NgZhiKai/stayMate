@@ -1,12 +1,6 @@
 package com.example.staymate.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -26,12 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.example.staymate.dto.review.ReviewDTO;
 import com.example.staymate.entity.Review.Review;
-import com.example.staymate.entity.booking.Booking;
 import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.entity.user.User;
-import com.example.staymate.exception.ResourceNotFoundException;
 import com.example.staymate.service.HotelService;
 import com.example.staymate.service.ReviewService;
 import com.example.staymate.service.UserService;
@@ -92,134 +83,5 @@ class ReviewControllerTest {
                 .andExpect(jsonPath("$.message").value("Reviews retrieved successfully"));
     }
 
-    // @Test
-    // void testGetReviewById() throws Exception {
-    //     // Arrange
-    //     Review review = new Review();  // Mock a Review entity
-    //     review.setHotel(hotel);  // Assuming the Review has a Hotel object
-    //     review.setUser(user);  // Assuming the Review has a User object
-    //     review.setComment("Great stay!");
-    //     review.setCreatedAt(LocalDateTime.now());
-    //     review.setRating(5);
     
-    //     // Mocking reviewService to return the Review entity
-    //     lenient().when(reviewService.getReviewById(1L)).thenReturn(review);
-    
-    //     // Act & Assert
-    //     mockMvc.perform(get("/reviews/{id}", 1L))
-    //             .andExpect(status().isOk())  // Expect HTTP status 200 OK
-    //             .andExpect(jsonPath("$.message").value("Review retrieved successfully"))  // Check success message
-    //             .andExpect(jsonPath("$.data.rating").value(5))  // Check the rating
-    //             .andExpect(jsonPath("$.data.comment").value("Great stay!"));  // Check the comment
-    // }
-    
-
-//     @Test
-//     void testGetReviewById_NotFound() throws Exception {
-//     // Arrange
-//     doThrow(new ResourceNotFoundException("Review not found for this id: 999"))
-//     .when(reviewService).getReviewById(999L);
-
-//     // Act & Assert
-//     mockMvc.perform(get("/reviews/{id}", 999L))
-//     .andExpect(status().isNotFound())
-//     .andExpect(jsonPath("$.message").value("Review not found for this id: 999"));
-//     }
-
-//     // @Test
-//     // void testCreateReview() throws Exception {
-//     // // Arrange
-//     // ReviewDTO reviewDTO = new ReviewDTO(1L, 1L, "Great stay!", null, 5);
-//     // doReturn(hotel).when(hotelService).getHotelById(1L);
-//     // doReturn(user).when(userService).getUserById(1L);
-//     // doReturn(reviewDTO).when(reviewService).saveReview(any(ReviewDTO.class));
-
-//     // // Act & Assert
-//     // mockMvc.perform(post("/reviews")
-//     // .contentType("application/json")
-//     // .content("{\"hotel\": {\"id\": 1}, \"user\": {\"id\": 1}, \"rating\": 5,
-//     \"comment\": \"Great stay!\"}"))
-//     // .andExpect(status().isCreated())
-//     // .andExpect(jsonPath("$.data.id").value(1L))
-//     // .andExpect(jsonPath("$.data.rating").value(5))
-//     // .andExpect(jsonPath("$.data.comment").value("Great stay!"));
-//     // }
-
-//     // @Test
-//     // void testCreateReview_HotelNotFound() throws Exception {
-//     // // Arrange
-//     // doReturn(null).when(hotelService).getHotelById(1L);
-
-//     // // Act & Assert
-//     // mockMvc.perform(post("/reviews")
-//     // .contentType("application/json")
-//     // .content("{\"hotel\": {\"id\": 1}, \"user\": {\"id\": 1}, \"rating\": 5,
-//     \"comment\": \"Great stay!\"}"))
-//     // .andExpect(status().isNotFound())
-//     // .andExpect(jsonPath("$.message").value("Hotel not found for this id: 1"));
-//     // }
-
-//     // @Test
-//     // void testCreateReview_UserNotFound() throws Exception {
-//     // // Arrange
-//     // doReturn(hotel).when(hotelService).getHotelById(1L);
-//     // doReturn(null).when(userService).getUserById(1L);
-
-//     // // Act & Assert
-//     // mockMvc.perform(post("/reviews")
-//     // .contentType("application/json")
-//     // .content("{\"hotel\": {\"id\": 1}, \"user\": {\"id\": 1}, \"rating\": 5,
-//     \"comment\": \"Great stay!\"}"))
-//     // .andExpect(status().isNotFound())
-//     // .andExpect(jsonPath("$.message").value("User not found for this id: 1"));
-//     // }
-
-//     // @Test
-//     // void testUpdateReview() throws Exception {
-//     // // Arrange
-//     // ReviewDTO updatedReviewDTO = new ReviewDTO(1L, 1L, "Nice stay!", null, 4);
-//     // doReturn(updatedReviewDTO).when(reviewService).getReviewById(1L);
-//     // doReturn(hotel).when(hotelService).getHotelById(1L);
-//     /doReturn(user).when(userService).getUserById(1L);
-
-//     doReturn(updatedReviewDTO).when(reviewService).saveReview(any(ReviewDTO.class));
-
-//     // // Act & Assert
-//     // mockMvc.perform(put("/reviews/{id}", 1L)
-//     // .contentType("application/json")
-//     // .content("{\"hotel\": {\"id\": 1}, \"user\": {\"id\": 1}, \"rating\": 4,
-//     \"comment\": \"Nice stay!\"}"))
-//     // .andExpect(status().isOk())
-//     // .andExpect(jsonPath("$.data.id").value(1L))
-//     // .andExpect(jsonPath("$.data.rating").value(4))
-//     // .andExpect(jsonPath("$.data.comment").value("Nice stay!"));
-//     // }
-
-//     @Test
-//     void testDeleteReview() throws Exception {
-//     // Arrange
-//     doReturn(new ReviewDTO(1L, 1L, "Great stay!", null,
-//     5)).when(reviewService).getReviewById(1L);
-
-//     // Act & Assert
-//     mockMvc.perform(delete("/reviews/{id}", 1L))
-//     .andExpect(status().isOk())
-//     .andExpect(jsonPath("$.message").value("Review deleted successfully"))
-//     .andExpect(jsonPath("$.data").value("Review with id 1 was deleted"));
-
-//     verify(reviewService).deleteReview(1L);
-//     }
-
-//     @Test
-//     void testDeleteReview_NotFound() throws Exception {
-//     // Arrange
-//     doThrow(new ResourceNotFoundException("Review not found for this id: 1"))
-//     .when(reviewService).getReviewById(1L);
-
-//     // Act & Assert
-//     mockMvc.perform(delete("/reviews/1"))
-//     .andExpect(status().isNotFound())
-//     .andExpect(jsonPath("$.message").value("Review not found for this id: 1"));
-//     }
-// }
 }
