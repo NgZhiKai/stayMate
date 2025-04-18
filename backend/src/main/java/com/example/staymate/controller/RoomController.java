@@ -1,25 +1,20 @@
 package com.example.staymate.controller;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.staymate.dto.custom.CustomResponse;
-import com.example.staymate.entity.enums.RoomType;
-import com.example.staymate.entity.hotel.Hotel;
 import com.example.staymate.entity.room.Room;
 import com.example.staymate.service.RoomService;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -33,48 +28,33 @@ public class RoomController {
         this.roomService = roomService;
     }
 
-    @PostMapping("/{hotelId}/{roomId}")
-    @Operation(summary = "Create a new room", description = "Creates a room in a specified hotel with given details.")
-    public ResponseEntity<CustomResponse<Map<String, Object>>> createRoom(
-            @PathVariable @Parameter(description = "ID of the hotel where the room will be created") Long hotelId,
-            @PathVariable @Parameter(description = "ID of the room to be created") Long roomId,
-            @RequestParam @Parameter(description = "Type of the room") RoomType roomType,
-            @RequestParam @Parameter(description = "Price per night for the room") double pricePerNight,
-            @RequestParam @Parameter(description = "Maximum occupancy of the room") int maxOccupancy) {
-        try {
-            Hotel hotel = roomService.getHotelById(hotelId);
-            if (hotel == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new CustomResponse<>("Hotel not found with ID: " + hotelId, null));
-            }
-
-            Room newRoom = roomService.createRoom(hotel, roomId, roomType, pricePerNight, maxOccupancy);
-            if (newRoom == null) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new CustomResponse<>("Failed to create room. Please try again later.", null));
-            }
-
-            Map<String, Object> roomData = Map.of(
-                    "hotelId", newRoom.getId().getHotelId(),
-                    "roomId", newRoom.getId().getRoomId(),
-                    "pricePerNight", newRoom.getPricePerNight(),
-                    "maxOccupancy", newRoom.getMaxOccupancy());
-
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new CustomResponse<>("Room created successfully", roomData));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new CustomResponse<>("An error occurred: " + e.getMessage(), null));
-        }
-    }
-
     @GetMapping("/{hotelId}")
-    public ResponseEntity<List<Room>> getAvailableRooms(@PathVariable Long hotelId) {
-        List<Room> availableRooms = roomService.getAvailableRoomsForHotel(hotelId);
+    public ResponseEntity<List<Room>> getHotelRooms(@PathVariable Long hotelId) {
+        List<Room> availableRooms = roomService.getHotelRooms(hotelId);
         if (availableRooms.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
         return ResponseEntity.ok(availableRooms);
+    }
+
+    @GetMapping("/available-rooms")
+    public ResponseEntity<List<Room>> getAvailableRooms(
+            @RequestParam Long hotelId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate) {
+
+        // Validate check-in and check-out date order
+        if (checkOutDate.isBefore(checkInDate)) {
+            return ResponseEntity.badRequest().build(); // No CustomResponse
+        }
+
+        List<Room> availableRooms = roomService.getAvailableRooms(hotelId, checkInDate, checkOutDate);
+
+        if (availableRooms.isEmpty()) {
+            return ResponseEntity.noContent().build(); // Standard 204 response
+        }
+
+        return ResponseEntity.ok(availableRooms); // Send raw list
     }
 
 }

@@ -61,7 +61,7 @@ const CreateUpdateHotelPage: React.FC = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-2xl p-8 bg-white shadow-lg rounded-lg">
+      <div className="w-full max-w-4xl p-8 bg-white shadow-lg rounded-lg">
         <HotelForm onSave={handleSaveHotel} hotelData={hotelData} hotelId={Number(id)} />
       </div>
       <MessageModal 

@@ -39,10 +39,10 @@ class RoomControllerTest {
     }
 
     @Test
-    void testGetAvailableRooms_whenNoRoomsFound_returns404() throws Exception {
+    void testGetHotelRooms_whenNoRoomsFound_returns404() throws Exception {
         Long hotelId = 1L;
 
-        lenient().when(roomService.getAvailableRoomsForHotel(hotelId))
+        lenient().when(roomService.getHotelRooms(hotelId))
                 .thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/rooms/{hotelId}", hotelId))

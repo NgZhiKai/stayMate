@@ -90,7 +90,12 @@ public class RoomService {
                 .orElseThrow(() -> new NoSuchElementException("Hotel with ID " + hotelId + " not found."));
     }
 
-    public List<Room> getAvailableRoomsForHotel(Long hotelId) {
-        return roomRepository.findByHotelIdAndStatus(hotelId);
+    public List<Room> getHotelRooms(Long hotelId) {
+        return roomRepository.findByHotelId(hotelId);
     }
+
+    public List<Room> getAvailableRooms(Long hotelId, LocalDate checkIn, LocalDate checkOut) {
+        return roomRepository.findAvailableRooms(hotelId, checkIn, checkOut);
+    }
+    
 }

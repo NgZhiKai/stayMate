@@ -37,11 +37,6 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
-    if (registerData.role === "ADMIN" && !registerData.email.endsWith("@ncs.com.sg")) {
-      setError("Only users with an ncs.com.sg email domain can register as Admin.");
-      return;
-    }
-
     try {
       const data = await registerUser(registerData);
 

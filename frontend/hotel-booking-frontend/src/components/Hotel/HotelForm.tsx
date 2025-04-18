@@ -204,14 +204,14 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
   };
 
   return (
-    <div className="bg-white shadow-lg rounded-2xl p-10 max-w-5xl mx-auto space-y-8">
-      <h2 className="text-3xl font-bold text-gray-800 text-center">
+    <div className="bg-white shadow-2xl rounded-3xl p-10 max-w-5xl mx-auto space-y-10">
+      <h2 className="text-4xl font-bold text-gray-800 text-center">
         {hotelId ? 'Update Hotel Details' : 'Add New Hotel'}
       </h2>
-
+  
       {Object.keys(errors).length > 0 && (
-        <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-          <ul className="list-disc list-inside space-y-1">
+        <div className="p-4 bg-red-50 border border-red-400 text-red-700 rounded-xl shadow-sm">
+          <ul className="list-disc list-inside space-y-1 text-sm">
             {Object.values(errors).map((msg, idx) => (
               <li key={idx}>{msg}</li>
             ))}
@@ -219,7 +219,7 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
         </div>
       )}
   
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-8">
         {/* Hotel Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Hotel Name</label>
@@ -227,86 +227,71 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
             type="text"
             value={name}
             onChange={handleNameInput}
-            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${errors.name ? 'border-red-500 ring-red-300' : 'focus:ring-blue-500'}`}
           />
-          {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
+          {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
         </div>
   
-        {/* Hotel Address */}
+        {/* Address */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Hotel Address</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${errors.address ? 'border-red-500 ring-red-300' : 'focus:ring-blue-500'}`}
           />
-          {errors.address && <p className="text-sm text-red-600 mt-1">{errors.address}</p>}
+          {errors.address && <p className="text-red-600 text-sm mt-1">{errors.address}</p>}
         </div>
   
-        {/* Latitude & Longitude */}
-        <div className="flex gap-4">
-          <div className="w-1/2">
+        {/* Coordinates */}
+        <div className="grid grid-cols-2 gap-6">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
-            <input
-              disabled
-              type="number"
-              value={latitude}
-              className="w-full px-4 py-2 border rounded-xl bg-gray-100 cursor-not-allowed"
-            />
+            <input type="text" value={latitude} disabled className="w-full px-4 py-3 border rounded-xl bg-gray-100 text-gray-500" />
           </div>
-          <div className="w-1/2">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
-            <input
-              disabled
-              type="number"
-              value={longitude}
-              className="w-full px-4 py-2 border rounded-xl bg-gray-100 cursor-not-allowed"
-            />
+            <input type="text" value={longitude} disabled className="w-full px-4 py-3 border rounded-xl bg-gray-100 text-gray-500" />
           </div>
         </div>
   
         {/* Image Upload */}
         <div>
-          <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">Hotel Image</label>
-          <input
-            type="file"
-            id="image"
-            onChange={handleImageChange}
-            className="w-full px-4 py-3 border rounded-xl"
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Hotel Image</label>
+          <input type="file" onChange={handleImageChange} className="w-full px-4 py-3 border rounded-xl" />
           {imagePreview && (
             <div className="mt-4">
               <img
                 src={imagePreview.startsWith('data:') ? imagePreview : `data:image/jpeg;base64,${imagePreview}`}
                 alt="Preview"
-                className="w-32 h-32 object-cover rounded-lg border"
+                className="w-32 h-32 object-cover rounded-lg border shadow-sm"
               />
             </div>
           )}
         </div>
   
-        {/* Check-in/out Times */}
-        <div className="flex gap-4">
-          <div className="w-1/2">
+        {/* Check-In / Check-Out Times */}
+        <div className="grid grid-cols-2 gap-6">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Check-In Time</label>
             <input
               type="time"
               value={check_in}
               onChange={(e) => setCheckIn(e.target.value)}
-              className="w-full px-4 py-2 border rounded-xl"
+              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${errors.check_in ? 'border-red-500 ring-red-300' : 'focus:ring-blue-500'}`}
             />
-            {errors.check_in && <p className="text-sm text-red-600 mt-1">{errors.check_in}</p>}
+            {errors.check_in && <p className="text-red-600 text-sm mt-1">{errors.check_in}</p>}
           </div>
-          <div className="w-1/2">
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Check-Out Time</label>
             <input
               type="time"
               value={check_out}
               onChange={(e) => setCheckOut(e.target.value)}
-              className="w-full px-4 py-2 border rounded-xl"
+              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 ${errors.check_out ? 'border-red-500 ring-red-300' : 'focus:ring-blue-500'}`}
             />
-            {errors.check_out && <p className="text-sm text-red-600 mt-1">{errors.check_out}</p>}
+            {errors.check_out && <p className="text-red-600 text-sm mt-1">{errors.check_out}</p>}
           </div>
         </div>
   
@@ -321,35 +306,30 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
           />
         </div>
   
-        {/* Contact Info */}
+        {/* Contact */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Contact Info</label>
           <PhoneInput
             country={'sg'}
             inputClass="!w-full p-2 border rounded-xl bg-gray-50"
-            containerClass="w-full"
+            containerClass="relative flex justify-end"
             value={contact}
             onChange={(value: string) => setContact(value)}
           />
         </div>
   
-        {/* Rooms */}
+        {/* Room Fields */}
         {!hotelId && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Rooms</h3>
-            <div className="grid grid-cols-5 gap-4 font-semibold text-sm">
-              <div>Room Type</div>
-              <div>Price/Night</div>
-              <div>Max Occupancy</div>
-              <div>Quantity</div>
-              <div>Action</div>
-            </div>
-  
+          <div className="space-y-7">
+            <h3 className="text-lg font-semibold text-gray-800">Room Types</h3>
             {rooms.map((room, index) => {
               const key = `room_${index}`;
               return (
-                <div key={index} className="grid grid-cols-5 gap-4 items-start">
-                  <div>
+                <div key={index} className="grid grid-cols-6 gap-4 items-end">
+                  
+                  {/* Room Type */}
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
                     <select
                       value={room.roomType}
                       onChange={(e) => {
@@ -357,7 +337,7 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
                         updatedRooms[index].roomType = e.target.value;
                         setRooms(updatedRooms);
                       }}
-                      className="p-2 border rounded-xl w-full"
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none ${errors[`${key}_roomType`] || errors[`${key}_duplicate`] ? 'border-red-500' : 'focus:ring-2 focus:ring-blue-500'}`}
                     >
                       <option value="">Select Room Type</option>
                       {roomTypes.map((type) => (
@@ -366,49 +346,63 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
                         </option>
                       ))}
                     </select>
-                    {errors[`${key}_roomType`] && <p className="text-red-600 text-sm">{errors[`${key}_roomType`]}</p>}
-                    {errors[`${key}_duplicate`] && <p className="text-red-600 text-sm">{errors[`${key}_duplicate`]}</p>}
+                    {(errors[`${key}_roomType`] || errors[`${key}_duplicate`]) && (
+                      <p className="text-red-600 text-sm mt-1">
+                        {errors[`${key}_roomType`] || errors[`${key}_duplicate`]}
+                      </p>
+                    )}
                   </div>
-                  <div>
+
+                  {/* Price Per Night */}
+                  <div className="col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Price/Night</label>
                     <input
                       type="text"
-                      value={isNaN(room.pricePerNight) ? '' : room.pricePerNight}
+                      value={room.pricePerNight || ''}
                       onChange={(e) => {
                         const updatedRooms = [...rooms];
                         updatedRooms[index].pricePerNight = Number(e.target.value);
                         setRooms(updatedRooms);
                       }}
-                      className="p-2 border rounded-xl w-full"
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none ${errors[`${key}_price`] ? 'border-red-500' : 'focus:ring-2 focus:ring-blue-500'}`}
                     />
-                    {errors[`${key}_price`] && <p className="text-red-600 text-sm">{errors[`${key}_price`]}</p>}
+                    {errors[`${key}_price`] && <p className="text-red-600 text-sm mt-1">{errors[`${key}_price`]}</p>}
                   </div>
-                  <div>
+
+                  {/* Max Occupancy */}
+                  <div className="col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Max Occupancy</label>
                     <input
                       type="text"
-                      value={isNaN(room.maxOccupancy) ? '' : room.maxOccupancy}
+                      value={room.maxOccupancy || ''}
                       onChange={(e) => {
                         const updatedRooms = [...rooms];
                         updatedRooms[index].maxOccupancy = Number(e.target.value);
                         setRooms(updatedRooms);
                       }}
-                      className="p-2 border rounded-xl w-full"
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none ${errors[`${key}_occupancy`] ? 'border-red-500' : 'focus:ring-2 focus:ring-blue-500'}`}
                     />
-                    {errors[`${key}_occupancy`] && <p className="text-red-600 text-sm">{errors[`${key}_occupancy`]}</p>}
+                    {errors[`${key}_occupancy`] && <p className="text-red-600 text-sm mt-1">{errors[`${key}_occupancy`]}</p>}
                   </div>
-                  <div>
+
+                  {/* Quantity */}
+                  <div className="col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
                     <input
                       type="text"
-                      value={isNaN(room.quantity) ? '' : room.quantity}
+                      value={room.quantity || ''}
                       onChange={(e) => {
                         const updatedRooms = [...rooms];
                         updatedRooms[index].quantity = Number(e.target.value);
                         setRooms(updatedRooms);
                       }}
-                      className="p-2 border rounded-xl w-full"
+                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none ${errors[`${key}_quantity`] ? 'border-red-500' : 'focus:ring-2 focus:ring-blue-500'}`}
                     />
-                    {errors[`${key}_quantity`] && <p className="text-red-600 text-sm">{errors[`${key}_quantity`]}</p>}
+                    {errors[`${key}_quantity`] && <p className="text-red-600 text-sm mt-1">{errors[`${key}_quantity`]}</p>}
                   </div>
-                  <div className="flex items-center justify-center">
+
+                  {/* Remove Button */}
+                  <div className="flex col-span-1 justify-center items-end">
                     <button
                       type="button"
                       disabled={rooms.length === 1}
@@ -418,24 +412,22 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
                           setRooms(updated);
                         }
                       }}
-                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 disabled:opacity-50"
-                    >
+                      className="mt-auto bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 disabled:opacity-50 text-sm hover:scale-105 transition-all"
+                      >
                       Remove
                     </button>
                   </div>
                 </div>
               );
             })}
-  
+
             {errors.rooms && <p className="text-red-600 text-sm">{errors.rooms}</p>}
-  
+
             <button
               type="button"
-              onClick={() =>
-                setRooms([...rooms, { roomType: '', pricePerNight: 0, maxOccupancy: 1, quantity: 0 }])
-              }
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            >
+              onClick={() => setRooms([...rooms, { roomType: '', pricePerNight: 0, maxOccupancy: 1, quantity: 0 }])}
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 hover:scale-105 transition-all"
+              >
               Add Room Type
             </button>
           </div>
@@ -445,14 +437,15 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
         <div className="flex justify-end">
           <button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition-all"
-          >
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition-all shadow-md hover:scale-105"
+            >
             {hotelId ? 'Update Hotel' : 'Save Hotel'}
           </button>
         </div>
       </form>
     </div>
-  );  
+  );
+  
   
 };
 
