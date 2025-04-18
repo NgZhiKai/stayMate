@@ -30,7 +30,6 @@ const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isO
     >
       <nav className="flex flex-col space-y-3">
         {/* Customer Side */}
-        {(role === null || role === "customer") && (
           <>
             <Link
               to="/"
@@ -44,14 +43,7 @@ const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isO
             >
               <MapPin size={18} /> Near Me
             </Link>
-            <Link
-              to="/bookmarked-hotels"
-              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
-            >
-              <Hotel size={18} /> Bookmarked Hotels
-            </Link>
           </>
-        )}
 
         {/* Unauthenticated User */}
         {!isLoggedIn && (
@@ -80,6 +72,12 @@ const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isO
         {/* Authenticated Customer */}
         {isLoggedIn && role === "customer" && (
           <>
+            <Link
+              to="/bookmarked-hotels"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <Hotel size={18} /> Bookmarked Hotels
+            </Link>
             <Link
               to="/notifications"
               className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
