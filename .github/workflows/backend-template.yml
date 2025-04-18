@@ -162,6 +162,8 @@ jobs:
     name: Deploy to EC2
     runs-on: ubuntu-latest
     needs: [build_and_test] # Ensures deployment runs after DAST Scan
+    env:
+      SPRING_PROFILE: ${{ inputs.spring_profile }}
 
     steps:
       # Checkout the repository
