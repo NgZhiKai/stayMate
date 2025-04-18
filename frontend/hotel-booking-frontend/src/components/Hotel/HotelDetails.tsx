@@ -13,6 +13,7 @@ type HotelDetailsProps = {
   renderStars: (rating: number) => React.ReactNode;
   isBookmarked: boolean;
   setIsBookmarked: (value: boolean) => void;
+  handleBookmarkToggle: () => void;
   handleDeleteHotel: (hotelId: number) => void;
   setIsReviewModalOpen: (open: boolean) => void;
 };
@@ -25,40 +26,30 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
   formatToAMPM,
   renderStars,
   isBookmarked,
-  setIsBookmarked,
+  handleBookmarkToggle,
   handleDeleteHotel,
   setIsReviewModalOpen,
 }) => {
-  const navigate = useNavigate();  // Initialize the navigate function
+  const navigate = useNavigate();
   const defaultImage = 'https://archive.org/download/placeholder-image/placeholder-image.jpg';
-
-  // Check if the user is an admin
   const userRole = sessionStorage.getItem('role');
   const isAdmin = userRole === 'admin';
 
   const formatPhoneNumber = (rawPhone: string) => {
     if (!rawPhone || rawPhone.length < 5) return rawPhone;
-  
-    // Assuming the first 2 digits are country code (e.g., 65 for Singapore)
     const countryCode = rawPhone.slice(0, 2);
     const localNumber = rawPhone.slice(2);
-  
     return `(+${countryCode}) ${localNumber}`;
-  };  
-
-  const handleBookmarkToggle = () => {
-    setIsBookmarked(!isBookmarked);
   };
 
   const handleBookClick = () => {
-    navigate(`/create-bookings/${hotel?.id}`);  // Navigate to create-bookings page when clicked
+    navigate(`/create-bookings/${hotel?.id}`);
   };
 
   const handleUpdateHotel = () => {
-    navigate(`/create-hotel/${hotel?.id}`); // Navigate to update-hotel page when clicked
+    navigate(`/create-hotel/${hotel?.id}`);
   };
 
-  // Helper component for displaying hotel contact info
   const ContactInfo = ({ hotel }: { hotel: HotelData | null }) => (
     <div>
       <h3 className="text-xl font-semibold mb-2">Contact Info</h3>
@@ -67,7 +58,6 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
     </div>
   );
 
-  // Helper component for displaying pricing and timing
   const PricingTiming = ({ hotel }: { hotel: HotelData | null }) => (
     <div>
       <h3 className="text-xl font-semibold mb-2">Pricing & Timing</h3>
@@ -77,7 +67,6 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
     </div>
   );
 
-  // Helper component for displaying reviews
   const Reviews = ({ reviews, userInfo }: { reviews: Review[], userInfo: { [key: string]: { firstName: string; lastName: string } } }) => (
     <div>
       <h3 className="text-xl font-semibold mb-2">Reviews</h3>
@@ -110,22 +99,21 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
               Book
             </button>
           )}
-          {/* Show the Update Hotel button if the user is an admin */}
           {isAdmin && (
             <>
-            <button
-              onClick={handleUpdateHotel}
-              className="bg-blue-600 text-white text-sm px-3 py-1.5 rounded hover:bg-blue-700 transition hover:scale-105"
-            >
-              Update Hotel
-            </button>
-            <button
-              onClick={() => handleDeleteHotel(hotel?.id!)}
-              className="bg-red-600 text-white text-sm px-3 py-1.5 rounded hover:bg-red-700 transition hover:scale-105"
-            >
-              Delete Hotel
-            </button>
-          </>
+              <button
+                onClick={handleUpdateHotel}
+                className="bg-blue-600 text-white text-sm px-3 py-1.5 rounded hover:bg-blue-700 transition hover:scale-105"
+              >
+                Update Hotel
+              </button>
+              <button
+                onClick={() => handleDeleteHotel(hotel?.id!)}
+                className="bg-red-600 text-white text-sm px-3 py-1.5 rounded hover:bg-red-700 transition hover:scale-105"
+              >
+                Delete Hotel
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -136,7 +124,6 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
         <PricingTiming hotel={hotel} />
       </div>
 
-      {/* Review Button */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold">Reviews</h2>
         <button

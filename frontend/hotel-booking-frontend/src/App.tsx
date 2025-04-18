@@ -22,6 +22,8 @@ import PaymentPage from "./Pages/PaymentPage";
 import RegisterPage from "./Pages/RegisterPage";
 import UserAccountSettings from "./Pages/UserAccountSettings";
 import VerifyEmailPage from "./Pages/VerficationPage";
+import BookmarkedHotelsPage from "./Pages/BookmarkedHotelsPage";
+
 
 const App: React.FC = () => {
   const [isOpen, setIsOpen] = useState(() => {
@@ -61,6 +63,7 @@ const App: React.FC = () => {
                   <Route path="/notifications" element={<NotifcationsPage />} />
                   <Route path="/my-payments" element={<MyPaymentsPage />} />
                   <Route path="/admin/payments" element={<AdminPaymentsPage />} />
+                  <Route path="/bookmarked-hotels" element={<BookmarkedHotelsPage />} />
                 </Routes>
               </div>
             </div>

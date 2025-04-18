@@ -2,13 +2,17 @@ import { useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
+
 import ConfirmationModal from "../components/ConfirmationModal";
 import HotelDetails from "../components/Hotel/HotelDetails";
-import MessageModal from "../components/MessageModal"; // <-- NEW IMPORT
-import ReviewModal from "../components/ReviewModal"; // <-- NEW IMPORT
+import MessageModal from "../components/MessageModal";
+import ReviewModal from "../components/ReviewModal";
+
 import { deleteHotel, fetchHotelById } from "../services/hotelApi";
 import { getReviewsForHotel } from "../services/ratingApi";
 import { getUserInfo } from "../services/userApi";
+import { addBookmark, getBookmarkedHotelIds, removeBookmark } from "../services/bookmarkApi";
+
 import { HotelData } from "../types/Hotels";
 import { Review } from "../types/Review";
 
@@ -70,13 +74,13 @@ const HotelDetailsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hotelToDelete, setHotelToDelete] = useState<number | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [messageModalOpen, setMessageModalOpen] = useState(false); 
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [messageModalType, setMessageModalType] = useState<"success" | "error">("success");
   const [messageModalContent, setMessageModalContent] = useState("");
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  const currentUserId = Number(sessionStorage.getItem("userId"));
+  const currentUserId = sessionStorage.getItem("userId");
 
   const formatToAMPM = (timeString: string) => {
     const [hours, minutes] = timeString.split(":").map(Number);
@@ -120,6 +124,18 @@ const HotelDetailsPage = () => {
     }
   };
 
+  const handleBookmarkToggle = async () => {
+    if (!currentUserId || !hotel) return;
+
+    if (isBookmarked) {
+      await removeBookmark(currentUserId, hotel.id);
+      setIsBookmarked(false);
+    } else {
+      await addBookmark(currentUserId, hotel.id);
+      setIsBookmarked(true);
+    }
+  };
+
   const handleCloseReviewModal = () => {
     setIsReviewModalOpen(false);
   };
@@ -129,6 +145,19 @@ const HotelDetailsPage = () => {
     setReviews((prev) => [...prev, review]);
     handleCloseReviewModal();
   };
+
+  useEffect(() => {
+    const fetchBookmarks = async () => {
+      if (currentUserId && hotel) {
+        const result = await getBookmarkedHotelIds(currentUserId);
+        if (Array.isArray(result)) {
+          setIsBookmarked(result.includes(hotel.id));
+        }
+      }
+    };
+
+    fetchBookmarks();
+  }, [hotel]);
 
   if (loading) {
     return (
@@ -150,9 +179,10 @@ const HotelDetailsPage = () => {
         userInfo={userInfo}
         getPricingRange={getPricingRange}
         formatToAMPM={formatToAMPM}
-        isBookmarked={isBookmarked}
         renderStars={renderStars}
+        isBookmarked={isBookmarked}
         setIsBookmarked={setIsBookmarked}
+        handleBookmarkToggle={handleBookmarkToggle}
         handleDeleteHotel={handleDeleteHotel}
         setIsReviewModalOpen={setIsReviewModalOpen}
       />
@@ -168,12 +198,11 @@ const HotelDetailsPage = () => {
         message={messageModalContent}
         type={messageModalType}
       />
-      {/* Review Modal */}
       <ReviewModal
         isOpen={isReviewModalOpen}
         onClose={handleCloseReviewModal}
         hotelId={hotel.id}
-        userId={currentUserId!}
+        userId={Number(currentUserId)}
         onReviewSubmitted={handleReviewSubmitted}
       />
     </div>
