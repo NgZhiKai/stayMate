@@ -1,10 +1,8 @@
-// ... existing imports
 import React, { useEffect, useState } from 'react';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { OPEN_CAGE_API_KEY } from '../../constants/constants';
 import { RoomRequestDTO } from '../../types/Room';
-import MessageModal from '../../components/MessageModal';
 
 interface HotelFormProps {
   onSave: (formData: FormData) => Promise<void>;
@@ -26,6 +24,7 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
   const [description, setDescription] = useState<string>('');
   const [contact, setContact] = useState<string>('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [error, setError] = useState<string>('');
 
   const fetchCoordinates = async (address: string) => {
     const encodedAddress = encodeURIComponent(address);
@@ -77,6 +76,16 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
 
   useEffect(() => {
     if (hotelId && hotelData) {
+      setId(hotelData.id);
+      setName(hotelData.name);
+      setAddress(hotelData.address);
+      setLatitude(hotelData.latitude);
+      setLongitude(hotelData.longitude);
+      setImagePreview(hotelData.image);
+      setDescription(hotelData.description);
+      setContact(hotelData.contact);
+      setCheckIn(hotelData.checkIn);
+      setCheckOut(hotelData.checkOut);
       setRooms(hotelData.rooms || []);
     } else if (!hotelId) {
       setRooms([{ roomType: '', pricePerNight: 0, maxOccupancy: 1, quantity: 0 }]);
@@ -90,6 +99,8 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
       setName(value);
     }
   };
+
+  const roomTypes = ['SINGLE', 'DOUBLE', 'SUITE', 'DELUXE'];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +125,7 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
       newErrors.check_out = 'Check-out time is required.';
     }
 
-    const validRooms = rooms.filter((room) => room.roomType.trim() !== '');
+    const validRooms = rooms.filter((room) => typeof room.roomType === 'string' && room.roomType.trim() !== '');
     const roomTypeSet = new Set<string>();
 
     validRooms.forEach((room, index) => {
@@ -197,173 +208,207 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
   };
 
   return (
-    <div className="bg-white shadow-md rounded-2xl p-8 max-w-5xl mx-auto">
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">
-        {hotelId ? 'Edit Hotel' : 'Add New Hotel'}
+    <div className="bg-white shadow-lg rounded-2xl p-10 max-w-5xl mx-auto space-y-8">
+      <h2 className="text-3xl font-bold text-gray-800 text-center">
+        {hotelId ? 'Update Hotel Details' : 'Add New Hotel'}
       </h2>
 
       {Object.keys(errors).length > 0 && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-          <ul className="list-disc list-inside">
+        <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <ul className="list-disc list-inside space-y-1">
             {Object.values(errors).map((msg, idx) => (
               <li key={idx}>{msg}</li>
             ))}
           </ul>
         </div>
       )}
-
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Hotel Name</label>
+  
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Hotel Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Hotel Name</label>
           <input
             type="text"
             value={name}
             onChange={handleNameInput}
-            className="mt-1 p-2 border rounded-md w-full"
+            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
-          {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
+          {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
         </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Hotel Address</label>
+  
+        {/* Hotel Address */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Hotel Address</label>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="mt-1 p-2 border rounded-md w-full"
+            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
-          {errors.address && <p className="text-red-600 text-sm mt-1">{errors.address}</p>}
+          {errors.address && <p className="text-sm text-red-600 mt-1">{errors.address}</p>}
         </div>
-
-        <div className="mb-4 flex space-x-4">
+  
+        {/* Latitude & Longitude */}
+        <div className="flex gap-4">
           <div className="w-1/2">
-            <label className="block text-sm font-medium text-gray-700">Latitude</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
             <input
               disabled
               type="number"
               value={latitude}
-              className="mt-1 p-2 border rounded-md w-full"
+              className="w-full px-4 py-2 border rounded-xl bg-gray-100 cursor-not-allowed"
             />
           </div>
           <div className="w-1/2">
-            <label className="block text-sm font-medium text-gray-700">Longitude</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
             <input
               disabled
               type="number"
               value={longitude}
-              className="mt-1 p-2 border rounded-md w-full"
+              className="w-full px-4 py-2 border rounded-xl bg-gray-100 cursor-not-allowed"
             />
           </div>
         </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Check-In Time</label>
+  
+        {/* Image Upload */}
+        <div>
+          <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">Hotel Image</label>
           <input
-            type="time"
-            value={check_in}
-            onChange={(e) => setCheckIn(e.target.value)}
-            className="mt-1 p-2 border rounded-md w-full"
+            type="file"
+            id="image"
+            onChange={handleImageChange}
+            className="w-full px-4 py-3 border rounded-xl"
           />
-          {errors.check_in && <p className="text-red-600 text-sm mt-1">{errors.check_in}</p>}
+          {imagePreview && (
+            <div className="mt-4">
+              <img
+                src={imagePreview.startsWith('data:') ? imagePreview : `data:image/jpeg;base64,${imagePreview}`}
+                alt="Preview"
+                className="w-32 h-32 object-cover rounded-lg border"
+              />
+            </div>
+          )}
         </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Check-Out Time</label>
-          <input
-            type="time"
-            value={check_out}
-            onChange={(e) => setCheckOut(e.target.value)}
-            className="mt-1 p-2 border rounded-md w-full"
-          />
-          {errors.check_out && <p className="text-red-600 text-sm mt-1">{errors.check_out}</p>}
+  
+        {/* Check-in/out Times */}
+        <div className="flex gap-4">
+          <div className="w-1/2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Check-In Time</label>
+            <input
+              type="time"
+              value={check_in}
+              onChange={(e) => setCheckIn(e.target.value)}
+              className="w-full px-4 py-2 border rounded-xl"
+            />
+            {errors.check_in && <p className="text-sm text-red-600 mt-1">{errors.check_in}</p>}
+          </div>
+          <div className="w-1/2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Check-Out Time</label>
+            <input
+              type="time"
+              value={check_out}
+              onChange={(e) => setCheckOut(e.target.value)}
+              className="w-full px-4 py-2 border rounded-xl"
+            />
+            {errors.check_out && <p className="text-sm text-red-600 mt-1">{errors.check_out}</p>}
+          </div>
         </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Hotel Description</label>
+  
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Hotel Description</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
-            className="mt-1 p-3 border border-gray-300 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
         </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Contact Info</label>
+  
+        {/* Contact Info */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Contact Info</label>
           <PhoneInput
             country={'sg'}
-            inputClass="!w-full p-2 border rounded-md bg-gray-50"
+            inputClass="!w-full p-2 border rounded-xl bg-gray-50"
             containerClass="w-full"
             value={contact}
             onChange={(value: string) => setContact(value)}
           />
         </div>
-
+  
+        {/* Rooms */}
         {!hotelId && (
-          <div className="mb-4">
-            <h3 className="text-lg font-medium mb-2">Rooms</h3>
-            <div className="grid grid-cols-5 gap-4 mb-2 font-semibold text-sm">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Rooms</h3>
+            <div className="grid grid-cols-5 gap-4 font-semibold text-sm">
               <div>Room Type</div>
               <div>Price/Night</div>
               <div>Max Occupancy</div>
               <div>Quantity</div>
               <div>Action</div>
             </div>
-
+  
             {rooms.map((room, index) => {
               const key = `room_${index}`;
               return (
-                <div key={index} className="grid grid-cols-5 gap-4 mb-2">
+                <div key={index} className="grid grid-cols-5 gap-4 items-start">
                   <div>
-                    <input
-                      type="text"
+                    <select
                       value={room.roomType}
                       onChange={(e) => {
                         const updatedRooms = [...rooms];
-                        updatedRooms[index].roomType = e.target.value.toUpperCase();
+                        updatedRooms[index].roomType = e.target.value;
                         setRooms(updatedRooms);
                       }}
-                      className="p-2 border rounded-md w-full"
-                    />
+                      className="p-2 border rounded-xl w-full"
+                    >
+                      <option value="">Select Room Type</option>
+                      {roomTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
                     {errors[`${key}_roomType`] && <p className="text-red-600 text-sm">{errors[`${key}_roomType`]}</p>}
                     {errors[`${key}_duplicate`] && <p className="text-red-600 text-sm">{errors[`${key}_duplicate`]}</p>}
                   </div>
                   <div>
                     <input
-                      type="number"
-                      value={room.pricePerNight}
+                      type="text"
+                      value={isNaN(room.pricePerNight) ? '' : room.pricePerNight}
                       onChange={(e) => {
                         const updatedRooms = [...rooms];
                         updatedRooms[index].pricePerNight = Number(e.target.value);
                         setRooms(updatedRooms);
                       }}
-                      className="p-2 border rounded-md w-full"
+                      className="p-2 border rounded-xl w-full"
                     />
                     {errors[`${key}_price`] && <p className="text-red-600 text-sm">{errors[`${key}_price`]}</p>}
                   </div>
                   <div>
                     <input
-                      type="number"
-                      value={room.maxOccupancy}
+                      type="text"
+                      value={isNaN(room.maxOccupancy) ? '' : room.maxOccupancy}
                       onChange={(e) => {
                         const updatedRooms = [...rooms];
                         updatedRooms[index].maxOccupancy = Number(e.target.value);
                         setRooms(updatedRooms);
                       }}
-                      className="p-2 border rounded-md w-full"
+                      className="p-2 border rounded-xl w-full"
                     />
                     {errors[`${key}_occupancy`] && <p className="text-red-600 text-sm">{errors[`${key}_occupancy`]}</p>}
                   </div>
                   <div>
                     <input
-                      type="number"
-                      value={room.quantity}
+                      type="text"
+                      value={isNaN(room.quantity) ? '' : room.quantity}
                       onChange={(e) => {
                         const updatedRooms = [...rooms];
                         updatedRooms[index].quantity = Number(e.target.value);
                         setRooms(updatedRooms);
                       }}
-                      className="p-2 border rounded-md w-full"
+                      className="p-2 border rounded-xl w-full"
                     />
                     {errors[`${key}_quantity`] && <p className="text-red-600 text-sm">{errors[`${key}_quantity`]}</p>}
                   </div>
@@ -385,15 +430,15 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
                 </div>
               );
             })}
-
-            {errors.rooms && <p className="text-red-600 text-sm mt-2">{errors.rooms}</p>}
-
+  
+            {errors.rooms && <p className="text-red-600 text-sm">{errors.rooms}</p>}
+  
             <button
               type="button"
               onClick={() =>
                 setRooms([...rooms, { roomType: '', pricePerNight: 0, maxOccupancy: 1, quantity: 0 }])
               }
-              className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
             >
               Add Room Type
             </button>
@@ -404,23 +449,14 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
         <div className="flex justify-end">
           <button
             type="submit"
-            className="bg-blue-500 text-white py-2 px-6 rounded-md hover:bg-blue-600"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition-all"
           >
             {hotelId ? 'Update Hotel' : 'Save Hotel'}
           </button>
         </div>
       </form>
-
-      {/* Message Modal */}
-      <MessageModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        message={modalMessage}
-        type={modalType}
-      />
-
     </div>
-  );
+  );  
   
 };
 
