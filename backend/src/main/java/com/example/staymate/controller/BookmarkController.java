@@ -1,7 +1,7 @@
 package com.example.staymate.controller;
 
-import com.example.staymate.service.BookmarkService;
 import com.example.staymate.dto.bookmark.BookmarkRequestDTO;
+import com.example.staymate.service.BookmarkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,30 +19,22 @@ public class BookmarkController {
         this.bookmarkService = bookmarkService;
     }
 
-    /**
-     * Adds a new bookmark (user -> hotel)
-     *
-     * @param bookmarkRequestDTO DTO containing userId and hotelIds to be bookmarked
-     * @return HTTP status indicating success
-     */
     @PostMapping("/add")
-    public ResponseEntity<String> addBookmark(@RequestBody BookmarkRequestDTO bookmarkRequestDTO) {
-        // Loop over the list of hotelIds and add each one as a bookmark for the user
-        for (Long hotelId : bookmarkRequestDTO.getHotelIds()) {
-            bookmarkService.addBookmark(bookmarkRequestDTO.getUserId(), hotelId);
+    public ResponseEntity<String> addBookmark(@RequestBody BookmarkRequestDTO dto) {
+        for (Long hotelId : dto.getHotelIds()) {
+            bookmarkService.addBookmark(dto.getUserId(), hotelId);
         }
-        return ResponseEntity.ok("Bookmarks added successfully");
+        return ResponseEntity.ok("Bookmarks added successfully.");
     }
 
-    /**
-     * Gets a list of hotel IDs bookmarked by the user.
-     *
-     * @param userId The userId to fetch bookmarked hotels for
-     * @return A list of hotel IDs
-     */
     @GetMapping("/{userId}")
-    public ResponseEntity<List<Long>> getHotelIdsByUserId(@PathVariable Long userId) {
-        List<Long> hotelIds = bookmarkService.getHotelIdsByUserId(userId);
-        return ResponseEntity.ok(hotelIds);
+    public ResponseEntity<List<Long>> getBookmarks(@PathVariable Long userId) {
+        return ResponseEntity.ok(bookmarkService.getHotelIdsByUserId(userId));
+    }
+
+    @DeleteMapping("/remove")
+    public ResponseEntity<String> removeBookmark(@RequestParam Long userId, @RequestParam Long hotelId) {
+        bookmarkService.removeBookmark(userId, hotelId);
+        return ResponseEntity.ok("Bookmark removed.");
     }
 }
