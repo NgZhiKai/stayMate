@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import LoginForm from "../components/User/LoginForm"; // Ensure correct import path
-import { loginUser } from "../services/userApi"; // Your API call for login
-import { LoginData } from "../types/User"; // Ensure correct import path
-import { useContext } from "react";
+import LoginForm from "../components/User/LoginForm";
 import { AuthContext } from "../contexts/AuthContext";
+import { loginUser } from "../services/userApi";
+import { LoginData } from "../types/User";
 
 const LoginPage: React.FC = () => {
   const [loginData, setLoginData] = useState<LoginData>({

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HotelCard from '../components/Hotel/HotelCard';
 import SearchBar from '../components/SearchBar';
+import { useNotificationContext } from "../contexts/NotificationContext";
 import { fetchHotels } from '../services/hotelApi';
 import { getReviewsForHotel } from '../services/ratingApi';
 import { HotelData } from '../types/Hotels';
@@ -13,6 +14,7 @@ const HomePage: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [hotelsPerPage] = useState<number>(8);
+  const { refreshNotifications } = useNotificationContext();
 
   const userId = sessionStorage.getItem('userId');
   const userRole = sessionStorage.getItem('role');
@@ -21,6 +23,8 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    refreshNotifications();
+
     const loadHotels = async () => {
       try {
         const hotelData = await fetchHotels();
