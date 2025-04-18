@@ -38,7 +38,8 @@ public class EmailService {
             String emailContent = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
             // Replace the placeholder with the actual verification link
-            emailContent = emailContent.replace("{{verificationLink}}", verificationLink);
+            // emailContent = emailContent.replace("{{verificationLink}}",
+            // verificationLink);
             emailContent = emailContent.replace("{{token}}", token);
 
             return emailContent;

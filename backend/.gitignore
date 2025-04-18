@@ -33,5 +33,6 @@ build/
 .vscode/
 
 # Ignore configuration files
-database-config.properties
-application.properties
+src/main/resources/database-config.properties
+src/main/resources/application.properties
+

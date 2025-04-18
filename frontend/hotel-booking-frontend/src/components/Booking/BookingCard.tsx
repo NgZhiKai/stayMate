@@ -35,6 +35,8 @@ const BookingCard: React.FC<BookingCardProps> = ({
     onMakePayment(booking.bookingId);
   };
 
+  const isPending = booking.status === "PENDING";
+
   return (
     <div
       className={`bg-gray-800 rounded-lg p-3 mb-3 w-full max-w-md mx-auto text-sm text-gray-300 shadow-sm hover:shadow-md transition ${
@@ -75,18 +77,17 @@ const BookingCard: React.FC<BookingCardProps> = ({
         </div>
       </div>
 
-      {/* Action buttons */}
-      {booking.status !== "CANCELLED" && (
+      {/* Action buttons - only if booking is PENDING */}
+      {isPending && (
         <div className="flex justify-end gap-2 mt-2">
-          {booking.status === "PENDING" && (
-            <button
-              onClick={handlePayment}
-              className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded-md"
-            >
-              <CreditCard size={14} />
-              Pay
-            </button>
-          )}
+          <button
+            onClick={handlePayment}
+            className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded-md"
+          >
+            <CreditCard size={14} />
+            Pay
+          </button>
+
           <button
             onClick={handleCancel}
             className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded-md"

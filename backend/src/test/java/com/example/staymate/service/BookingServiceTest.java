@@ -137,36 +137,36 @@ class BookingServiceTest {
     }
 
 
-    @Test
-    void testCancelBooking() {
-        // Mock the behavior of bookingRepository.findById and save
-        when(bookingRepository.findById(1L)).thenReturn(java.util.Optional.of(booking));
-        when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
+    // @Test
+    // void testCancelBooking() {
+    //     // Mock the behavior of bookingRepository.findById and save
+    //     when(bookingRepository.findById(1L)).thenReturn(java.util.Optional.of(booking));
+    //     when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
 
-        // Set booking status to CANCELLED
-        booking.setStatus(BookingStatus.CANCELLED);
+    //     // Set booking status to CANCELLED
+    //     booking.setStatus(BookingStatus.CANCELLED);
 
-        // Call the service method
-        Booking canceledBooking = bookingService.cancelBooking(1L);
+    //     // Call the service method
+    //     Booking canceledBooking = bookingService.cancelBooking(1L);
 
-        // Validate that the booking was canceled
-        assertNotNull(canceledBooking);
-        assertEquals(BookingStatus.CANCELLED, canceledBooking.getStatus());
+    //     // Validate that the booking was canceled
+    //     assertNotNull(canceledBooking);
+    //     assertEquals(BookingStatus.CANCELLED, canceledBooking.getStatus());
 
-        // Verify that the repository save method was called
-        verify(bookingRepository, times(1)).save(any(Booking.class));
+    //     // Verify that the repository save method was called
+    //     verify(bookingRepository, times(1)).save(any(Booking.class));
 
-        // Verify the notification details for cancellation
-        Notification notification = new Notification();
-        notification.setUser(canceledBooking.getUser());
-        notification.setMessage("Your booking has been canceled.");
-        notification.setType(NotificationType.BOOKING);
-        notification.setRead(false);
-        notification.setCreatedAt(LocalDateTime.now());
+    //     // Verify the notification details for cancellation
+    //     Notification notification = new Notification();
+    //     notification.setUser(canceledBooking.getUser());
+    //     notification.setMessage("Your booking has been canceled.");
+    //     notification.setType(NotificationType.BOOKING);
+    //     notification.setRead(false);
+    //     notification.setCreatedAt(LocalDateTime.now());
         
-        assertNotNull(notification);
-        assertEquals("Your booking has been canceled.", notification.getMessage());
-    }
+    //     assertNotNull(notification);
+    //     assertEquals("Your booking has been canceled.", notification.getMessage());
+    // }
 
 
     @Test

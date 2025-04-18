@@ -11,7 +11,6 @@ interface HotelFormProps {
 }
 
 const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => {
-  const [id, setId] = useState<number | null>(hotelId || null);
   const [name, setName] = useState<string>('');
   const [address, setAddress] = useState<string>('');
   const [latitude, setLatitude] = useState<number>(0);
@@ -19,30 +18,49 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
   const [image, setImage] = useState<File | null>(null);
   const [rooms, setRooms] = useState<RoomRequestDTO[]>([]);
   const [imagePreview, setImagePreview] = useState<string>('');
-  const [error, setError] = useState<string>('');
   const [check_in, setCheckIn] = useState<string>('');
   const [check_out, setCheckOut] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [contact, setContact] = useState<string>('');
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
 
   const fetchCoordinates = async (address: string) => {
     const encodedAddress = encodeURIComponent(address);
     const geocodeUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodedAddress}&key=${OPEN_CAGE_API_KEY}`;
-
+  
     try {
       const response = await fetch(geocodeUrl);
       const data = await response.json();
+  
       if (data.status.code === 200 && data.results.length > 0) {
-        const { lat, lng } = data.results[0].geometry;
-        setLatitude(lat);
-        setLongitude(lng);
+        // You can tune these criteria based on your requirement
+        const validResult = data.results.find((result: any) => {
+          const components = result.components;
+          return (
+            components.road &&
+            components.city &&
+            components.country &&
+            result.components.country_code === 'sg' &&
+            result.confidence >= 8
+          );
+        });
+  
+        if (validResult) {
+          const { lat, lng } = validResult.geometry;
+          setLatitude(lat);
+          setLongitude(lng);
+        } else {
+          setLatitude(0);
+          setLongitude(0);
+        }
       } else {
-        setError('Unable to fetch coordinates for the given address');
+        setErrors((prev) => ({ ...prev, coordinates: 'Unable to fetch coordinates for the given address' }));
       }
     } catch (error) {
-      setError('Error fetching coordinates');
+      setErrors((prev) => ({ ...prev, coordinates: 'Error fetching coordinates' }));
     }
-  };
+  };  
 
   useEffect(() => {
     if (address) {
@@ -55,7 +73,6 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
 
   useEffect(() => {
     if (hotelId && hotelData) {
-      setId(hotelData.id);
       setName(hotelData.name);
       setAddress(hotelData.address);
       setLatitude(hotelData.latitude);
@@ -67,47 +84,90 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
       setCheckOut(hotelData.checkOut);
       setRooms(hotelData.rooms || []);
     } else if (!hotelId) {
-      setRooms(
-        roomTypes.map((roomType) => ({
-          roomType,
-          pricePerNight: 0,
-          maxOccupancy: 1,
-          quantity: 0,
-        }))
-      );
+      setRooms([{ roomType: '', pricePerNight: 0, maxOccupancy: 1, quantity: 0 }]);
     }
   }, [hotelId, hotelData]);
 
-  const handleNameInput = (e: React.FormEvent<HTMLInputElement>) => {
-    const value = e.currentTarget.value;
-    const regex = /^[a-zA-Z ]*$/; // Allow letters and spaces only
-    if (regex.test(value)) {
+  const handleNameInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const regex = /^[a-zA-Z ]*$/;
+    if (value === '' || regex.test(value)) {
       setName(value);
-      setError(""); // Clear error if valid input
-    } else {
-      setError("Names can only contain letters and spaces.");
     }
   };
+
+  const roomTypes = ['SINGLE', 'DOUBLE', 'SUITE', 'DELUXE'];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !address || (!hotelId && rooms.every(room => room.quantity === 0)) || !check_in || !check_out) {
-      setError('Please fill in all required fields and add at least one room if creating a new hotel');
+    const newErrors: { [key: string]: string } = {};
+
+    if (!name.trim()) {
+      newErrors.name = 'Hotel name is required.';
+    } else if (/^\d+$/.test(name.trim())) {
+      newErrors.name = 'Hotel name cannot be only numbers.';
+    }
+
+    if (!address.trim()) {
+      newErrors.address = 'Hotel address is required.';
+    }
+
+    if (!check_in) {
+      newErrors.check_in = 'Check-in time is required.';
+    }
+
+    if (!check_out) {
+      newErrors.check_out = 'Check-out time is required.';
+    }
+
+    const validRooms = rooms.filter((room) => typeof room.roomType === 'string' && room.roomType.trim() !== '');
+    const roomTypeSet = new Set<string>();
+
+    validRooms.forEach((room, index) => {
+      const key = `room_${index}`;
+
+      if (!room.roomType.trim()) {
+        newErrors[`${key}_roomType`] = 'Room type is required.';
+      }
+
+      const normalized = room.roomType.trim().toUpperCase();
+      if (roomTypeSet.has(normalized)) {
+        newErrors[`${key}_duplicate`] = `Duplicate room type: ${room.roomType}`;
+      } else {
+        roomTypeSet.add(normalized);
+      }
+
+      if (room.pricePerNight < 0) {
+        newErrors[`${key}_price`] = 'Price per night must be at least 0.';
+      }
+
+      if (room.maxOccupancy < 1) {
+        newErrors[`${key}_occupancy`] = 'Occupancy must be at least 1.';
+      }
+
+      if (room.quantity < 0) {
+        newErrors[`${key}_quantity`] = 'Quantity cannot be negative.';
+      }
+    });
+
+    if (!hotelId && validRooms.every((room) => room.quantity === 0)) {
+      newErrors.rooms = 'At least one room must have quantity greater than 0.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    if (!isNaN(Number(name))) {
-      setError('Hotel name cannot be a number');
-      return;
-    }
+    setErrors({});
 
     const convertTime = (time: string) => {
       const [hour, minute] = time.split(':').map(Number);
       return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
     };
 
-    const filteredRooms = rooms.filter((room) => room.quantity > 0);
+    const filteredRooms = validRooms.filter((room) => room.quantity > 0);
 
     const formData = new FormData();
     formData.append('hotelDetails', JSON.stringify({
@@ -131,8 +191,6 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
     await onSave(formData);
   };
 
-  const roomTypes = ['SINGLE', 'DOUBLE', 'SUITE', 'DELUXE'];
-
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
     if (file) {
@@ -146,223 +204,256 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
   };
 
   return (
-    <div className="border p-6 rounded-lg">
-      <h2 className="text-2xl font-semibold mb-4">
-        {hotelId ? 'Edit Hotel' : 'Add New Hotel'}
+    <div className="bg-white shadow-lg rounded-2xl p-10 max-w-5xl mx-auto space-y-8">
+      <h2 className="text-3xl font-bold text-gray-800 text-center">
+        {hotelId ? 'Update Hotel Details' : 'Add New Hotel'}
       </h2>
 
-      {error && <p className="text-red-600">{error}</p>}
-
-      <form onSubmit={handleSubmit}>
-        {id !== null && (
-          <input type="hidden" value={id} name="id" />
-        )}
-
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Hotel Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onInput={(e) => handleNameInput(e)}
-            className="mt-1 p-2 border rounded-md w-full"
-            required
-          />
+      {Object.keys(errors).length > 0 && (
+        <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <ul className="list-disc list-inside space-y-1">
+            {Object.values(errors).map((msg, idx) => (
+              <li key={idx}>{msg}</li>
+            ))}
+          </ul>
         </div>
-
-        <div className="mb-4">
-          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-            Hotel Address
-          </label>
+      )}
+  
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Hotel Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Hotel Name</label>
           <input
             type="text"
-            id="address"
+            value={name}
+            onChange={handleNameInput}
+            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+          {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
+        </div>
+  
+        {/* Hotel Address */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Hotel Address</label>
+          <input
+            type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="mt-1 p-2 border rounded-md w-full"
-            required
+            className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
+          {errors.address && <p className="text-sm text-red-600 mt-1">{errors.address}</p>}
         </div>
-
-        <div className="mb-4 flex space-x-4">
+  
+        {/* Latitude & Longitude */}
+        <div className="flex gap-4">
           <div className="w-1/2">
-            <label htmlFor="latitude" className="block text-sm font-medium text-gray-700">
-              Latitude
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
             <input
               disabled
               type="number"
-              id="latitude"
               value={latitude}
-              onChange={(e) => setLatitude(Number(e.target.value))}
-              className="mt-1 p-2 border rounded-md w-full"
-              required
+              className="w-full px-4 py-2 border rounded-xl bg-gray-100 cursor-not-allowed"
             />
           </div>
-
           <div className="w-1/2">
-            <label htmlFor="longitude" className="block text-sm font-medium text-gray-700">
-              Longitude
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
             <input
               disabled
               type="number"
-              id="longitude"
               value={longitude}
-              onChange={(e) => setLongitude(Number(e.target.value))}
-              className="mt-1 p-2 border rounded-md w-full"
-              required
+              className="w-full px-4 py-2 border rounded-xl bg-gray-100 cursor-not-allowed"
             />
           </div>
         </div>
-
-        <div className="mb-4">
-          <label htmlFor="image" className="block text-sm font-medium text-gray-700">
-            Hotel Image
-          </label>
+  
+        {/* Image Upload */}
+        <div>
+          <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">Hotel Image</label>
           <input
             type="file"
             id="image"
             onChange={handleImageChange}
-            className="mt-1 p-2 border rounded-md w-full"
+            className="w-full px-4 py-3 border rounded-xl"
           />
+          {imagePreview && (
+            <div className="mt-4">
+              <img
+                src={imagePreview.startsWith('data:') ? imagePreview : `data:image/jpeg;base64,${imagePreview}`}
+                alt="Preview"
+                className="w-32 h-32 object-cover rounded-lg border"
+              />
+            </div>
+          )}
         </div>
-
-        {imagePreview && (
-          <div className="mb-4">
-            <img
-              src={imagePreview.startsWith('data:') ? imagePreview : `data:image/jpeg;base64,${imagePreview}`}
-              alt="Image Preview"
-              className="w-32 h-32 object-cover"
-            />
-          </div>
-        )}
-
-        <div className="mb-4 flex space-x-4">
+  
+        {/* Check-in/out Times */}
+        <div className="flex gap-4">
           <div className="w-1/2">
-            <label htmlFor="checkIn" className="block text-sm font-medium text-gray-700">
-              Check-In Time
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Check-In Time</label>
             <input
               type="time"
-              id="checkIn"
               value={check_in}
               onChange={(e) => setCheckIn(e.target.value)}
-              className="mt-1 p-2 border rounded-md w-full"
-              required
+              className="w-full px-4 py-2 border rounded-xl"
             />
+            {errors.check_in && <p className="text-sm text-red-600 mt-1">{errors.check_in}</p>}
           </div>
-
           <div className="w-1/2">
-            <label htmlFor="checkOut" className="block text-sm font-medium text-gray-700">
-              Check-Out Time
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Check-Out Time</label>
             <input
               type="time"
-              id="checkOut"
               value={check_out}
               onChange={(e) => setCheckOut(e.target.value)}
-              className="mt-1 p-2 border rounded-md w-full"
-              required
+              className="w-full px-4 py-2 border rounded-xl"
             />
+            {errors.check_out && <p className="text-sm text-red-600 mt-1">{errors.check_out}</p>}
           </div>
         </div>
-
-        <div className="mb-4">
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-            Hotel Description
-          </label>
+  
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Hotel Description</label>
           <textarea
-            id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 p-2 border rounded-md w-full"
+            rows={4}
+            className="w-full px-4 py-3 border rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
         </div>
-
+  
         {/* Contact Info */}
-        <div className="mb-4">
-          <label htmlFor="contact" className="block text-sm font-medium text-gray-700">
-            Contact Info
-          </label>
-          {/* Use PhoneInput here */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Contact Info</label>
           <PhoneInput
-            country={'sg'}  // Set the default country to Singapore
-            inputClass="!w-full p-2 border rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            containerClass="w-full flex justify-end"  // Ensure the container takes the full width
+            country={'sg'}
+            inputClass="!w-full p-2 border rounded-xl bg-gray-50"
+            containerClass="w-full"
             value={contact}
-            onChange={(value: string) => setContact(value)}  // Directly set the value to state
+            onChange={(value: string) => setContact(value)}
           />
         </div>
-
-
-
+  
+        {/* Rooms */}
         {!hotelId && (
-          <div className="mb-4">
-            <h3 className="text-lg font-medium mb-2">Rooms</h3>
-            <div className="grid grid-cols-4 gap-4 mb-4">
-              <label className="text-sm font-medium">Room Type</label>
-              <label className="text-sm font-medium">Price per Night</label>
-              <label className="text-sm font-medium">Max Occupancy</label>
-              <label className="text-sm font-medium">Quantity</label>
-
-              {roomTypes.map((roomType, index) => (
-                <React.Fragment key={index}>
-                  <input
-                    type="text"
-                    value={roomType}
-                    disabled
-                    className="w-full p-2 border rounded-md"
-                  />
-                  <input
-                    type="number"
-                    min={0}
-                    value={rooms[index]?.pricePerNight || 0}
-                    onChange={(e) => {
-                      const updatedRooms = [...rooms];
-                      updatedRooms[index].pricePerNight = Number(e.target.value);
-                      setRooms(updatedRooms);
-                    }}
-                    className="w-full p-2 border rounded-md"
-                  />
-                  <input
-                    type="number"
-                    min={1}
-                    value={rooms[index]?.maxOccupancy || 1}
-                    onChange={(e) => {
-                      const updatedRooms = [...rooms];
-                      updatedRooms[index].maxOccupancy = Number(e.target.value);
-                      setRooms(updatedRooms);
-                    }}
-                    className="w-full p-2 border rounded-md"
-                  />
-                  <input
-                    type="number"
-                    min={0}
-                    value={rooms[index]?.quantity || 0}
-                    onChange={(e) => {
-                      const updatedRooms = [...rooms];
-                      updatedRooms[index].quantity = Number(e.target.value);
-                      setRooms(updatedRooms);
-                    }}
-                    className="w-full p-2 border rounded-md"
-                  />
-                </React.Fragment>
-              ))}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Rooms</h3>
+            <div className="grid grid-cols-5 gap-4 font-semibold text-sm">
+              <div>Room Type</div>
+              <div>Price/Night</div>
+              <div>Max Occupancy</div>
+              <div>Quantity</div>
+              <div>Action</div>
             </div>
+  
+            {rooms.map((room, index) => {
+              const key = `room_${index}`;
+              return (
+                <div key={index} className="grid grid-cols-5 gap-4 items-start">
+                  <div>
+                    <select
+                      value={room.roomType}
+                      onChange={(e) => {
+                        const updatedRooms = [...rooms];
+                        updatedRooms[index].roomType = e.target.value;
+                        setRooms(updatedRooms);
+                      }}
+                      className="p-2 border rounded-xl w-full"
+                    >
+                      <option value="">Select Room Type</option>
+                      {roomTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
+                    {errors[`${key}_roomType`] && <p className="text-red-600 text-sm">{errors[`${key}_roomType`]}</p>}
+                    {errors[`${key}_duplicate`] && <p className="text-red-600 text-sm">{errors[`${key}_duplicate`]}</p>}
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      value={isNaN(room.pricePerNight) ? '' : room.pricePerNight}
+                      onChange={(e) => {
+                        const updatedRooms = [...rooms];
+                        updatedRooms[index].pricePerNight = Number(e.target.value);
+                        setRooms(updatedRooms);
+                      }}
+                      className="p-2 border rounded-xl w-full"
+                    />
+                    {errors[`${key}_price`] && <p className="text-red-600 text-sm">{errors[`${key}_price`]}</p>}
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      value={isNaN(room.maxOccupancy) ? '' : room.maxOccupancy}
+                      onChange={(e) => {
+                        const updatedRooms = [...rooms];
+                        updatedRooms[index].maxOccupancy = Number(e.target.value);
+                        setRooms(updatedRooms);
+                      }}
+                      className="p-2 border rounded-xl w-full"
+                    />
+                    {errors[`${key}_occupancy`] && <p className="text-red-600 text-sm">{errors[`${key}_occupancy`]}</p>}
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      value={isNaN(room.quantity) ? '' : room.quantity}
+                      onChange={(e) => {
+                        const updatedRooms = [...rooms];
+                        updatedRooms[index].quantity = Number(e.target.value);
+                        setRooms(updatedRooms);
+                      }}
+                      className="p-2 border rounded-xl w-full"
+                    />
+                    {errors[`${key}_quantity`] && <p className="text-red-600 text-sm">{errors[`${key}_quantity`]}</p>}
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <button
+                      type="button"
+                      disabled={rooms.length === 1}
+                      onClick={() => {
+                        if (rooms.length > 1) {
+                          const updated = rooms.filter((_, i) => i !== index);
+                          setRooms(updated);
+                        }
+                      }}
+                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 disabled:opacity-50"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+  
+            {errors.rooms && <p className="text-red-600 text-sm">{errors.rooms}</p>}
+  
+            <button
+              type="button"
+              onClick={() =>
+                setRooms([...rooms, { roomType: '', pricePerNight: 0, maxOccupancy: 1, quantity: 0 }])
+              }
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            >
+              Add Room Type
+            </button>
           </div>
         )}
-
+  
+        {/* Submit */}
         <div className="flex justify-end">
-          <button type="submit" className="bg-blue-500 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out transform hover:bg-blue-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:bg-blue-700">
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition-all"
+          >
             {hotelId ? 'Update Hotel' : 'Save Hotel'}
           </button>
         </div>
       </form>
     </div>
-  );
+  );  
+  
 };
 
 export default HotelForm;

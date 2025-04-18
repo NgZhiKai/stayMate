@@ -62,9 +62,6 @@ const CreateUpdateHotelPage: React.FC = () => {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-2xl p-8 bg-white shadow-lg rounded-lg">
-        <h1 className="text-3xl font-semibold text-gray-800 text-center mb-8">
-          {id ? 'Update Hotel' : 'Create New Hotel'}
-        </h1>
         <HotelForm onSave={handleSaveHotel} hotelData={hotelData} hotelId={Number(id)} />
       </div>
       <MessageModal 
