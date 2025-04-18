@@ -120,7 +120,7 @@ const HomePage: React.FC = () => {
 
       </div>
       <div>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recommended Hotels Now</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recommended Hotels Now1</h2>
 
         {loading ? (
           <p>Loading hotels...</p>
