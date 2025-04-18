@@ -4,6 +4,7 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { OPEN_CAGE_API_KEY } from '../../constants/constants';
 import { RoomRequestDTO } from '../../types/Room';
+import MessageModal from '../../components/MessageModal';
 
 interface HotelFormProps {
   onSave: (formData: FormData) => Promise<void>;
@@ -29,21 +30,41 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
   const fetchCoordinates = async (address: string) => {
     const encodedAddress = encodeURIComponent(address);
     const geocodeUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodedAddress}&key=${OPEN_CAGE_API_KEY}`;
-
+  
     try {
       const response = await fetch(geocodeUrl);
       const data = await response.json();
+  
       if (data.status.code === 200 && data.results.length > 0) {
-        const { lat, lng } = data.results[0].geometry;
-        setLatitude(lat);
-        setLongitude(lng);
+        // You can tune these criteria based on your requirement
+        const validResult = data.results.find((result: any) => {
+          const components = result.components;
+          return (
+            components.road &&
+            components.city &&
+            components.country &&
+            result.components.country_code === 'sg' &&
+            result.confidence >= 8
+          );
+        });
+  
+        if (validResult) {
+          const { lat, lng } = validResult.geometry;
+          setLatitude(lat);
+          setLongitude(lng);
+          setError('');
+        } else {
+          setLatitude(0);
+          setLongitude(0);
+          setError('Please enter a more complete and valid address (street, city, country).');
+        }
       } else {
         setErrors((prev) => ({ ...prev, coordinates: 'Unable to fetch coordinates for the given address' }));
       }
     } catch (error) {
       setErrors((prev) => ({ ...prev, coordinates: 'Error fetching coordinates' }));
     }
-  };
+  };  
 
   useEffect(() => {
     if (address) {
@@ -176,8 +197,8 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
   };
 
   return (
-    <div className="border p-6 rounded-lg">
-      <h2 className="text-2xl font-semibold mb-4">
+    <div className="bg-white shadow-md rounded-2xl p-8 max-w-5xl mx-auto">
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">
         {hotelId ? 'Edit Hotel' : 'Add New Hotel'}
       </h2>
 
@@ -262,7 +283,8 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 p-2 border rounded-md w-full"
+            rows={4}
+            className="mt-1 p-3 border border-gray-300 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -377,7 +399,8 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
             </button>
           </div>
         )}
-
+  
+        {/* Submit */}
         <div className="flex justify-end">
           <button
             type="submit"
@@ -387,8 +410,18 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
           </button>
         </div>
       </form>
+
+      {/* Message Modal */}
+      <MessageModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        message={modalMessage}
+        type={modalType}
+      />
+
     </div>
   );
+  
 };
 
 export default HotelForm;
