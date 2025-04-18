@@ -64,6 +64,7 @@ jobs:
         run: |
           cd backend
           mvn -B package test --file pom.xml \
+          -Dspring.profiles.active=${SPRING_PROFILE} \
           -Ddb.url="${{ env.DB_URL }}" \
           -Ddb.username="${{ env.DB_USERNAME }}" \
           -Ddb.password="${{ env.DB_PASSWORD }}"
@@ -219,6 +220,7 @@ jobs:
         run: |
           cd backend
           mvn clean install --file pom.xml \
+          -Dspring.profiles.active=${SPRING_PROFILE} \
           -Ddb.url="${{ env.DB_URL }}" \
           -Ddb.username="${{ env.DB_USERNAME }}" \
           -Ddb.password="${{ env.DB_PASSWORD }}"
