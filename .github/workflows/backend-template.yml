@@ -2,18 +2,11 @@ name: Java CI with Maven, and DAST
 
 on:
   workflow_call:
-    inputs:
-      spring_profile:
-        required: false
-        default: "prod"
-        type: string
 
 jobs:
   build_and_test:
     name: Build and Test
     runs-on: ubuntu-latest
-    env:
-      SPRING_PROFILE: ${{ inputs.spring_profile }}
 
     steps:
       # Checkout the repository
@@ -38,7 +31,7 @@ jobs:
 
       - name: Load Database Properties
         run: |
-          PROP_FILE="backend/src/main/resources/application-${SPRING_PROFILE}.properties"
+          PROP_FILE="backend/src/main/resources/application-prod.properties"
 
           if [ -f "$PROP_FILE" ]; then
             # Extract DB config values from the properties file
@@ -64,7 +57,6 @@ jobs:
         run: |
           cd backend
           mvn -B package test --file pom.xml \
-          -Dspring.profiles.active=${SPRING_PROFILE} \
           -Ddb.url="${{ env.DB_URL }}" \
           -Ddb.username="${{ env.DB_USERNAME }}" \
           -Ddb.password="${{ env.DB_PASSWORD }}"
@@ -171,7 +163,7 @@ jobs:
 
       - name: Load Application Host IP
         run: |
-          export APP_HOST_IP=$(grep '^app.host_ip=' backend/src/main/resources/application-${SPRING_PROFILE}.properties | cut -d '=' -f2)
+          export APP_HOST_IP=$(grep '^app.host_ip=' backend/src/main/resources/application-prod.properties | cut -d '=' -f2)
 
           echo "APP_HOST_IP=$APP_HOST_IP"
           echo "APP_HOST_IP=$APP_HOST_IP" >> $GITHUB_ENV
@@ -194,7 +186,7 @@ jobs:
 
       - name: Load Database Properties
         run: |
-          PROP_FILE="backend/src/main/resources/application-${SPRING_PROFILE}.properties"
+          PROP_FILE="backend/src/main/resources/application-prod.properties"
 
           if [ -f "$PROP_FILE" ]; then
             # Extract DB config values from the properties file
@@ -220,7 +212,6 @@ jobs:
         run: |
           cd backend
           mvn clean install --file pom.xml \
-          -Dspring.profiles.active=${SPRING_PROFILE} \
           -Ddb.url="${{ env.DB_URL }}" \
           -Ddb.username="${{ env.DB_USERNAME }}" \
           -Ddb.password="${{ env.DB_PASSWORD }}"
