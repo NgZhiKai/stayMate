@@ -24,7 +24,6 @@ import UserAccountSettings from "./Pages/UserAccountSettings";
 import VerifyEmailPage from "./Pages/VerficationPage";
 import BookmarkedHotelsPage from "./Pages/BookmarkedHotelsPage";
 
-
 const App: React.FC = () => {
   const [isOpen, setIsOpen] = useState(() => {
     const saved = localStorage.getItem("sidebarOpen");
