@@ -3,6 +3,7 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { OPEN_CAGE_API_KEY } from '../../constants/constants';
 import { RoomRequestDTO } from '../../types/Room';
+import MessageModal from '../../components/MessageModal';
 
 interface HotelFormProps {
   onSave: (formData: FormData) => Promise<void>;
@@ -25,24 +26,52 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
   const [description, setDescription] = useState<string>('');
   const [contact, setContact] = useState<string>('');
 
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>('');
+  const [modalType, setModalType] = useState<'success' | 'error'>('error');
+
   const fetchCoordinates = async (address: string) => {
     const encodedAddress = encodeURIComponent(address);
     const geocodeUrl = `https://api.opencagedata.com/geocode/v1/json?q=${encodedAddress}&key=${OPEN_CAGE_API_KEY}`;
-
+  
     try {
       const response = await fetch(geocodeUrl);
       const data = await response.json();
+  
       if (data.status.code === 200 && data.results.length > 0) {
-        const { lat, lng } = data.results[0].geometry;
-        setLatitude(lat);
-        setLongitude(lng);
+        // You can tune these criteria based on your requirement
+        const validResult = data.results.find((result: any) => {
+          const components = result.components;
+          return (
+            components.road &&
+            components.city &&
+            components.country &&
+            result.components.country_code === 'sg' &&
+            result.confidence >= 8
+          );
+        });
+  
+        if (validResult) {
+          const { lat, lng } = validResult.geometry;
+          setLatitude(lat);
+          setLongitude(lng);
+          setError('');
+        } else {
+          setLatitude(0);
+          setLongitude(0);
+          setError('Please enter a more complete and valid address (street, city, country).');
+        }
       } else {
-        setError('Unable to fetch coordinates for the given address');
+        setLatitude(0);
+        setLongitude(0);
+        setError('Unable to fetch coordinates for the provided address.');
       }
-    } catch (error) {
-      setError('Error fetching coordinates');
+    } catch (err) {
+      setLatitude(0);
+      setLongitude(0);
+      setError('Error fetching coordinates. Please check your network connection.');
     }
-  };
+  };  
 
   useEffect(() => {
     if (address) {
@@ -93,12 +122,16 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
     e.preventDefault();
 
     if (!name || !address || (!hotelId && rooms.every(room => room.quantity === 0)) || !check_in || !check_out) {
-      setError('Please fill in all required fields and add at least one room if creating a new hotel');
+      setModalMessage('Please fill in all required fields and add at least one room if creating a new hotel');
+      setModalType('error');
+      setIsModalOpen(true);
       return;
     }
 
     if (!isNaN(Number(name))) {
-      setError('Hotel name cannot be a number');
+      setModalMessage('Hotel name cannot be a number');
+      setModalType('error');
+      setIsModalOpen(true);
       return;
     }
 
@@ -146,48 +179,49 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
   };
 
   return (
-    <div className="border p-6 rounded-lg">
-      <h2 className="text-2xl font-semibold mb-4">
+    <div className="bg-white shadow-md rounded-2xl p-8 max-w-5xl mx-auto">
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">
         {hotelId ? 'Edit Hotel' : 'Add New Hotel'}
       </h2>
-
-      {error && <p className="text-red-600">{error}</p>}
-
-      <form onSubmit={handleSubmit}>
-        {id !== null && (
-          <input type="hidden" value={id} name="id" />
-        )}
-
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Hotel Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onInput={(e) => handleNameInput(e)}
-            className="mt-1 p-2 border rounded-md w-full"
-            required
-          />
+  
+      {error && <p className="text-red-600 font-medium mb-4">{error}</p>}
+  
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {id !== null && <input type="hidden" value={id} name="id" />}
+  
+        {/* Hotel Name & Address */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              Hotel Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={name}
+              onInput={(e) => handleNameInput(e)}
+              className="mt-1 p-3 border border-gray-300 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+              Hotel Address
+            </label>
+            <input
+              type="text"
+              id="address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="mt-1 p-3 border border-gray-300 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
         </div>
-
-        <div className="mb-4">
-          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-            Hotel Address
-          </label>
-          <input
-            type="text"
-            id="address"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            className="mt-1 p-2 border rounded-md w-full"
-            required
-          />
-        </div>
-
-        <div className="mb-4 flex space-x-4">
-          <div className="w-1/2">
+  
+        {/* Coordinates */}
+        <div className="grid grid-cols-2 gap-6">
+          <div>
             <label htmlFor="latitude" className="block text-sm font-medium text-gray-700">
               Latitude
             </label>
@@ -196,13 +230,10 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
               type="number"
               id="latitude"
               value={latitude}
-              onChange={(e) => setLatitude(Number(e.target.value))}
-              className="mt-1 p-2 border rounded-md w-full"
-              required
+              className="mt-1 p-3 border border-gray-200 bg-gray-100 rounded-xl w-full"
             />
           </div>
-
-          <div className="w-1/2">
+          <div>
             <label htmlFor="longitude" className="block text-sm font-medium text-gray-700">
               Longitude
             </label>
@@ -211,14 +242,13 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
               type="number"
               id="longitude"
               value={longitude}
-              onChange={(e) => setLongitude(Number(e.target.value))}
-              className="mt-1 p-2 border rounded-md w-full"
-              required
+              className="mt-1 p-3 border border-gray-200 bg-gray-100 rounded-xl w-full"
             />
           </div>
         </div>
-
-        <div className="mb-4">
+  
+        {/* Image */}
+        <div>
           <label htmlFor="image" className="block text-sm font-medium text-gray-700">
             Hotel Image
           </label>
@@ -226,22 +256,22 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
             type="file"
             id="image"
             onChange={handleImageChange}
-            className="mt-1 p-2 border rounded-md w-full"
+            className="mt-1 p-3 border border-gray-300 rounded-xl w-full"
           />
+          {imagePreview && (
+            <div className="mt-4">
+              <img
+                src={imagePreview.startsWith('data:') ? imagePreview : `data:image/jpeg;base64,${imagePreview}`}
+                alt="Image Preview"
+                className="w-32 h-32 object-cover rounded-lg border"
+              />
+            </div>
+          )}
         </div>
-
-        {imagePreview && (
-          <div className="mb-4">
-            <img
-              src={imagePreview.startsWith('data:') ? imagePreview : `data:image/jpeg;base64,${imagePreview}`}
-              alt="Image Preview"
-              className="w-32 h-32 object-cover"
-            />
-          </div>
-        )}
-
-        <div className="mb-4 flex space-x-4">
-          <div className="w-1/2">
+  
+        {/* Check-in/out */}
+        <div className="grid grid-cols-2 gap-6">
+          <div>
             <label htmlFor="checkIn" className="block text-sm font-medium text-gray-700">
               Check-In Time
             </label>
@@ -250,12 +280,11 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
               id="checkIn"
               value={check_in}
               onChange={(e) => setCheckIn(e.target.value)}
-              className="mt-1 p-2 border rounded-md w-full"
+              className="mt-1 p-3 border border-gray-300 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
-
-          <div className="w-1/2">
+          <div>
             <label htmlFor="checkOut" className="block text-sm font-medium text-gray-700">
               Check-Out Time
             </label>
@@ -264,13 +293,14 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
               id="checkOut"
               value={check_out}
               onChange={(e) => setCheckOut(e.target.value)}
-              className="mt-1 p-2 border rounded-md w-full"
+              className="mt-1 p-3 border border-gray-300 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
         </div>
-
-        <div className="mb-4">
+  
+        {/* Description */}
+        <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700">
             Hotel Description
           </label>
@@ -278,46 +308,46 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 p-2 border rounded-md w-full"
+            rows={4}
+            className="mt-1 p-3 border border-gray-300 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-
-        {/* Contact Info */}
-        <div className="mb-4">
-          <label htmlFor="contact" className="block text-sm font-medium text-gray-700">
+  
+        {/* Contact */}
+        <div>
+          <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-1">
             Contact Info
           </label>
-          {/* Use PhoneInput here */}
           <PhoneInput
-            country={'sg'}  // Set the default country to Singapore
-            inputClass="!w-full p-2 border rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            containerClass="w-full flex justify-end"  // Ensure the container takes the full width
+            country={'sg'}
+            inputClass="!w-full !p-3 border-transparent !rounded-xl !bg-gray-50 !text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            containerClass="relative flex justify-end"
             value={contact}
-            onChange={(value: string) => setContact(value)}  // Directly set the value to state
+            onChange={(value: string) => setContact(value)}
           />
         </div>
-
-
-
+  
+        {/* Rooms */}
         {!hotelId && (
-          <div className="mb-4">
-            <h3 className="text-lg font-medium mb-2">Rooms</h3>
-            <div className="grid grid-cols-4 gap-4 mb-4">
-              <label className="text-sm font-medium">Room Type</label>
-              <label className="text-sm font-medium">Price per Night</label>
-              <label className="text-sm font-medium">Max Occupancy</label>
-              <label className="text-sm font-medium">Quantity</label>
-
+          <div className="bg-gray-50 p-6 rounded-xl border">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">Rooms</h3>
+            <div className="grid grid-cols-4 gap-4 mb-2 text-sm font-medium text-gray-700">
+              <span>Room Type</span>
+              <span>Price per Night</span>
+              <span>Max Occupancy</span>
+              <span>Quantity</span>
+            </div>
+            <div className="space-y-3">
               {roomTypes.map((roomType, index) => (
-                <React.Fragment key={index}>
+                <div key={index} className="grid grid-cols-4 gap-4">
                   <input
                     type="text"
                     value={roomType}
                     disabled
-                    className="w-full p-2 border rounded-md"
+                    className="p-2 border border-gray-300 rounded-xl bg-gray-100"
                   />
                   <input
-                    type="number"
+                    type="text"
                     min={0}
                     value={rooms[index]?.pricePerNight || 0}
                     onChange={(e) => {
@@ -325,10 +355,10 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
                       updatedRooms[index].pricePerNight = Number(e.target.value);
                       setRooms(updatedRooms);
                     }}
-                    className="w-full p-2 border rounded-md"
+                    className="p-2 border border-gray-300 rounded-xl"
                   />
                   <input
-                    type="number"
+                    type="text"
                     min={1}
                     value={rooms[index]?.maxOccupancy || 1}
                     onChange={(e) => {
@@ -336,10 +366,10 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
                       updatedRooms[index].maxOccupancy = Number(e.target.value);
                       setRooms(updatedRooms);
                     }}
-                    className="w-full p-2 border rounded-md"
+                    className="p-2 border border-gray-300 rounded-xl"
                   />
                   <input
-                    type="number"
+                    type="text"
                     min={0}
                     value={rooms[index]?.quantity || 0}
                     onChange={(e) => {
@@ -347,22 +377,36 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
                       updatedRooms[index].quantity = Number(e.target.value);
                       setRooms(updatedRooms);
                     }}
-                    className="w-full p-2 border rounded-md"
+                    className="p-2 border border-gray-300 rounded-xl"
                   />
-                </React.Fragment>
+                </div>
               ))}
             </div>
           </div>
         )}
-
+  
+        {/* Submit */}
         <div className="flex justify-end">
-          <button type="submit" className="bg-blue-500 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out transform hover:bg-blue-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:bg-blue-700">
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl shadow transition transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
             {hotelId ? 'Update Hotel' : 'Save Hotel'}
           </button>
         </div>
       </form>
+
+      {/* Message Modal */}
+      <MessageModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        message={modalMessage}
+        type={modalType}
+      />
+
     </div>
   );
+  
 };
 
 export default HotelForm;
