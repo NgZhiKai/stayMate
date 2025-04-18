@@ -1,11 +1,7 @@
 name: Java Build with Maven
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - "backend/**"
+  workflow_call:
 
 jobs:
   backend-build:
