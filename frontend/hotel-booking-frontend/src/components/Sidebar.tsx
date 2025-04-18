@@ -1,16 +1,15 @@
 import {
   Bell,
   Calendar,
+  CheckCircle,
   ClipboardList,
   CreditCard,
-  Home,
   Hotel,
   LogIn,
   LogOut,
   MapPin,
   Settings,
   UserPlus,
-  CheckCircle,
   Users
 } from "lucide-react";
 import React, { useContext, useState } from "react";
@@ -37,7 +36,7 @@ const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isO
               to="/"
               className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
             >
-              <Home size={18} /> Hotels
+              <Hotel size={18} /> {role === "admin" ? "Manage Hotels" : "Hotels"}
             </Link>
             <Link
               to="/nearme"
@@ -122,18 +121,6 @@ const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isO
         {isLoggedIn && role === "admin" && (
           <>
             {/* Admin Links */}
-            <Link
-              to="/"
-              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
-            >
-              <Hotel size={18} /> Manage Hotels
-            </Link>
-            <Link
-              to="/nearme"
-              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
-            >
-              <MapPin size={18} /> Near Me
-            </Link>
             <Link
               to="/notifications"
               className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"

@@ -6,7 +6,7 @@ interface Props {
   bookingData: Booking;
   rooms: Room[];
   isSubmitting: boolean;
-  validationErrors: string | null;
+  errors: { [key: string]: string };
   handleInputChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
@@ -18,43 +18,25 @@ const CreateBookingForm: React.FC<Props> = ({
   bookingData,
   rooms,
   isSubmitting,
-  validationErrors,
+  errors,
   handleInputChange,
   handleRoomSelect,
   handleSubmit,
 }) => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const hasSelectedDates = bookingData.checkInDate && bookingData.checkOutDate;
+  const today = new Date().toISOString().split("T")[0];
+
   const uniqueRoomTypes = Array.from(
     new Map(rooms.map((room) => [room.room_type, room])).values()
   );
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const roomsPerPage = 6;
-
-  // Calculate room slices for pagination
-  const indexOfLastRoom = currentPage * roomsPerPage;
-  const indexOfFirstRoom = indexOfLastRoom - roomsPerPage;
-  const currentRooms = uniqueRoomTypes.slice(indexOfFirstRoom, indexOfLastRoom);
-
-  // Handle page change
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  // Total number of pages
-  const totalPages = Math.ceil(rooms.length / roomsPerPage);
-
-  // Calculate the number of days between check-in and check-out
   const calculateTotalAmount = () => {
-    if (bookingData.checkInDate && bookingData.checkOutDate && selectedRoom) {
+    if (hasSelectedDates && selectedRoom) {
       const checkIn = new Date(bookingData.checkInDate);
       const checkOut = new Date(bookingData.checkOutDate);
-      const timeDiff = checkOut.getTime() - checkIn.getTime();
-      const days = timeDiff / (1000 * 3600 * 24); // Convert milliseconds to days
-      if (days > 0) {
-        return days * selectedRoom.pricePerNight;
-      }
+      const days = (checkOut.getTime() - checkIn.getTime()) / (1000 * 3600 * 24);
+      return days > 0 ? days * selectedRoom.pricePerNight : 0;
     }
     return 0;
   };
@@ -62,11 +44,7 @@ const CreateBookingForm: React.FC<Props> = ({
   bookingData.totalAmount = calculateTotalAmount();
 
   const handleRoomSelectWrapper = (roomType: string) => {
-    // Find the first AVAILABLE room of that type
-    const availableRoom = rooms.find(
-      (r) => r.room_type === roomType && r.status === "AVAILABLE"
-    );
-  
+    const availableRoom = rooms.find((r) => r.room_type === roomType);
     if (availableRoom) {
       setSelectedRoom(availableRoom);
       handleRoomSelect(availableRoom.id.roomId);
@@ -75,90 +53,91 @@ const CreateBookingForm: React.FC<Props> = ({
     }
   };
 
+  const displayErrors = {
+    ...errors,
+    ...(hasSelectedDates && rooms.length === 0 && {
+      room: "Sorry, there are no available rooms for the selected dates.",
+    }),
+  };
+
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-lg mx-auto">
-      <h2 className="text-3xl font-semibold mb-6 text-center">
-        Create a New Booking
+    <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-2xl mx-auto">
+      <h2 className="text-4xl font-bold text-center mb-8 text-gray-800">
+        Create Booking
       </h2>
 
-      {validationErrors && (
-        <div className="text-red-500 text-center mb-4">{validationErrors}</div>
+      {Object.keys(displayErrors).length > 0 && (
+        <div className="p-4 mb-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <ul className="list-disc list-inside text-sm space-y-1">
+            {Object.values(displayErrors).map((msg, idx) => (
+              <li key={idx}>{msg}</li>
+            ))}
+          </ul>
+        </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Select a Room
-          </label>
-          <div className="flex items-center justify-between">
-            {/* Left Arrow Button */}
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-3 py-1 bg-gray-200 text-gray-600 rounded-md disabled:opacity-50"
-            >
-              &lt;
-            </button>
+        <label className="block text-lg font-semibold mb-2 text-gray-700">
+          Select a Room Type
+        </label>
 
-            {/* Room Grid */}
-            <div className="grid grid-cols-3 gap-2">
-              {currentRooms.map((room) => {
+        <div className="mb-4">
+          {uniqueRoomTypes.length === 0 ? (
+            <div className="text-center text-gray-600 py-4">
+              No rooms available for the selected dates.
+            </div>
+          ) : (
+            <div className="flex justify-center gap-4">
+              {uniqueRoomTypes.map((room) => {
                 const isAvailable = rooms.some(
-                  (r) => r.room_type === room.room_type && r.status === "AVAILABLE"
+                  (r) => r.room_type === room.room_type
                 );
-
                 const isSelected = selectedRoom?.room_type === room.room_type;
 
                 return (
                   <button
                     key={room.id.roomId}
                     type="button"
-                    disabled={!isAvailable}
-                    onClick={() =>
-                      isAvailable && handleRoomSelectWrapper(room.room_type)
-                    }
-                    className={`relative group border rounded-md px-2 py-1.5 text-center text-xs font-medium transition duration-300
+                    disabled={!hasSelectedDates || !isAvailable}
+                    onClick={() => handleRoomSelectWrapper(room.room_type)}
+                    className={`relative group p-4 rounded-xl border transition duration-300 text-center
                       ${
                         isSelected
                           ? "bg-blue-500 text-white border-blue-600"
                           : isAvailable
-                          ? "bg-gray-100 hover:bg-blue-100"
+                          ? "bg-gray-50 hover:bg-blue-50 text-gray-800"
                           : "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
                       }
                     `}
                   >
-                    <div className="font-medium text-sm">{room.room_type} Room</div>
+                    <div className="text-sm font-semibold mb-1">
+                      {room.room_type} ROOM
+                    </div>
+                    <div className="text-xs">
+                      ${room.pricePerNight}/night
+                    </div>
 
-                    {/* Tooltip on hover */}
-                    <div className="absolute z-10 left-1/2 transform -translate-x-1/2 bottom-full mb-2 flex-col bg-white text-gray-800 border border-gray-300 rounded-md p-2 shadow-md text-xs w-40 opacity-0 group-hover:opacity-100 pointer-events-none transition duration-200">
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-44 p-2 text-xs text-gray-700 bg-white border border-gray-300 rounded shadow-md opacity-0 group-hover:opacity-100 pointer-events-none transition">
                       {isAvailable ? (
                         <>
-                          <span className="font-medium">{room.room_type}</span>
-                          <span>${room.pricePerNight}/night</span>
+                          <div>{room.room_type} ROOM</div>
+                          <div>${room.pricePerNight} per night</div>
                         </>
                       ) : (
-                        <span className="text-red-500">Fully booked</span>
+                        <div className="text-red-500">Fully booked</div>
                       )}
                     </div>
                   </button>
                 );
               })}
             </div>
-
-            {/* Right Arrow Button */}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 bg-gray-200 text-gray-600 rounded-md disabled:opacity-50"
-            >
-              &gt;
-            </button>
-          </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-6">
           <div>
-            <label className="block text-gray-700 font-medium mb-1">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
               Check-in Date
             </label>
             <input
@@ -166,11 +145,12 @@ const CreateBookingForm: React.FC<Props> = ({
               name="checkInDate"
               value={bookingData.checkInDate}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+              min={today}
+              className="w-full p-2 border rounded-md border-gray-300 focus:ring-blue-500 focus:ring-2"
             />
           </div>
           <div>
-            <label className="block text-gray-700 font-medium mb-1">
+            <label className="block mb-1 text-sm font-medium text-gray-700">
               Check-out Date
             </label>
             <input
@@ -178,13 +158,14 @@ const CreateBookingForm: React.FC<Props> = ({
               name="checkOutDate"
               value={bookingData.checkOutDate}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+              min={today}
+              className="w-full p-2 border rounded-md border-gray-300 focus:ring-blue-500 focus:ring-2"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-1">
+          <label className="block mb-1 text-sm font-medium text-gray-700">
             Total Amount
           </label>
           <input
@@ -192,14 +173,14 @@ const CreateBookingForm: React.FC<Props> = ({
             name="totalAmount"
             value={bookingData.totalAmount}
             disabled
-            className="w-full p-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+            className="w-full p-2 border rounded-md border-gray-300 bg-gray-100 text-gray-600"
           />
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-blue-500 text-white px-4 py-3 rounded-md hover:bg-blue-600 transition duration-300"
+          className="w-full py-3 rounded-md bg-blue-600 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-50"
         >
           {isSubmitting ? "Submitting..." : "Create Booking"}
         </button>

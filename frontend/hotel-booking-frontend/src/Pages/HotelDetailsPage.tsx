@@ -50,7 +50,7 @@ const useHotelData = (id: string) => {
     fetchData();
   }, [id]);
 
-  return { loading, hotel, reviews, userInfo, setReviews };
+  return { loading, hotel, reviews, userInfo, setReviews, setUserInfo };
 };
 
 const renderStars = (rating: number) => {
@@ -69,7 +69,7 @@ const renderStars = (rating: number) => {
 
 const HotelDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { loading, hotel, reviews, userInfo, setReviews } = useHotelData(id!);
+  const { loading, hotel, reviews, userInfo, setReviews, setUserInfo } = useHotelData(id!);
   const [modalMessage, setModalMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hotelToDelete, setHotelToDelete] = useState<number | null>(null);
@@ -140,11 +140,29 @@ const HotelDetailsPage = () => {
     setIsReviewModalOpen(false);
   };
 
-  const handleReviewSubmitted = (review: Review | null) => {
+  const handleReviewSubmitted = async (review: Review | null) => {
     if (!review) return;
+  
+    // First, update the reviews state with the new review
     setReviews((prev) => [...prev, review]);
+  
+    // Fetch the user info for the reviewer
+    try {
+      const user = await getUserInfo(String(review.userId));
+  
+      // Update the userInfo state with the new user info
+      setUserInfo((prevUserInfo) => ({
+        ...prevUserInfo,
+        [review.userId]: user.user,
+      }));
+    } catch (error) {
+      console.error("Error fetching user info:", error);
+    }
+  
+    // Close the review modal
     handleCloseReviewModal();
   };
+  
 
   useEffect(() => {
     const fetchBookmarks = async () => {
@@ -184,6 +202,7 @@ const HotelDetailsPage = () => {
         setIsBookmarked={setIsBookmarked}
         handleBookmarkToggle={handleBookmarkToggle}
         handleDeleteHotel={handleDeleteHotel}
+        userId={currentUserId!}
         setIsReviewModalOpen={setIsReviewModalOpen}
       />
       <ConfirmationModal
