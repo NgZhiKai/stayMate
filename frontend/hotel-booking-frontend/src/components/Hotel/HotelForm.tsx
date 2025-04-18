@@ -11,7 +11,6 @@ interface HotelFormProps {
 }
 
 const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => {
-  const [id, setId] = useState<number | null>(hotelId || null);
   const [name, setName] = useState<string>('');
   const [address, setAddress] = useState<string>('');
   const [latitude, setLatitude] = useState<number>(0);
@@ -24,7 +23,7 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
   const [description, setDescription] = useState<string>('');
   const [contact, setContact] = useState<string>('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [error, setError] = useState<string>('');
+
 
   const fetchCoordinates = async (address: string) => {
     const encodedAddress = encodeURIComponent(address);
@@ -51,11 +50,9 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
           const { lat, lng } = validResult.geometry;
           setLatitude(lat);
           setLongitude(lng);
-          setError('');
         } else {
           setLatitude(0);
           setLongitude(0);
-          setError('Please enter a more complete and valid address (street, city, country).');
         }
       } else {
         setErrors((prev) => ({ ...prev, coordinates: 'Unable to fetch coordinates for the given address' }));
@@ -76,7 +73,6 @@ const HotelForm: React.FC<HotelFormProps> = ({ onSave, hotelId, hotelData }) => 
 
   useEffect(() => {
     if (hotelId && hotelData) {
-      setId(hotelData.id);
       setName(hotelData.name);
       setAddress(hotelData.address);
       setLatitude(hotelData.latitude);
