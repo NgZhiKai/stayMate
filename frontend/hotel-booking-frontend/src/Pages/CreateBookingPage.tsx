@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import CreateBookingForm from "../components/Booking/CreateBookingForm";
 import { useNotificationContext } from "../contexts/NotificationContext";
 import { createBooking } from "../services/bookingApi";
-import { getAvailableRooms } from "../services/roomApi";
+import { getHotelRooms, getAvailableRooms } from "../services/roomApi"; // Importing both APIs
 import { Booking } from "../types/Booking";
 import { Room } from "../types/Room";
 
@@ -43,9 +43,9 @@ const CreateBookingPage: React.FC = () => {
     totalAmount: 0,
   });
 
-  const [validationErrors, setValidationErrors] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);  // All rooms
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
@@ -57,26 +57,37 @@ const CreateBookingPage: React.FC = () => {
       setShowLoginPrompt(true);
       return;
     }
-
+  
     if (userId && hotelId) {
       setBookingData((prevData) => ({
         ...prevData,
         userId: Number(userId),
         hotelId: Number(hotelId),
       }));
-
-      const fetchAvailableRooms = async () => {
+  
+      const fetchRooms = async () => {
         try {
-          const availableRooms = await getAvailableRooms(Number(hotelId));
-          setRooms(availableRooms);
+          if (bookingData.checkInDate && bookingData.checkOutDate) {
+            const response = await getAvailableRooms(
+              Number(hotelId),
+              bookingData.checkInDate,
+              bookingData.checkOutDate
+            );
+            console.log(response);
+            setRooms(response || []);
+          } else {
+            const response = await getHotelRooms(Number(hotelId));
+            console.log(response);
+            setRooms(response || []);
+          }
         } catch (error) {
-          console.error("Failed to fetch available rooms", error);
+          console.error("Failed to fetch rooms", error);
         }
       };
-
-      fetchAvailableRooms();
+  
+      fetchRooms();
     }
-  }, [hotelId, userId]);
+  }, [hotelId, userId, bookingData.checkInDate, bookingData.checkOutDate]);  
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -96,38 +107,41 @@ const CreateBookingPage: React.FC = () => {
   };
 
   const validateForm = () => {
-    let errors = "";
+    const errors: { [key: string]: string } = {};
+  
     if (!bookingData.roomId || bookingData.roomId <= 0) {
-      errors += "Room ID must be a valid number. ";
+      errors.roomId = "Room must be selected.";
     }
+  
     if (!bookingData.checkInDate) {
-      errors += "Check-in Date is required. ";
+      errors.checkInDate = "Check-in date is required.";
     }
+  
     if (!bookingData.checkOutDate) {
-      errors += "Check-out Date is required. ";
+      errors.checkOutDate = "Check-out date is required.";
     }
+  
     if (bookingData.checkInDate && bookingData.checkOutDate) {
-      const checkInDate = new Date(bookingData.checkInDate);
-      const checkOutDate = new Date(bookingData.checkOutDate);
-      if (checkOutDate <= checkInDate) {
-        errors += "Check-out Date must be after Check-in Date. ";
+      const checkIn = new Date(bookingData.checkInDate);
+      const checkOut = new Date(bookingData.checkOutDate);
+      if (checkOut <= checkIn) {
+        errors.checkOutDate = "Check-out date must be after check-in date.";
       }
     }
+  
     return errors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errors = validateForm();
-    if (errors) {
+    if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
     } else {
       setIsSubmitting(true);
       try {
         await createBooking(bookingData);
-
         refreshNotifications();
-
         setIsSubmitting(false);
         setModalMessage("Booking created successfully!");
         setShowModal(true);
@@ -164,9 +178,9 @@ const CreateBookingPage: React.FC = () => {
       <div className="w-full max-w-screen-md p-6">
         <CreateBookingForm
           bookingData={bookingData}
-          rooms={rooms}
+          rooms={rooms}  // Pass all rooms here
           isSubmitting={isSubmitting}
-          validationErrors={validationErrors}
+          errors={validationErrors}
           handleInputChange={handleInputChange}
           handleRoomSelect={handleRoomSelect}
           handleSubmit={handleSubmit}

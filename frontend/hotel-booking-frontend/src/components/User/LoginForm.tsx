@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import MessageModal from "../MessageModal";
-import { LoginData } from "../../types/User";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { LoginData } from "../../types/User";
+import MessageModal from "../MessageModal";
 
 interface LoginFormProps {
   onLogin: (loginData: LoginData) => void;
@@ -43,56 +43,65 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const roles: ("customer" | "admin")[] = ["customer", "admin"];
 
-  const renderRoleButton = (role: "customer" | "admin") => (
-    <button
-      key={role}
-      onClick={() => handleChange({ target: { name: "role", value: role } } as React.ChangeEvent<HTMLInputElement>)}
-      className={`w-1/2 py-2 text-center font-medium text-gray-700 border-b-2 ${
-        loginData.role === role ? "border-blue-500" : "border-transparent"
-      } hover:border-blue-500 transition duration-300`}
-    >
-      {role === "customer" ? "User" : role.charAt(0).toUpperCase() + role.slice(1)}
-    </button>
-  );
-
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md mx-auto">
-      <h2 className="text-3xl font-semibold text-center mb-6">
+    <div className="bg-white border border-gray-100 shadow-2xl rounded-2xl p-8 w-full max-w-md mx-auto mt-20">
+      <h2 className="text-4xl font-bold text-center mb-8 text-gray-800">
         {loginData.role === "admin" ? "Admin Login" : "User Login"}
       </h2>
-
-      {/* Modal for Error Message */}
-      {error && <MessageModal isOpen={isModalOpen} message={error} onClose={closeModal} type="error" />}
-
-      {/* Role selection tabs */}
-      <div className="mb-6 flex border-b border-gray-300">
-        {roles.map(renderRoleButton)}
+  
+      {/* Error Modal */}
+      {error && (
+        <MessageModal
+          isOpen={isModalOpen}
+          message={error}
+          onClose={closeModal}
+          type="error"
+        />
+      )}
+  
+      {/* Role Toggle */}
+      <div className="mb-8 flex justify-center border border-gray-200 rounded-lg overflow-hidden">
+        {roles.map((role) => (
+          <button
+            key={role}
+            onClick={() => handleChange({ target: { name: "role", value: role } } as React.ChangeEvent<HTMLInputElement>)}
+            className={`flex-1 py-2 text-sm font-medium transition-colors duration-300 ${
+              loginData.role === role
+                ? "bg-blue-500 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {role === "admin" ? "Admin" : "User"}
+          </button>
+        ))}
       </div>
-
+  
       {/* Form Fields */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {(["email", "password"] as (keyof LoginData)[]).map(renderInputField)}
-
+  
+        {/* Login Button */}
         <button
           onClick={() => onLogin(loginData)}
-          className="w-full bg-blue-500 text-white px-4 py-3 rounded-full hover:bg-blue-600 shadow-md transition hover:scale-105 duration-300"
+          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-full font-semibold shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-[1.02]"
         >
           Login
         </button>
-
-        {/* Register Link with navigate */}
-        <div className="mt-4 text-center">
-          <span>Don't have an account? </span>
+  
+        {/* Register Link */}
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Don't have an account?{" "}
           <button
             onClick={() => navigate("/register")}
-            className="text-blue-500 hover:text-blue-600 transition duration-300 underline"
+            className="text-blue-500 font-medium hover:underline hover:text-blue-600 transition duration-300"
           >
             Register here
           </button>
-        </div>
+        </p>
       </div>
     </div>
-  );
+  );  
+  
 };
 
 export default LoginForm;

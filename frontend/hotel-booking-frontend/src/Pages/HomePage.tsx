@@ -113,14 +113,14 @@ const HomePage: React.FC = () => {
           {isAdmin && (
             <button
               onClick={handleCreateHotel}
-              className="fixed bottom-6 right-6 bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-all z-50">
+              className="fixed bottom-6 right-6 bg-blue-600 text-white px-4 py-3 rounded-full shadow-lg hover:bg-blue-700 hover:scale-105 transition-all z-50"
+            >
               Create Hotel
             </button>
           )}
-
       </div>
       <div>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recommended Hotels Now1</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recommended Hotels</h2>
 
         {loading ? (
           <p>Loading hotels...</p>
