@@ -61,7 +61,6 @@ const HomePage: React.FC = () => {
 
   const handleSearch = (query: string) => {
     if (!query.trim()) {
-      // If search box is empty or only spaces, show all hotels
       setFilteredHotels(hotels);
       return;
     }
@@ -121,7 +120,7 @@ const HomePage: React.FC = () => {
 
       </div>
       <div>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recommended Hotels</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recommended Hotels Now</h2>
 
         {loading ? (
           <p>Loading hotels...</p>
