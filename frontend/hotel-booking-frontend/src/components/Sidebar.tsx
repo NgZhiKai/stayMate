@@ -29,6 +29,8 @@ const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isO
       ${isOpen ? "translate-x-0" : "-translate-x-64"}`}
     >
       <nav className="flex flex-col space-y-3">
+        {/* Customer Side */}
+        {(role === null || role === "customer") && (
           <>
             <Link
               to="/"
@@ -42,8 +44,16 @@ const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isO
             >
               <MapPin size={18} /> Near Me
             </Link>
+            <Link
+              to="/bookmarked-hotels"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <Hotel size={18} /> Bookmarked Hotels
+            </Link>
           </>
+        )}
 
+        {/* Unauthenticated User */}
         {!isLoggedIn && (
           <>
             <Link
@@ -67,6 +77,7 @@ const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isO
           </>
         )}
 
+        {/* Authenticated Customer */}
         {isLoggedIn && role === "customer" && (
           <>
             <Link
@@ -106,6 +117,7 @@ const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isO
           </>
         )}
 
+        {/* Admin */}
         {isLoggedIn && role === "admin" && (
           <>
             {/* Admin Links */}
@@ -126,7 +138,7 @@ const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isO
               <Calendar size={18} /> My Bookings
             </Link>
 
-            {/* Dropdown toggle for admin links */}
+            {/* Admin Dropdown */}
             <div>
               <button
                 onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
@@ -158,7 +170,7 @@ const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isO
               )}
             </div>
 
-            {/* Admin settings link */}
+            {/* Admin Settings */}
             <Link
               to="/user-account-settings"
               className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"

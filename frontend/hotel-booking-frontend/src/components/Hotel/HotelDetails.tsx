@@ -13,6 +13,7 @@ type HotelDetailsProps = {
   renderStars: (rating: number) => React.ReactNode;
   isBookmarked: boolean;
   setIsBookmarked: (value: boolean) => void;
+  handleBookmarkToggle: () => void;
   handleDeleteHotel: (hotelId: number) => void;
   setIsReviewModalOpen: (open: boolean) => void;
   userId: Number;
@@ -26,41 +27,31 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
   formatToAMPM,
   renderStars,
   isBookmarked,
-  setIsBookmarked,
+  handleBookmarkToggle,
   handleDeleteHotel,
   setIsReviewModalOpen,
   userId,
 }) => {
-  const navigate = useNavigate();  // Initialize the navigate function
+  const navigate = useNavigate();
   const defaultImage = 'https://archive.org/download/placeholder-image/placeholder-image.jpg';
-
-  // Check if the user is an admin
   const userRole = sessionStorage.getItem('role');
   const isAdmin = userRole === 'admin';
 
   const formatPhoneNumber = (rawPhone: string) => {
     if (!rawPhone || rawPhone.length < 5) return rawPhone;
-  
-    // Assuming the first 2 digits are country code (e.g., 65 for Singapore)
     const countryCode = rawPhone.slice(0, 2);
     const localNumber = rawPhone.slice(2);
-  
     return `(+${countryCode}) ${localNumber}`;
-  };  
-
-  const handleBookmarkToggle = () => {
-    setIsBookmarked(!isBookmarked);
   };
 
   const handleBookClick = () => {
-    navigate(`/create-bookings/${hotel?.id}`);  // Navigate to create-bookings page when clicked
+    navigate(`/create-bookings/${hotel?.id}`);
   };
 
   const handleUpdateHotel = () => {
-    navigate(`/create-hotel/${hotel?.id}`); // Navigate to update-hotel page when clicked
+    navigate(`/create-hotel/${hotel?.id}`);
   };
 
-  // Helper component for displaying hotel contact info
   const ContactInfo = ({ hotel }: { hotel: HotelData | null }) => (
     <div>
       <h3 className="text-xl font-semibold mb-2">Contact Info</h3>
@@ -69,7 +60,6 @@ const HotelDetails: React.FC<HotelDetailsProps> = ({
     </div>
   );
 
-  // Helper component for displaying pricing and timing
   const PricingTiming = ({ hotel }: { hotel: HotelData | null }) => (
     <div>
       <h3 className="text-xl font-semibold mb-2">Pricing & Timing</h3>
