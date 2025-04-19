@@ -94,6 +94,11 @@ public class RoomService {
         return roomRepository.findByHotelId(hotelId);
     }
 
+    // Alias for getHotelRooms
+    public List<Room> getRoomsByHotelId(Long hotelId) {
+        return getHotelRooms(hotelId);
+    }
+
     public List<Room> getAvailableRooms(Long hotelId, LocalDate checkIn, LocalDate checkOut) {
         return roomRepository.findAvailableRooms(hotelId, checkIn, checkOut);
     }

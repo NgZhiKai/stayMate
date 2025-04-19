@@ -48,6 +48,11 @@ public class HotelService {
         return hotelRepository.findByNameContaining(name); // assuming findByNameContaining exists
     }
 
+    // Search hotels by name (alias for findHotelsByName)
+    public List<Hotel> searchHotelsByName(String name) {
+        return findHotelsByName(name);
+    }
+
     // Get the list of rooms for a specific hotel
     public List<Room> getRoomsByHotel(Long hotelId) {
         return hotelRepository.findById(hotelId)
