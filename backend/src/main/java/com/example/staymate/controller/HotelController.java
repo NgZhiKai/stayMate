@@ -240,6 +240,20 @@ public class HotelController {
         return ResponseEntity.ok(new CustomResponse<>("Hotels found successfully", response)); // 200 OK
     }
 
+    @Operation(summary = "Get hotel rooms", description = "Get all rooms for a specific hotel")
+    @GetMapping("/{id}/rooms")
+    public ResponseEntity<CustomResponse<List<Room>>> getHotelRooms(
+            @Parameter(description = "ID of the hotel") @PathVariable Long id) {
+        try {
+            Hotel hotel = hotelService.getHotelById(id);
+            List<Room> rooms = roomService.getRoomsByHotelId(id);
+            return ResponseEntity.ok(new CustomResponse<>("Rooms retrieved successfully", rooms));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new CustomResponse<>(e.getMessage(), null));
+        }
+    }
+
     @Operation(summary = "Get hotels within 10 km", description = "Returns hotels within a 10 km radius of the current location")
     @GetMapping("/hotels/nearby")
     public ResponseEntity<List<Hotel>> getHotelsNearby(@RequestParam double latitude, @RequestParam double longitude) {
