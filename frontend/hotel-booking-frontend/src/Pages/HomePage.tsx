@@ -102,7 +102,7 @@ const HomePage: React.FC = () => {
         {/* Centered Content */}
         <div className="text-center max-w-3xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Welcome to StayMate Hotel
+            Welcome to StayMate Hotel New
           </h1>
           {/* Search Bar centered */}
           <div className="w-full max-w-xl mx-auto">
