@@ -20,11 +20,11 @@ The project consists of two main parts:
 
 ## Frontend
 
-The frontend is built with **React** and **TypeScript**. For setup instructions and more details, refer to the [Frontend README](frontend/README.md).
+The frontend is built with **React** and **TypeScript**. For setup instructions and more details, refer to the [Frontend README](frontend/hotel-booking-frontend/readme.md).
 
 ## Backend
 
-The backend is built with **Java 8+** and **Spring Boot**. For setup instructions and more details, refer to the [Backend README](backend/README.md).
+The backend is built with **Java 8+** and **Spring Boot**. For setup instructions and more details, refer to the [Backend README](backend/readme.md).
 
 ## Requirements
 
