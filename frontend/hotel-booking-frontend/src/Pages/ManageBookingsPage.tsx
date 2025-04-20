@@ -112,36 +112,55 @@ const ManageBookingsPage: React.FC = () => {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex justify-center mt-6 space-x-2">
-          <button
-            onClick={() => paginate(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
-          >
-            Prev
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => (
+      <div className="flex justify-center mt-6 space-x-2">
+        <button
+          onClick={() => paginate(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+
+        {Array.from({ length: totalPages }, (_, i) => i + 1)
+          .filter((page) => {
+            return (
+              page === 1 ||
+              page === totalPages ||
+              Math.abs(page - currentPage) <= 1
+            );
+          })
+          .reduce<(number | string)[]>((acc, page, index, pages) => {
+            if (index > 0 && (page as number) - (pages[index - 1] as number) > 1) {
+              acc.push('...');
+            }
+            acc.push(page);
+            return acc;
+          }, [])
+          .map((item, index) => (
             <button
-              key={i + 1}
-              onClick={() => paginate(i + 1)}
+              key={index}
+              onClick={() => typeof item === 'number' && paginate(item)}
+              disabled={item === '...'}
               className={`px-3 py-1 rounded ${
-                currentPage === i + 1
-                  ? "bg-blue-600"
-                  : "bg-gray-700 hover:bg-gray-600"
-              }`}
+                item === currentPage
+                  ? 'bg-blue-600'
+                  : 'bg-gray-700 hover:bg-gray-600'
+              } ${item === '...' && 'cursor-default text-gray-400'}`}
             >
-              {i + 1}
+              {item}
             </button>
           ))}
-          <button
-            onClick={() => paginate(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
+
+        <button
+          onClick={() => paginate(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    )}
+
     </div>
   );
 };
