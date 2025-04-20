@@ -124,19 +124,37 @@ const AdminPaymentsPage: React.FC = () => {
           >
             Prev
           </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => goToPage(i + 1)}
-              className={`px-3 py-1 rounded ${
-                currentPage === i + 1
-                  ? "bg-blue-600"
-                  : "bg-gray-700 hover:bg-gray-600"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter((page) => {
+              return (
+                page === 1 ||
+                page === totalPages ||
+                Math.abs(page - currentPage) <= 1
+              );
+            })
+            .reduce<(number | string)[]>((acc, page, index, pages) => {
+              if (index > 0 && (page as number) - (pages[index - 1] as number) > 1) {
+                acc.push('...');
+              }
+              acc.push(page);
+              return acc;
+            }, [])
+            .map((item, index) => (
+              <button
+                key={index}
+                onClick={() => typeof item === 'number' && goToPage(item)}
+                disabled={item === '...'}
+                className={`px-3 py-1 rounded ${
+                  item === currentPage
+                    ? 'bg-blue-600'
+                    : 'bg-gray-700 hover:bg-gray-600'
+                } ${item === '...' && 'cursor-default text-gray-400'}`}
+              >
+                {item}
+              </button>
+            ))}
+
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}
@@ -146,6 +164,7 @@ const AdminPaymentsPage: React.FC = () => {
           </button>
         </div>
       )}
+
     </div>
   );
 };
