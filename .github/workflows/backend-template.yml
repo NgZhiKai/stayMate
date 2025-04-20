@@ -5,7 +5,7 @@ on:
     inputs:
       spring_profile:
         required: false
-        default: 'prod'
+        default: "prod"
         type: string
 
 env:
@@ -156,7 +156,7 @@ jobs:
           ssh -i ~/.ssh/staymateApplication.pem ec2-user@${{ env.APP_HOST_IP }} << 'EOF'
             cd /home/ec2-user
             echo "Stopping old application..."
-            PID=$(pgrep -f "staymate-*.jar")
+            PID=$(pgrep -f "staymate-.*\.jar")
             if [ -n "$PID" ]; then
               echo "Killing process $PID"
               kill -9 $PID
@@ -164,6 +164,6 @@ jobs:
               echo "No existing process found."
             fi
             echo "Starting new application..."
-            nohup java -Dspring.profiles.active=$SPRING_PROFILE -jar staymate-*.jar > staymate.log 2>&1 &
+            nohup java -jar staymate-*.jar > staymate.log 2>&1 &
             disown
           EOF

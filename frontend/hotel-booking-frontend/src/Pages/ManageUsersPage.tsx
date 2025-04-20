@@ -184,34 +184,53 @@ const ManageUsers: React.FC = () => {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex justify-center mt-6 space-x-4">
+        <div className="flex justify-center mt-6 space-x-2">
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
           >
             Prev
           </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => goToPage(i + 1)}
-              className={`px-4 py-2 rounded ${
-                currentPage === i + 1 ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter((page) => {
+              return (
+                page === 1 || 
+                page === totalPages || 
+                Math.abs(page - currentPage) <= 1
+              );
+            })
+            .reduce((acc: (number | string)[], page, index, pages) => {
+              if (index > 0 && (page as number) - (pages[index - 1] as number) > 1) {
+                acc.push('...');
+              }
+              acc.push(page);
+              return acc;
+            }, [])
+            .map((item, index) => (
+              <button
+                key={index}
+                onClick={() => typeof item === 'number' && goToPage(item)}
+                disabled={item === '...'}
+                className={`px-3 py-1 rounded ${
+                  item === currentPage ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'
+                } ${item === '...' && 'cursor-default text-gray-400'}`}
+              >
+                {item}
+              </button>
+            ))}
+
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
+            className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-50"
           >
             Next
           </button>
         </div>
       )}
+
 
       <UserModal
         isOpen={isModalOpen}

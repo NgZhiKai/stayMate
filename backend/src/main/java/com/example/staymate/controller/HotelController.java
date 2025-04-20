@@ -245,7 +245,7 @@ public class HotelController {
     public ResponseEntity<CustomResponse<List<Room>>> getHotelRooms(
             @Parameter(description = "ID of the hotel") @PathVariable Long id) {
         try {
-            Hotel hotel = hotelService.getHotelById(id);
+            hotelService.getHotelById(id);
             List<Room> rooms = roomService.getRoomsByHotelId(id);
             return ResponseEntity.ok(new CustomResponse<>("Rooms retrieved successfully", rooms));
         } catch (RuntimeException e) {
