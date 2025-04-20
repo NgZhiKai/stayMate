@@ -5,7 +5,7 @@ on:
     inputs:
       spring_profile:
         required: false
-        default: 'prod'
+        default: "prod"
         type: string
 
 env:
@@ -164,6 +164,6 @@ jobs:
               echo "No existing process found."
             fi
             echo "Starting new application..."
-            nohup java -Dspring.profiles.active=$SPRING_PROFILE -jar staymate-*.jar > staymate.log 2>&1 &
+            nohup java -jar staymate-*.jar > staymate.log 2>&1 &
             disown
           EOF
