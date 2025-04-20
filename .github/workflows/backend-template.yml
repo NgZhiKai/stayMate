@@ -164,6 +164,7 @@ jobs:
               echo "No existing process found."
             fi
             echo "Starting new application..."
-            nohup java -jar staymate-*.jar > staymate.log 2>&1 &
+            echo "Using Spring profile: $SPRING_PROFILE"
+            nohup java -jar -Dspring.profiles.active=$SPRING_PROFILE staymate-*.jar > staymate.log 2>&1 &
             disown
           EOF
