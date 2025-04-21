@@ -106,11 +106,16 @@ jobs:
           cd ${WORKING_DIR}
           mvn clean verify jacoco:report
 
+      - name: List files in target folder
+        run: |
+          echo "Listing files in target/"
+          ls -al ${WORKING_DIR}/target/site/jacoco/
+
       - name: Upload JaCoCo Report as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
-          path: ${WORKING_DIR}/target/site/jacoco/
+          path: ${WORKING_DIR}/target/site/jacoco/*.html
 
   deploy_to_ec2:
     name: Deploy to EC2
@@ -142,7 +147,7 @@ jobs:
       - name: Build and Install with Maven
         run: |
           cd ${WORKING_DIR}
-          mvn clean install --file ${WORKING_DIR}/pom.xml \
+          mvn clean install --file pom.xml \
             -Dspring.profiles.active=$SPRING_PROFILE \
             -Ddb.url="${{ needs.prepare_build.outputs.db_url }}" \
             -Ddb.username="${{ needs.prepare_build.outputs.db_username }}" \
