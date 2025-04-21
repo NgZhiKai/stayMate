@@ -115,7 +115,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-report
-          path: ${WORKING_DIR}/target/site/jacoco/*.html
+          path: ${{ env.WORKING_DIR }}/target/site/jacoco/
 
   deploy_to_ec2:
     name: Deploy to EC2
@@ -162,7 +162,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: staymate-backend
-          path: ${WORKING_DIR}/target/*.jar
+          path: ${{ env.WORKING_DIR }}/target/*.jar
 
       - name: Copy files to EC2 using SCP
         run: |
