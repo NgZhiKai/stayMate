@@ -116,6 +116,27 @@ The application uses **JUnit** and **Mockito** for unit testing. To run the test
 mvn test
 ```
 
+### Code Coverage with JaCoCo
+
+The project uses JaCoCo for code coverage reporting. To generate and view the coverage report:
+
+1. Run the tests with coverage:
+```bash
+mvn clean test jacoco:report
+```
+
+2. The coverage report will be generated in `target/site/jacoco/index.html`. You can open this file in your web browser using:
+```bash
+start target/site/jacoco/index.html
+```
+
+The report includes:
+- Overall coverage percentage
+- Line coverage
+- Branch coverage
+- Method coverage
+- Class coverage
+
 ## Contributing
 
 Contributions are welcome! If you have suggestions or improvements, feel free to submit a pull request.
