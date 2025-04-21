@@ -104,7 +104,7 @@ jobs:
       - name: Compile and Test with Maven
         run: |
           cd ${WORKING_DIR}
-          mvn clean verify jacoco:report --file ${WORKING_DIR}/pom.xml \
+          mvn clean verify jacoco:report
             -Dspring.profiles.active=$SPRING_PROFILE \
             -Ddb.url="${{ needs.prepare_build.outputs.db_url }}" \
             -Ddb.username="${{ needs.prepare_build.outputs.db_username }}" \
