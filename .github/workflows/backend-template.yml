@@ -105,7 +105,7 @@ jobs:
 
       - name: Compile and Test with Maven
         run: |
-          mvn clean verify --file
+          mvn clean verify
             -Dspring.profiles.active=$SPRING_PROFILE \
             -Ddb.url="${{ needs.prepare_build.outputs.db_url }}" \
             -Ddb.username="${{ needs.prepare_build.outputs.db_username }}" \
