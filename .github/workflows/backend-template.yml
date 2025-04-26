@@ -135,6 +135,7 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.STAYMATE_PEM }}" | base64 -d > ~/.ssh/staymateApplication.pem
+          cat ~/.ssh/staymateApplication.pem
           chmod 400 ~/.ssh/staymateApplication.pem
           ssh-keyscan -H ${{ env.APP_HOST_IP }} >> ~/.ssh/known_hosts
 
