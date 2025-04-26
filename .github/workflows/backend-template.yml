@@ -134,10 +134,10 @@ jobs:
       - name: Set up SSH for SCP
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.STAYMATE_PEM }}" > ~/.ssh/staymateApplication.pem
+          echo "${{ secrets.STAYMATE_PEM }}" | base64 -d > ~/.ssh/staymateApplication.pem
           chmod 400 ~/.ssh/staymateApplication.pem
           ssh-keyscan -H ${{ env.APP_HOST_IP }} >> ~/.ssh/known_hosts
-        
+
       - name: Check if EC2 is reachable
         run: |
           echo "Checking if EC2 is reachable..."
