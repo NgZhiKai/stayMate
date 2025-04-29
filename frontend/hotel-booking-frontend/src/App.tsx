@@ -1,16 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import HomePage from "./Pages/HomePage";
-import Sidebar from "./components/Sidebar";
+import React, { useEffect, useState } from "react";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Header from "./components/Header";
-import AccountPage from "./Pages/AccountPage";
+import Sidebar from "./components/Sidebar";
+import { AuthProvider } from "./contexts/AuthContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
+import AdminPaymentsPage from "./Pages/AdminPaymentsPage";
+import BookedHotelsPage from "./Pages/BookedHotelsPage";
+import BookingPage from './Pages/BookingPage';
+import CreateBookingPage from './Pages/CreateBookingPage';
+import CreateUpdateHotelPage from "./Pages/CreateUpdateHotelPage";
+import HomePage from "./Pages/HomePage";
+import HotelDetailsPage from "./Pages/HotelDetailsPage";
+import LoginPage from "./Pages/LoginPage";
+import LogOutPage from "./Pages/LogoutPage";
+import ManageBookingsPage from './Pages/ManageBookingsPage';
+import ManageUsersPage from './Pages/ManageUsersPage';
+import MyPaymentsPage from './Pages/MyPaymentsPage';
 import NearMePage from "./Pages/NearMePage";
+import NotifcationsPage from "./Pages/NotificationPage";
+import PaymentPage from "./Pages/PaymentPage";
 import RegisterPage from "./Pages/RegisterPage";
 import UserAccountSettings from "./Pages/UserAccountSettings";
-import SavedHotels from "./Pages/SavedHotelsPage";
-import HotelDetailsPage from "./Pages/HotelDetailsPage";
-import BookedHotelsPage from "./Pages/BookedHotelsPage";
-import PaymentPage from "./Pages/PaymentPage";
+import VerifyEmailPage from "./Pages/VerficationPage";
+import BookmarkedHotelsPage from "./Pages/BookmarkedHotelsPage";
 
 const App: React.FC = () => {
   const [isOpen, setIsOpen] = useState(() => {
@@ -23,32 +35,41 @@ const App: React.FC = () => {
   }, [isOpen]);
 
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen">
-        {/* ✅ Fixed Top Header */}
-        <Header toggleSidebar={() => setIsOpen(!isOpen)} />
-
-        <div className="flex flex-1 pt-16">
-          {/* ✅ Sidebar */}
-          <Sidebar isOpen={isOpen} toggleSidebar={() => setIsOpen(!isOpen)} />
-
-          {/* ✅ Main Content (Prevents overlap with header) */}
-          <div className={`flex-1 transition-all duration-300 p-4 ${isOpen ? "ml-64" : "ml-0"}`}>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/nearme" element={<NearMePage />} />
-              <Route path="/account" element={<AccountPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/user-account-settings" element={<UserAccountSettings />} />
-              <Route path="/saved-hotels" element={<SavedHotels />} />
-              <Route path="/hotel/:id" element={<HotelDetailsPage />} />
-              <Route path="/booked-hotels" element={<BookedHotelsPage />} />
-              <Route path="/payment" element={<PaymentPage />} />
-            </Routes>
+    <AuthProvider>
+      <NotificationProvider>
+        <Router basename={import.meta.env.BASE_URL}>
+          <div className="flex flex-col min-h-screen">
+            <Header toggleSidebar={() => setIsOpen(!isOpen)} />
+            <div className="flex flex-1 pt-16">
+              <Sidebar isOpen={isOpen} toggleSidebar={() => setIsOpen(!isOpen)} />
+              <div className={`flex-1 transition-all duration-300 p-4 ${isOpen ? "md:ml-64" : "ml-0"}`}>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/nearme" element={<NearMePage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/user-account-settings" element={<UserAccountSettings />} />
+                  <Route path="/hotel/:id" element={<HotelDetailsPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/logout" element={<LogOutPage />} />
+                  <Route path="/verify" element={<VerifyEmailPage />} />
+                  <Route path="/admin/users" element={<ManageUsersPage />} />
+                  <Route path="/admin/bookings" element={<ManageBookingsPage />} />
+                  <Route path="/create-hotel/:id?" element={<CreateUpdateHotelPage />} />
+                  <Route path="/bookings" element={<BookingPage />} />
+                  <Route path="/create-bookings/:hotelId" element={<CreateBookingPage />} />
+                  <Route path="/booked-hotels" element={<BookedHotelsPage />} />
+                  <Route path="/payment" element={<PaymentPage />} />
+                  <Route path="/notifications" element={<NotifcationsPage />} />
+                  <Route path="/my-payments" element={<MyPaymentsPage />} />
+                  <Route path="/admin/payments" element={<AdminPaymentsPage />} />
+                  <Route path="/bookmarked-hotels" element={<BookmarkedHotelsPage />} />
+                </Routes>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </Router>
+        </Router>
+      </NotificationProvider>
+    </AuthProvider>
   );
 };
 

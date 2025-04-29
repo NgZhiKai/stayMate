@@ -36,9 +36,9 @@ public class RoomService {
     public Room createRoom(Hotel hotel, Long roomId, RoomType roomType, double pricePerNight, int maxOccupancy) {
         // Use RoomFactory to create the Room
         Room room = RoomFactory.createRoom(hotel, roomId, roomType, pricePerNight, maxOccupancy);
-        
+
         // Debugging log
-        System.out.println("RoomId: " + room.getId()); 
+        System.out.println("RoomId: " + room.getId());
 
         // Save the newly created room to the database
         return roomRepository.save(room);
@@ -47,21 +47,24 @@ public class RoomService {
     // Method to book a room
     public Room bookRoom(Long hotelId, Long roomId, LocalDate checkInDate, LocalDate checkOutDate) {
         RoomId id = new RoomId(hotelId, roomId);
-    
+
         // Fetch room or throw exception if not found
         Room room = roomRepository.findById(id)
-                .orElseThrow(() -> new RoomNotFoundException("Room with ID " + roomId + " in Hotel " + hotelId + " not found."));
-    
+                .orElseThrow(() -> new RoomNotFoundException(
+                        "Room with ID " + roomId + " in Hotel " + hotelId + " not found."));
+
         // Check for overlapping bookings
-        List<Booking> overlappingBookings = bookingRepository.findOverlappingBookings(hotelId, roomId, checkInDate, checkOutDate);
-    
+        List<Booking> overlappingBookings = bookingRepository.findOverlappingBookings(hotelId, roomId, checkInDate,
+                checkOutDate);
+
         if (!overlappingBookings.isEmpty()) {
-            throw new RoomAlreadyBookedException("Room " + roomId + " in hotel " + hotelId + " is already booked for the selected dates.");
+            throw new RoomAlreadyBookedException(
+                    "Room " + roomId + " in hotel " + hotelId + " is already booked for the selected dates.");
         }
-    
+
         // Book the room
         room.book();
-    
+
         // Save and return updated room
         return roomRepository.save(room);
     }
@@ -76,7 +79,8 @@ public class RoomService {
         }
 
         // Check if the room has overlapping bookings
-        List<Booking> overlappingBookings = bookingRepository.findOverlappingBookings(hotelId, roomId, checkInDate, checkOutDate);
+        List<Booking> overlappingBookings = bookingRepository.findOverlappingBookings(hotelId, roomId, checkInDate,
+                checkOutDate);
 
         return overlappingBookings.isEmpty(); // Room is available if no overlapping bookings exist
     }
@@ -85,4 +89,18 @@ public class RoomService {
         return hotelRepository.findById(hotelId)
                 .orElseThrow(() -> new NoSuchElementException("Hotel with ID " + hotelId + " not found."));
     }
+
+    public List<Room> getHotelRooms(Long hotelId) {
+        return roomRepository.findByHotelId(hotelId);
+    }
+
+    // Alias for getHotelRooms
+    public List<Room> getRoomsByHotelId(Long hotelId) {
+        return getHotelRooms(hotelId);
+    }
+
+    public List<Room> getAvailableRooms(Long hotelId, LocalDate checkIn, LocalDate checkOut) {
+        return roomRepository.findAvailableRooms(hotelId, checkIn, checkOut);
+    }
+    
 }

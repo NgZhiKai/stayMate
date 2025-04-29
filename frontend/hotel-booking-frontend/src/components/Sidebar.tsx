@@ -1,21 +1,27 @@
-import React, { useState, useEffect } from "react";
+import {
+  Bell,
+  Calendar,
+  CheckCircle,
+  ClipboardList,
+  CreditCard,
+  Hotel,
+  LogIn,
+  LogOut,
+  MapPin,
+  Settings,
+  UserPlus,
+  Users
+} from "lucide-react";
+import React, { useContext, useState } from "react";
 import { Link } from "react-router-dom";
+import { AuthContext } from "../contexts/AuthContext";
+import { useNotificationContext } from "../contexts/NotificationContext";
 
-interface SidebarProps {
-  isOpen: boolean;
-  toggleSidebar: () => void;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
-  // ✅ Persistent state for expanding/collapsing the "User Account Settings" section
-  const [isSettingsOpen, setIsSettingsOpen] = useState(() => {
-    const saved = localStorage.getItem("settingsMenuOpen");
-    return saved ? JSON.parse(saved) : false;
-  });
-
-  useEffect(() => {
-    localStorage.setItem("settingsMenuOpen", JSON.stringify(isSettingsOpen));
-  }, [isSettingsOpen]);
+const Sidebar: React.FC<{ isOpen: boolean; toggleSidebar: () => void }> = ({ isOpen }) => {
+  const { isLoggedIn, role } = useContext(AuthContext);
+  const { notifications } = useNotificationContext();
+  const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
+  const unreadCount = notifications.filter(n => !n.isread).length;
 
   return (
     <div
@@ -23,42 +29,160 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       ${isOpen ? "translate-x-0" : "-translate-x-64"}`}
     >
       <nav className="flex flex-col space-y-3">
-        <Link to="/" className="hover:bg-gray-700 p-2 rounded">
-          🏠 Hotels
-        </Link>
-        <Link to="/nearme" className="hover:bg-gray-700 p-2 rounded">
-          📍 Near Me
-        </Link>
-        <Link to="/account" className="hover:bg-gray-700 p-2 rounded">
-          🧑‍💼 Account
-        </Link>
+        {/* Customer Side */}
+          <>
+            <Link
+              to="/"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <Hotel size={18} /> {role === "admin" ? "Manage Hotels" : "Hotels"}
+            </Link>
+            <Link
+              to="/nearme"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <MapPin size={18} /> Near Me
+            </Link>
+          </>
 
-        {/* ✅ Expandable Section: User Account Settings */}
-        <div className="hover:bg-gray-700 p-2 rounded">
-          <button
-            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            className="w-full text-left flex justify-between p-2 rounded hover:bg-gray-700"
-          >
-            🛠️ User Account Settings
-            <span>{isSettingsOpen ? "▲" : "▼"}</span>
-          </button>
+        {/* Unauthenticated User */}
+        {!isLoggedIn && (
+          <>
+            <Link
+              to="/login"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <LogIn size={18} /> Login
+            </Link>
+            <Link
+              to="/register"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <UserPlus size={18} /> Register
+            </Link>
+            <Link
+              to="/verify"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <CheckCircle size={18} /> Verify
+            </Link>
+          </>
+        )}
 
-          {/* ✅ Collapsible Sub-menu */}
-          {isSettingsOpen && (
-            <div className="ml-4 flex flex-col space-y-2">
-              <Link to="/user-account-settings" className="hover:bg-gray-700 p-2 rounded">
-                ⚙️ Settings
-              </Link>
-              <Link to="/saved-hotels" className="hover:bg-gray-700 p-2 rounded">
-                🏨 Saved Hotels
-              </Link>
+        {/* Authenticated Customer */}
+        {isLoggedIn && role === "customer" && (
+          <>
+            <Link
+              to="/bookmarked-hotels"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <Hotel size={18} /> Bookmarked Hotels
+            </Link>
+            <Link
+              to="/notifications"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <Bell size={18} />
+              Notifications
+              {unreadCount > 0 && (
+                <span className="ml-2 text-xs bg-red-500 text-white rounded-full px-2">{unreadCount}</span>
+              )}
+            </Link>
+            <Link
+              to="/bookings"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <Calendar size={18} /> My Bookings
+            </Link>
+            <Link
+              to="/my-payments"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <CreditCard size={18} /> My Payments
+            </Link>
+            <Link
+              to="/user-account-settings"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <Settings size={18} /> User Settings
+            </Link>
+            <Link
+              to="/logout"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <LogOut size={18} /> Logout
+            </Link>
+          </>
+        )}
+
+        {/* Admin */}
+        {isLoggedIn && role === "admin" && (
+          <>
+            {/* Admin Links */}
+            <Link
+              to="/notifications"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <Bell size={18} />
+              Notifications
+              {unreadCount > 0 && (
+                <span className="ml-2 text-xs bg-red-500 text-white rounded-full px-2">{unreadCount}</span>
+              )}
+            </Link>
+            <Link
+              to="/bookings"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <Calendar size={18} /> My Bookings
+            </Link>
+
+            {/* Admin Dropdown */}
+            <div>
+              <button
+                onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
+                className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded w-full text-left transition-all duration-200"
+              >
+                <ClipboardList size={18} /> Admin Actions
+              </button>
+              {isAdminDropdownOpen && (
+                <div className="pl-6 space-y-2">
+                  <Link
+                    to="/admin/users"
+                    className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+                  >
+                    <Users size={18} /> Manage Users
+                  </Link>
+                  <Link
+                    to="/admin/payments"
+                    className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+                  >
+                    <CreditCard size={18} /> Payments Overview
+                  </Link>
+                  <Link
+                    to="/admin/bookings"
+                    className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+                  >
+                    <ClipboardList size={18} /> Bookings Summary
+                  </Link>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <Link to="/booked-hotels" className="hover:bg-gray-700 p-2 rounded">
-          🏨 Booked Hotels
-        </Link>
+            {/* Admin Settings */}
+            <Link
+              to="/user-account-settings"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <Settings size={18} /> Admin Settings
+            </Link>
+            <Link
+              to="/logout"
+              className="flex items-center gap-2 hover:bg-gray-700 hover:text-white hover:scale-105 p-2 rounded transition-all duration-200"
+            >
+              <LogOut size={18} /> Logout
+            </Link>
+          </>
+        )}
       </nav>
     </div>
   );

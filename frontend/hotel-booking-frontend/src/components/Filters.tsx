@@ -1,5 +1,5 @@
+import { Box, Slider, Typography } from '@mui/material';
 import React from 'react';
-import { Slider, Typography, Box } from '@mui/material';
 
 interface FiltersProps {
   priceRange: [number, number];

@@ -5,6 +5,7 @@ export interface LoginData {
   }
   
 export interface User {
+    id: number;
     firstName: string;
     lastName: string;
     email: string;
@@ -13,6 +14,7 @@ export interface User {
   }
 
 export interface RegisterData {
+  id?: number;
   firstName: string;
   lastName: string;
   email: string;

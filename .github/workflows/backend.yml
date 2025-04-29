@@ -1,0 +1,8 @@
+name: Java Build with Maven
+
+on:
+  workflow_call:
+
+jobs:
+  backend-build:
+    uses: ./.github/workflows/backend-template.yml

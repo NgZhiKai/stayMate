@@ -16,27 +16,37 @@ public class BookingResponseDTO {
     private LocalDate checkOutDate;
     private String roomType;
     private String status;
+    private double totalAmount;
+
+    public double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
 
     public BookingResponseDTO(Booking booking) {
         this.bookingId = booking.getId();
         this.status = booking.getStatus().toString();
-        
+
         // Determine the room type based on the actual subclass
         if (booking.getRoom() != null) {
-            this.roomType = booking.getRoom().getClass().getSimpleName().replaceAll("Room", "").toUpperCase();  // Get room type by class name (SingleRoom, DoubleRoom, etc.)
+            this.roomType = booking.getRoom().getClass().getSimpleName().replaceAll("Room", "").toUpperCase();
         }
 
         this.checkInDate = booking.getCheckInDate();
         this.checkOutDate = booking.getCheckOutDate();
+        this.totalAmount = booking.getTotalAmount();
 
         // Extract hotelId, roomId, and phone from the booking
         if (booking.getRoom() != null) {
-            this.hotelId = booking.getRoom().getHotelId();  // Assuming booking has a room, and room has a hotel
-            this.roomId = booking.getRoom().getRoomId();  // Assuming room has an id
+            this.hotelId = booking.getRoom().getHotelId(); // Assuming booking has a room, and room has a hotel
+            this.roomId = booking.getRoom().getRoomId(); // Assuming room has an id
         }
 
         if (booking.getUser() != null) {
-            this.phone = booking.getUser().getPhoneNumber();  // Assuming user has a phone field
+            this.phone = booking.getUser().getPhoneNumber(); // Assuming user has a phone field
             this.firstName = booking.getUser().getFirstName();
             this.lastName = booking.getUser().getLastName();
             this.email = booking.getUser().getEmail();
@@ -132,5 +142,4 @@ public class BookingResponseDTO {
         this.bookingId = bookingId;
     }
 
-    
 }

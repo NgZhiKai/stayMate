@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,11 +27,8 @@ public class UserService implements Subject {
     @Autowired
     private UserRepository userRepository;
 
-    @Value("#{dynamicBaseUrl}")
+    @Value("${frontend.host_url}")
     private String baseUrl;
-
-    @Value("${server.port}")
-    private String serverPort;
 
     private final List<Observer> observers = new ArrayList<>();
 
@@ -43,18 +41,19 @@ public class UserService implements Subject {
         }
 
         user.setVerified(false);
+        user.setDeleted(false);
         User savedUser = userRepository.save(user);
 
         String token = generateVerificationToken(savedUser);
-        String verificationLink = baseUrl + ":" + serverPort + "/users/verify?token=" + token;
+        String verificationLink = baseUrl + "/stayMate/verify";
 
-        notifyObservers(savedUser, verificationLink);
+        notifyObservers(savedUser, verificationLink, token);
 
         return savedUser;
     }
 
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        return userRepository.findAllActiveUsers();
     }
 
     public User getUserById(Long id) {
@@ -85,25 +84,33 @@ public class UserService implements Subject {
         if (id == null || updatedUser == null) {
             throw new InvalidUserException("User ID and updated user data cannot be null.");
         }
+
+        // Fetch the existing user by ID
         User existingUser = getUserById(id);
 
-        existingUser.setFirstName(updatedUser.getFirstName());
-        existingUser.setLastName(updatedUser.getLastName());
-        existingUser.setEmail(updatedUser.getEmail());
-        existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
-        existingUser.setRole(updatedUser.getRole());
-
-        return userRepository.save(existingUser);
+        // If user is not found, throw an exception
+        if (existingUser == null) {
+            throw new InvalidUserException("User not found for ID: " + id);
+        }
+        updatedUser.setVerified(true);
+        // Save the updated user
+        return userRepository.save(updatedUser);
     }
 
     public void deleteUser(Long id) {
         if (id == null) {
             throw new InvalidUserException("User ID cannot be null.");
         }
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException("User not found with ID: " + id);
+
+        try {
+            userRepository.deleteById(id); // Try hard delete first
+        } catch (DataIntegrityViolationException e) {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+            user.setDeleted(true);
+            user.setEmail(null);
+            userRepository.save(user);
         }
-        userRepository.deleteById(id);
     }
 
     public String generateVerificationToken(User user) {
@@ -125,7 +132,6 @@ public class UserService implements Subject {
             return false;
         }
         user.setVerified(true);
-        user.setVerificationToken(null);
         userRepository.save(user);
         return true;
     }
@@ -147,13 +153,14 @@ public class UserService implements Subject {
         }
     }
 
-    public void notifyObservers(User user, String verificationLink) {
-        if (user == null || verificationLink == null || verificationLink.isBlank()) {
+    public void notifyObservers(User user, String verificationLink, String token) {
+        if (user == null || verificationLink == null || verificationLink.isBlank() || token == null) {
             throw new InvalidUserException("User and verification link cannot be null or empty.");
         }
         Map<String, Object> data = new HashMap<>();
         data.put("verificationLink", verificationLink);
         data.put("user", user);
+        data.put("token", token);
         notifyObservers(data);
     }
 

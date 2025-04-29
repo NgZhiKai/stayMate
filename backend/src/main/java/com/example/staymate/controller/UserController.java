@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.staymate.dto.custom.CustomResponse;
 import com.example.staymate.dto.user.UserCreationRequestDTO;
 import com.example.staymate.dto.user.UserLoginRequestDTO;
+import com.example.staymate.dto.user.UserRequestUpdateDto;
 import com.example.staymate.entity.user.User;
 import com.example.staymate.exception.InvalidUserException;
 import com.example.staymate.exception.ResourceNotFoundException;
@@ -143,10 +143,21 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<CustomResponse<User>> updateUser(
             @PathVariable @Parameter(description = "ID of the user to be updated") Long id,
-            @Valid @RequestBody @Parameter(description = "Updated user details") User user) {
+            @Valid @RequestBody @Parameter(description = "Updated user details") UserRequestUpdateDto userRequestUpdateDto) {
 
         try {
-            user.setId(id);
+            // Map UserRequestUpdateDto to the existing User entity
+            User user = userService.getUserById(id);
+            user.setFirstName(userRequestUpdateDto.getFirstName());
+            user.setLastName(userRequestUpdateDto.getLastName());
+            user.setEmail(userRequestUpdateDto.getEmail());
+            user.setPhoneNumber(userRequestUpdateDto.getPhoneNumber());
+
+            if (!userRequestUpdateDto.getPassword().equals(user.getPassword())) {
+                user.setPassword(userRequestUpdateDto.getPassword());
+            }
+
+            // Call the service to update the user
             User updatedUser = userService.updateUser(id, user);
             return ResponseEntity.ok(new CustomResponse<>("User updated successfully", updatedUser));
         } catch (ResourceNotFoundException e) {
@@ -161,6 +172,8 @@ public class UserController {
     public ResponseEntity<CustomResponse<Void>> deleteUser(
             @PathVariable @Parameter(description = "ID of the user to be deleted") Long id) {
 
+        System.out.println(id);
+
         try {
             userService.deleteUser(id);
             return ResponseEntity.status(HttpStatus.NO_CONTENT)
@@ -168,15 +181,17 @@ public class UserController {
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new CustomResponse<>("User not found with ID: " + id, null));
+        } catch (InvalidUserException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new CustomResponse<>(e.getMessage(), null));
         }
     }
 
     // Verify user with token
     @Operation(summary = "Verify user account", description = "Verifies the user account using a token from the registration email.")
-    @GetMapping("/verify")
-    public ResponseEntity<String> verifyUser(
-            @RequestParam @Parameter(description = "Verification token for user verification") String token) {
-
+    @PostMapping("/verify")
+    public ResponseEntity<String> verifyUser(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
         boolean isVerified = userService.verifyUser(token);
         if (isVerified) {
             return ResponseEntity.ok("User verified successfully.");
