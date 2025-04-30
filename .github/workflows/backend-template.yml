@@ -88,8 +88,8 @@ jobs:
           context: ./backend
           push: true
           tags: |
-            zhikai/staymate-app:latest
-            zhikai/staymate-app:${{ env.sha_short }}
+            ngzhikai/staymate-app:latest
+            ngzhikai/staymate-app:${{ env.sha_short }}
 
   # lint:
   #   name: Linting with JSHint
