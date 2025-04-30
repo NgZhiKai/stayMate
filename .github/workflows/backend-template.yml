@@ -110,7 +110,7 @@ jobs:
       - name: Delete old Docker Container
         run: docker rm -f staymate-app-container || true
       - name: Run Docker Container
-        run: docker run -d -p 4200:4200 --name staymate-app-container ngzhikai/staymate-app
+        run: docker run -d -p 4200:4200 --name staymate-app-container ngzhikai/staymate-app:backend-latest
 
   # lint:
   #   name: Linting with JSHint
