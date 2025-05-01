@@ -1,4 +1,3 @@
-# .github/workflows/build-all.yml
 name: Smart Build Pipeline
 
 on:
@@ -24,6 +23,11 @@ jobs:
               - 'backend/**'
             frontend:
               - 'frontend/hotel-booking-frontend/**'
+
+      - name: Debug the filtered paths
+        run: |
+          echo "Backend Changed: ${{ steps.filter.outputs.backend }}"
+          echo "Frontend Changed: ${{ steps.filter.outputs.frontend }}"
 
   backend-build:
     needs: detect-changes
