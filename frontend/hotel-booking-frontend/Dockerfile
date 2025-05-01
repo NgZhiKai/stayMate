@@ -12,17 +12,12 @@ COPY . .
 
 RUN npm run build
 
-FROM node:18-alpine AS PRODUCTION_IMAGE
-WORKDIR /app
+FROM nginx:1.23-alpine AS PRODUCTION_IMAGE
+WORKDIR /usr/share/nginx/html
+RUN rm -rf *
 
-COPY --from=BUILD_IMAGE /app/dist/ /app/dist/
+COPY --from=BUILD_IMAGE /app/dist/ .
 
-EXPOSE 5173
+EXPOSE 80
 
-COPY package.json .
-COPY vite.config.ts .
-
-RUN npm install typescript
-EXPOSE 5173
-
-CMD ["npm", "run" , "preview"]
+ENTRYPOINT [ "nginx", "-g", "daemon off;" ]
