@@ -10,4 +10,4 @@ COPY /target/*.jar app.jar
 EXPOSE 4200
 
 # Run the app
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "app.jar"]
