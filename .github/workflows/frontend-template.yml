@@ -119,7 +119,7 @@ jobs:
             echo "Creating container and extracting build..."
             container_id=$(docker create ngzhikai/staymate-app:frontend-latest)
             mkdir -p /home/ec2-user/frontend
-            docker cp \$container_id:/app/dist /home/ec2-user/frontend
+            docker cp \$container_id:/app/dist /home/ec2-user/frontend/dist
             docker rm \$container_id
           EOF
       
