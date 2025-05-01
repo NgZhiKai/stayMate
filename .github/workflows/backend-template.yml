@@ -150,18 +150,6 @@ jobs:
         run: docker push ngzhikai/staymate-app:backend-latest
 
   deploy_to_ec2:
-    name: Deploy Docker Container to EC2
-    runs-on: ubuntu-latest
-    needs: docker_build_and_push
-    steps:
-      - name: Pull Docker Image
-        run: docker pull ngzhikai/staymate-app:backend-latest
-      - name: Delete old Docker Container
-        run: docker rm -f staymate-app-container || true
-      - name: Run Docker Container
-        run: docker run -d -p 4200:4200 --name staymate-app-container ngzhikai/staymate-app:backend-latest
-
-  deploy_to_ec2:
     name: Deploy to EC2
     runs-on: ubuntu-latest
     needs: docker_build_and_push
