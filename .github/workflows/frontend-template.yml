@@ -83,10 +83,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Load Application Host IP
+      - name: Load Frontend Application Host IP
         run: |
-          export APP_HOST_IP=$(grep '^app.host_ip=' ${WORKING_DIR}/src/main/resources/application-${SPRING_PROFILE}.properties | cut -d '=' -f2)
+          # Extract the VITE_APP_BASE_URL from the .env.production file
+          export APP_HOST_IP=$(grep '^VITE_APP_BASE_URL=' .env.production | cut -d '=' -f2 | sed 's|http://\([a-zA-Z0-9.-]*\):.*|\1|')
+
+          # Print the APP_HOST_IP to the logs for debugging
           echo "APP_HOST_IP=$APP_HOST_IP"
+
+          # Set the environment variable so it can be accessed later in the workflow
           echo "APP_HOST_IP=$APP_HOST_IP" >> $GITHUB_ENV
 
       - name: Set up SSH for SCP
@@ -95,7 +100,7 @@ jobs:
           cp pemFiles/staymateApplication.pem ~/.ssh/staymateApplication.pem
           chmod 400 ~/.ssh/staymateApplication.pem
           ssh-keyscan -H ${{ env.APP_HOST_IP }} >> ~/.ssh/known_hosts
-      
+
       - name: Check if EC2 is reachable
         run: |
           echo "Checking if EC2 is reachable..."
@@ -106,7 +111,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/staymateApplication.pem ec2-user@${{ env.APP_HOST_IP }} << 'EOF'
             echo "Logging into EC2 and deploying Docker container..."
-            
+
             # Pull Docker image on EC2
             docker pull ngzhikai/staymate-app:frontend-latest
             
@@ -131,4 +136,3 @@ jobs:
 
           # Deploy the extracted dist directory from EC2 to GitHub Pages
           gh-pages -d /home/ec2-user/frontend/dist -r https://github.com/${{ github.repository }} -b gh-pages
-
