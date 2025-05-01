@@ -35,6 +35,9 @@ name: Build, Push Docker & Deploy to GitHub Pages
 on:
   workflow_call:
 
+env:
+  WORKING_DIR: frontend/hotel-booking-frontend
+
 jobs:
   build_and_push_docker:
     name: Build & Push Docker Image
@@ -86,7 +89,7 @@ jobs:
       - name: Load Frontend Application Host IP
         run: |
           # Extract the VITE_APP_BASE_URL from the .env.production file
-          export APP_HOST_IP=$(grep '^VITE_APP_BASE_URL=' .env.production | cut -d '=' -f2 | sed 's|http://\([a-zA-Z0-9.-]*\):.*|\1|')
+          export APP_HOST_IP=$(grep '^VITE_APP_BASE_URL=' ${WORKING_DIR}/.env.production | cut -d '=' -f2 | sed 's|http://\([a-zA-Z0-9.-]*\):.*|\1|')
 
           # Print the APP_HOST_IP to the logs for debugging
           echo "APP_HOST_IP=$APP_HOST_IP"
