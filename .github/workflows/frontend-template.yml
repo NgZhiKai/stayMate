@@ -129,18 +129,7 @@ jobs:
           scp -i ~/.ssh/staymateApplication.pem -o StrictHostKeyChecking=no -r ec2-user@${{ env.APP_HOST_IP }}:/home/ec2-user/frontend/dist ./frontend-dist
 
       - name: Deploy to GitHub Pages
-        run: |
-          # Install gh-pages package
-          npm install -g gh-pages
-
-          ABSOLUTE_DIST_PATH=$(pwd)/frontend-dist/dist
-          echo "Absolute path to dist: $ABSOLUTE_DIST_PATH"
-
-          # Check if the dist directory exists and deploy
-          if [ -d "$ABSOLUTE_DIST_PATH" ]; then
-            echo "dist directory exists. Deploying to GitHub Pages..."
-            gh-pages -d "$ABSOLUTE_DIST_PATH" -r https://github.com/${{ github.repository }} -b gh-pages
-          else
-            echo "Error: dist directory does not exist. Deployment aborted."
-            exit 1
-          fi
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: /frontend-dist/dist
