@@ -122,6 +122,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/staymateApplication.pem ec2-user@${{ env.APP_HOST_IP }} << EOF
             echo "Pulling frontend Docker image..."
+            docker system prune -a --volumes -f
             docker pull ngzhikai/staymate-app:frontend-latest
 
             echo "Creating container and extracting build..."
