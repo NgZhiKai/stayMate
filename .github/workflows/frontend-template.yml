@@ -1,10 +1,14 @@
-name: Frontend Deploy
+name: Build, Push Docker & Deploy to GitHub Pages
 
 on:
   workflow_call:
 
+env:
+  WORKING_DIR: frontend/hotel-booking-frontend
+
 jobs:
-  deploy:
+  lint:
+    name: Lint Frontend Code
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -19,13 +23,123 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install dependencies and build
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint and generate report
         run: |
-          npm install
-          npm run build
+          # Run linting, even if there are errors, to generate the report
+          npm run lint -- --format json -o eslint-report.json || true
+
+      - name: Check if ESLint report exists
+        run: |
+          # Confirm if the ESLint report exists
+          ls -alh
+          if [ -f "eslint-report.json" ]; then
+            echo "eslint-report.json found!"
+          else
+            echo "eslint-report.json not found!"
+            exit 1
+          fi
+
+      - name: Upload Lint Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-report
+          path: ./frontend/hotel-booking-frontend/eslint-report.json
+
+  build_and_push_docker:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: lint
+    defaults:
+      run:
+        working-directory: frontend/hotel-booking-frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ vars.DOCKER_PASSWORD }}
+
+      - name: Determine next Docker version tag
+        id: get_tag
+        run: |
+          tags=$(curl -s https://hub.docker.com/v2/repositories/ngzhikai/staymate-app/tags | jq -r '.results[].name' | grep '^frontend-version' || echo "")
+          if [ -z "$tags" ]; then
+            next_tag="frontend-version1"
+          else
+            latest_version=$(echo "$tags" | sed 's/frontend-version//' | sort -n | tail -n 1)
+            next=$((latest_version + 1))
+            next_tag="frontend-version$next"
+          fi
+          echo "Next tag: $next_tag"
+          echo "DOCKER_TAG=$next_tag" >> $GITHUB_ENV
+
+      - name: Build and push frontend Docker image
+        run: |
+          docker build -t ngzhikai/staymate-app:frontend-latest \
+                       -t ngzhikai/staymate-app:${{ env.DOCKER_TAG }} .
+
+          docker push ngzhikai/staymate-app:frontend-latest
+          docker push ngzhikai/staymate-app:${{ env.DOCKER_TAG }}
+
+  pull_and_deploy_gh_pages:
+    name: Pull Docker Image & Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build_and_push_docker
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load Frontend Application Host IP
+        run: |
+          # Extract the VITE_APP_BASE_URL from the .env.production file
+          export APP_HOST_IP=$(grep '^VITE_APP_BASE_URL=' ${WORKING_DIR}/.env.production | cut -d '=' -f2 | sed 's|http://\([a-zA-Z0-9.-]*\):.*|\1|')
+
+          # Print the APP_HOST_IP to the logs for debugging
+          echo "APP_HOST_IP=$APP_HOST_IP"
+
+          # Set the environment variable so it can be accessed later in the workflow
+          echo "APP_HOST_IP=$APP_HOST_IP" >> $GITHUB_ENV
+
+      - name: Set up SSH for SCP
+        run: |
+          mkdir -p ~/.ssh
+          cp pemFiles/staymateApplication.pem ~/.ssh/staymateApplication.pem
+          chmod 400 ~/.ssh/staymateApplication.pem
+          ssh-keyscan -H ${{ env.APP_HOST_IP }} >> ~/.ssh/known_hosts
+
+      - name: Check if EC2 is reachable
+        run: |
+          echo "Checking if EC2 is reachable..."
+          nc -zv ${{ env.APP_HOST_IP }} 22
+        continue-on-error: true
+
+      - name: SSH into EC2 and extract dist folder
+        run: |
+          ssh -i ~/.ssh/staymateApplication.pem ec2-user@${{ env.APP_HOST_IP }} << EOF
+            echo "Pulling frontend Docker image..."
+            docker pull ngzhikai/staymate-app:frontend-latest
+
+            echo "Creating container and extracting build..."
+            container_id=\$(docker create ngzhikai/staymate-app:frontend-latest)
+            mkdir -p /home/ec2-user/frontend
+            docker cp \$container_id:/app/dist /home/ec2-user/frontend
+            docker rm \$container_id
+          EOF
+
+      - name: Copy dist folder from EC2 to GitHub Actions runner
+        run: |
+          mkdir -p frontend-dist
+          scp -i ~/.ssh/staymateApplication.pem -o StrictHostKeyChecking=no -r ec2-user@${{ env.APP_HOST_IP }}:/home/ec2-user/frontend/dist ./frontend-dist
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: frontend/hotel-booking-frontend/dist
+          publish_dir: frontend-dist/dist
