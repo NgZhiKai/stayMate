@@ -114,18 +114,24 @@ jobs:
         run: |
           ssh -i ~/.ssh/staymateApplication.pem ec2-user@${{ env.APP_HOST_IP }} << 'EOF'
             echo "Logging into EC2 and deploying Docker container..."
-
+      
             # Pull Docker image on EC2
             docker pull ngzhikai/staymate-app:frontend-latest
-
+      
             # Create necessary directories if they don't exist
             mkdir -p /home/ec2-user/frontend/dist
-
+      
             # Create container and extract build files
             container_id=$(docker create ngzhikai/staymate-app:frontend-latest)
-            docker cp $container_id:/app/dist /home/ec2-user/frontend/dist
+            
+            # List files in /app to verify the dist directory exists
+            echo "Listing files in the Docker container:"
+            docker run --rm ngzhikai/staymate-app:frontend-latest ls /app
+      
+            # Now copy the dist directory
+            docker cp $container_id:/app/dist /home/ec2-user/frontend
             docker rm $container_id
-
+      
             # Check if dist exists
             if [ -d "/home/ec2-user/frontend/dist" ]; then
               echo "dist directory exists on EC2."
@@ -134,11 +140,18 @@ jobs:
               exit 1
             fi
           EOF
-
+      
       - name: Deploy to GitHub Pages
         run: |
           # Install gh-pages
           npm install -g gh-pages
-
-          # Deploy the extracted dist directory from EC2 to GitHub Pages
-          gh-pages -d /home/ec2-user/frontend/dist -r https://github.com/${{ github.repository }} -b gh-pages
+      
+          # Check if dist directory exists and deploy it
+          if [ -d "/home/ec2-user/frontend/dist" ]; then
+            echo "Deploying to GitHub Pages..."
+            gh-pages -d /home/ec2-user/frontend/dist -r https://github.com/${{ github.repository }} -b gh-pages
+          else
+            echo "Error: dist directory does not exist. Deployment aborted."
+            exit 1
+          fi
+      
