@@ -133,10 +133,12 @@ jobs:
 
             echo "Creating container and extracting build..."
             container_id=\$(docker create ngzhikai/staymate-app:frontend-latest)
-            rm -rf /home/ec2-user/frontend/dist
+            rm -rf /home/ec2-user/frontend
             mkdir -p /home/ec2-user/frontend
             docker cp \$container_id:/app/dist /home/ec2-user/frontend
             docker rm \$container_id
+
+            echo "New frontend deployed to /home/ec2-user/frontend/dist"
           EOF
 
       - name: Copy dist folder from EC2 to GitHub Actions runner
