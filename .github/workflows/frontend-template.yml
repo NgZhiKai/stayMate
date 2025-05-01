@@ -26,14 +26,27 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run Linting Script
-        run: npm run lint -- --format json -o eslint-report.json || true
+      - name: Run ESLint and generate report
+        run: |
+          # Run linting, even if there are errors, to generate the report
+          npm run lint -- --format json -o eslint-report.json || true
+
+      - name: Check if ESLint report exists
+        run: |
+          # Confirm if the ESLint report exists
+          ls -alh
+          if [ -f "eslint-report.json" ]; then
+            echo "eslint-report.json found!"
+          else
+            echo "eslint-report.json not found!"
+            exit 1
+          fi
 
       - name: Upload Lint Report as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: eslint-report
-          path: eslint-report.json
+          path: ./eslint-report.json
 
   build_and_push_docker:
     name: Build & Push Docker Image
