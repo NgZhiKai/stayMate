@@ -87,16 +87,36 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Pull Docker image
+      - name: Set up SSH key
         run: |
-          docker pull ngzhikai/staymate-app:frontend-latest
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/staymateApplication.pem
+          chmod 600 ~/.ssh/staymateApplication.pem
 
-      - name: Extract files from Docker container and deploy to GitHub Pages
+      - name: SSH into EC2 and pull Docker image
         run: |
-          container_id=$(docker create ngzhikai/staymate-app:frontend-latest)
-          docker cp $container_id:/app/dist ./frontend/dist
-          docker rm $container_id
+          ssh -i ~/.ssh/staymateApplication.pem ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+            # Pull Docker image on EC2
+            docker pull ngzhikai/staymate-app:frontend-latest
+            
+            # Create container and extract build files
+            container_id=$(docker create ngzhikai/staymate-app:frontend-latest)
+            docker cp $container_id:/app/dist /home/ec2-user/frontend/dist
+            docker rm $container_id
 
-          # Deploy to GitHub Pages
+            # Check if dist exists
+            if [ -d "/home/ec2-user/frontend/dist" ]; then
+              echo "dist directory exists on EC2."
+            else
+              echo "dist directory does not exist on EC2."
+              exit 1
+            fi
+          EOF
+
+      - name: Deploy to GitHub Pages
+        run: |
+          # Install gh-pages
           npm install -g gh-pages
-          gh-pages -d frontend/dist -r https://github.com/${{ github.repository }} -b gh-pages
+
+          # Deploy the extracted dist directory from EC2 to GitHub Pages
+          gh-pages -d /home/ec2-user/frontend/dist -r https://github.com/${{ github.repository }} -b gh-pages
+
