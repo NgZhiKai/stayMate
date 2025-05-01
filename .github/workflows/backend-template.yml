@@ -61,10 +61,66 @@ jobs:
             exit 1
           fi
 
+  lint:
+    name: Linting with JSHint
+    runs-on: ubuntu-latest
+    needs: prepare_build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installing JSHint
+        run: |
+          sudo npm install -g jshint
+
+      - name: Change script permission
+        run: |
+          chmod +x scripts/jshint-script.sh
+
+      - name: Run scan with JSHint
+        run: scripts/jshint-script.sh
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linting tool report
+          path: |
+            ./JSHint-report
+
+  jacoco_report:
+    name: JaCoCo Report Generation
+    runs-on: ubuntu-latest
+    needs: prepare_build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Compile and Test with Maven
+        run: |
+          cd ${WORKING_DIR}
+          mvn clean verify jacoco:report
+
+      - name: List files in target folder
+        run: |
+          echo "Listing files in target/"
+          ls -al ${WORKING_DIR}/target/site/jacoco/
+
+      - name: Upload JaCoCo Report as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: ${{ env.WORKING_DIR }}/target/site/jacoco/
+
   docker_build_and_push:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
-    needs: prepare_build
+    needs: [prepare_build, lint, jacoco_report]
 
     steps:
       - uses: actions/checkout@v4
@@ -93,19 +149,6 @@ jobs:
       - name: Publish image to DokcerHub
         run: docker push ngzhikai/staymate-app:backend-latest
 
-      # - name: Extract short SHA
-      #   id: vars
-      #   run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
-      # - name: Build and push Docker image
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     context: ./backend
-      #     push: true
-      #     tags: |
-      #       ngzhikai/staymate-app:backend-latest
-      #       ngzhikai/staymate-app:${{ env.sha_short }}
-
   deploy_to_ec2:
     name: Deploy Docker Container to EC2
     runs-on: ubuntu-latest
@@ -118,127 +161,79 @@ jobs:
       - name: Run Docker Container
         run: docker run -d -p 4200:4200 --name staymate-app-container ngzhikai/staymate-app:backend-latest
 
-  # lint:
-  #   name: Linting with JSHint
-  #   runs-on: ubuntu-latest
-  #   needs: prepare_build
+  deploy_to_ec2:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: docker_build_and_push
 
-  #   steps:
-  #     - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Installing JSHint
-  #       run: |
-  #         sudo npm install -g jshint
+      - name: Load Application Host IP
+        run: |
+          export APP_HOST_IP=$(grep '^app.host_ip=' ${WORKING_DIR}/src/main/resources/application-${SPRING_PROFILE}.properties | cut -d '=' -f2)
+          echo "APP_HOST_IP=$APP_HOST_IP"
+          echo "APP_HOST_IP=$APP_HOST_IP" >> $GITHUB_ENV
 
-  #     - name: Change script permission
-  #       run: |
-  #         chmod +x scripts/jshint-script.sh
+      - name: Set up SSH for SCP
+        run: |
+          mkdir -p ~/.ssh
+          cp pemFiles/staymateApplication.pem ~/.ssh/staymateApplication.pem
+          chmod 400 ~/.ssh/staymateApplication.pem
+          ssh-keyscan -H ${{ env.APP_HOST_IP }} >> ~/.ssh/known_hosts
 
-  #     - name: Run scan with JSHint
-  #       run: scripts/jshint-script.sh
+      - name: Check if EC2 is reachable
+        run: |
+          echo "Checking if EC2 is reachable..."
+          nc -zv ${{ env.APP_HOST_IP }} 22
+        continue-on-error: true
 
-  #     - name: Archive production artifacts
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: linting tool report
-  #         path: |
-  #           ./JSHint-report
+      # - name: Build and Install with Maven
+      #   run: |
+      #     cd ${WORKING_DIR}
+      #     mvn clean install --file pom.xml \
+      #       -Dspring.profiles.active=$SPRING_PROFILE \
+      #       -Ddb.url="${{ needs.prepare_build.outputs.db_url }}" \
+      #       -Ddb.username="${{ needs.prepare_build.outputs.db_username }}" \
+      #       -Ddb.password="${{ needs.prepare_build.outputs.db_password }}"
 
-  # jacoco_report:
-  #   name: JaCoCo Report Generation
-  #   runs-on: ubuntu-latest
-  #   needs: prepare_build
+      # - name: List files in target folder
+      #   run: |
+      #     echo "Listing files in target/"
+      #     ls -al ${WORKING_DIR}/target/
 
-  #   steps:
-  #     - uses: actions/checkout@v4
+      # - name: Upload JAR as an artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: staymate-backend
+      #     path: ${{ env.WORKING_DIR }}/target/*.jar
 
-  #     - name: Set up JDK 17
-  #       uses: actions/setup-java@v4
-  #       with:
-  #         java-version: "17"
-  #         distribution: "temurin"
+      # - name: Copy files to EC2 using SCP
+      #   run: |
+      #     JAR_FILE=$(ls ${WORKING_DIR}/target/*.jar | grep -v "original" | head -n 1)
+      #     scp -i ~/.ssh/staymateApplication.pem "$JAR_FILE" ec2-user@${{ env.APP_HOST_IP }}:/home/ec2-user
 
-  #     - name: Compile and Test with Maven
-  #       run: |
-  #         cd ${WORKING_DIR}
-  #         mvn clean verify jacoco:report
-
-  #     - name: List files in target folder
-  #       run: |
-  #         echo "Listing files in target/"
-  #         ls -al ${WORKING_DIR}/target/site/jacoco/
-
-  #     - name: Upload JaCoCo Report as Artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: jacoco-report
-  #         path: ${{ env.WORKING_DIR }}/target/site/jacoco/
-
-  # deploy_to_ec2:
-  #   name: Deploy to EC2
-  #   runs-on: ubuntu-latest
-  #   needs: [prepare_build, lint, jacoco_report]
-
-  #   steps:
-  #     - uses: actions/checkout@v4
-
-  #     - name: Load Application Host IP
-  #       run: |
-  #         export APP_HOST_IP=$(grep '^app.host_ip=' ${WORKING_DIR}/src/main/resources/application-${SPRING_PROFILE}.properties | cut -d '=' -f2)
-  #         echo "APP_HOST_IP=$APP_HOST_IP"
-  #         echo "APP_HOST_IP=$APP_HOST_IP" >> $GITHUB_ENV
-
-  #     - name: Set up SSH for SCP
-  #       run: |
-  #         mkdir -p ~/.ssh
-  #         cp pemFiles/staymateApplication.pem ~/.ssh/staymateApplication.pem
-  #         chmod 400 ~/.ssh/staymateApplication.pem
-  #         ssh-keyscan -H ${{ env.APP_HOST_IP }} >> ~/.ssh/known_hosts
-
-  #     - name: Check if EC2 is reachable
-  #       run: |
-  #         echo "Checking if EC2 is reachable..."
-  #         nc -zv ${{ env.APP_HOST_IP }} 22
-  #       continue-on-error: true
-
-  #     - name: Build and Install with Maven
-  #       run: |
-  #         cd ${WORKING_DIR}
-  #         mvn clean install --file pom.xml \
-  #           -Dspring.profiles.active=$SPRING_PROFILE \
-  #           -Ddb.url="${{ needs.prepare_build.outputs.db_url }}" \
-  #           -Ddb.username="${{ needs.prepare_build.outputs.db_username }}" \
-  #           -Ddb.password="${{ needs.prepare_build.outputs.db_password }}"
-
-  #     - name: List files in target folder
-  #       run: |
-  #         echo "Listing files in target/"
-  #         ls -al ${WORKING_DIR}/target/
-
-  #     - name: Upload JAR as an artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: staymate-backend
-  #         path: ${{ env.WORKING_DIR }}/target/*.jar
-
-  #     - name: Copy files to EC2 using SCP
-  #       run: |
-  #         JAR_FILE=$(ls ${WORKING_DIR}/target/*.jar | grep -v "original" | head -n 1)
-  #         scp -i ~/.ssh/staymateApplication.pem "$JAR_FILE" ec2-user@${{ env.APP_HOST_IP }}:/home/ec2-user
-
-  #     - name: SSH into EC2 and run the Jar in the background
-  #       run: |
-  #         ssh -i ~/.ssh/staymateApplication.pem ec2-user@${{ env.APP_HOST_IP }} << 'EOF'
-  #           cd /home/ec2-user
-  #           echo "Stopping old application..."
-  #           PID=$(pgrep -f "staymate-.*\.jar")
-  #           if [ -n "$PID" ]; then
-  #             echo "Killing process $PID"
-  #             kill -9 $PID
-  #           else
-  #             echo "No existing process found."
-  #           fi
-  #           echo "Starting new application..."
-  #           nohup java -jar staymate-*.jar > staymate.log 2>&1 &
-  #           disown
-  #         EOF
+      - name: SSH into EC2 and run the Docker container
+        run: |
+          ssh -i ~/.ssh/staymateApplication.pem ec2-user@${{ env.APP_HOST_IP }} << 'EOF'
+            echo "Logging into EC2 and deploying Docker container..."
+            
+            # Stop and remove old container if it exists
+            if [ "$(docker ps -aq -f name=staymate-app-container)" ]; then
+              echo "Removing existing container..."
+              docker rm -f staymate-app-container
+            else
+              echo "No existing container found."
+            fi
+      
+            # Pull the latest image
+            echo "Pulling latest Docker image..."
+            docker pull ngzhikai/staymate-app:backend-latest
+      
+            # Run the new container
+            echo "Starting new container..."
+            docker run -d -p 4200:4200 --name staymate-app-container ngzhikai/staymate-app:backend-latest
+      
+            echo "Deployment complete."
+          EOF
+    
