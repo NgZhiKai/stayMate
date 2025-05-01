@@ -87,18 +87,24 @@ jobs:
           username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ vars.DOCKER_PASSWORD }}
 
-      - name: Extract short SHA
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Build Docker image
+        run: docker build -t ngzhikai/staymate-app ./backend
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          push: true
-          tags: |
-            ngzhikai/staymate-app:backend-latest
-            ngzhikai/staymate-app:${{ env.sha_short }}
+      - name: Publish image to DokcerHub
+        run: docker push ngzhikai/staymate-app:backend-latest
+
+      # - name: Extract short SHA
+      #   id: vars
+      #   run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      # - name: Build and push Docker image
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: ./backend
+      #     push: true
+      #     tags: |
+      #       ngzhikai/staymate-app:backend-latest
+      #       ngzhikai/staymate-app:${{ env.sha_short }}
 
   deploy_to_ec2:
     name: Deploy Docker Container to EC2
