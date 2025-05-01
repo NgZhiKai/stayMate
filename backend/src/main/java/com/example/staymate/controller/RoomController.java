@@ -57,4 +57,25 @@ public class RoomController {
         return ResponseEntity.ok(availableRooms); // Send raw list
     }
 
+
+    @GetMapping("/available")
+    public ResponseEntity<List<Room>> getAvailable(
+            @RequestParam Long hotelId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkInDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOutDate) {
+
+        // Validate check-in and check-out date order
+        if (checkOutDate.isBefore(checkInDate)) {
+            return ResponseEntity.badRequest().build(); // No CustomResponse
+        }
+
+        List<Room> availableRooms = roomService.getAvailableRooms(hotelId, checkInDate, checkOutDate);
+
+        if (availableRooms.isEmpty()) {
+            return ResponseEntity.noContent().build(); // Standard 204 response
+        }
+
+        return ResponseEntity.ok(availableRooms); // Send raw list
+    }
+
 }
