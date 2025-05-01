@@ -132,13 +132,15 @@ jobs:
         run: |
           # Install gh-pages package
           npm install -g gh-pages
-        
-          # Check if the dist directory exists
-          if [ -d "./frontend-dist/dist" ]; then
+
+          ABSOLUTE_DIST_PATH=$(pwd)/frontend-dist/dist
+          echo "Absolute path to dist: $ABSOLUTE_DIST_PATH"
+
+          # Check if the dist directory exists and deploy
+          if [ -d "$ABSOLUTE_DIST_PATH" ]; then
             echo "dist directory exists. Deploying to GitHub Pages..."
-            gh-pages -d ./frontend-dist/dist -r https://github.com/${{ github.repository }} -b gh-pages
+            gh-pages -d "$ABSOLUTE_DIST_PATH" -r https://github.com/${{ github.repository }} -b gh-pages
           else
             echo "Error: dist directory does not exist. Deployment aborted."
             exit 1
           fi
-        
