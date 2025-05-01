@@ -125,22 +125,19 @@ jobs:
           nc -zv ${{ env.APP_HOST_IP }} 22
         continue-on-error: true
 
-      - name: SSH into EC2 and deploy frontend
+      - name: SSH into EC2 and extract dist folder
         run: |
-          ssh -i ~/.ssh/staymateApplication.pem ec2-user@${{ env.APP_HOST_IP }} << 'EOF'
+          ssh -i ~/.ssh/staymateApplication.pem ec2-user@${{ env.APP_HOST_IP }} << EOF
             echo "Pulling frontend Docker image..."
             docker pull ngzhikai/staymate-app:frontend-latest
-      
+
             echo "Creating container and extracting build..."
             container_id=\$(docker create ngzhikai/staymate-app:frontend-latest)
-            rm -rf /home/ec2-user/frontend/dist  # Clean existing files
+            rm -rf /home/ec2-user/frontend/dist
             mkdir -p /home/ec2-user/frontend
-            docker cp \$container_id:/app/dist /home/ec2-user/frontend/dist
+            docker cp \$container_id:/app/dist /home/ec2-user/frontend
             docker rm \$container_id
-      
-            echo "New frontend deployed to /home/ec2-user/frontend/dist"
           EOF
-      
 
       - name: Copy dist folder from EC2 to GitHub Actions runner
         run: |
