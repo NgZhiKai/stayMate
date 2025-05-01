@@ -142,12 +142,41 @@ jobs:
         with:
           username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ vars.DOCKER_PASSWORD }}
+      
+      - name: Get next backend Docker version tag
+        id: get_version
+        run: |
+          USER=ngzhikai
+          REPO=staymate-app
+        
+          echo "Fetching existing tags from Docker Hub..."
+        
+          TAGS=$(curl -s "https://hub.docker.com/v2/repositories/$USER/$REPO/tags?page_size=100" | jq -r '.results[].name')
+        
+          # Extract backend-version numbers, e.g., backend-version3 -> 3
+          LAST_NUM=$(echo "$TAGS" | grep '^backend-version[0-9]\+' | sed 's/backend-version//' | sort -nr | head -n1)
+        
+          if [ -z "$LAST_NUM" ]; then
+            NEXT_TAG=backend-version1
+          else
+            NEXT_NUM=$((LAST_NUM + 1))
+            NEXT_TAG=backend-version$NEXT_NUM
+          fi
+        
+          echo "Next tag: $NEXT_TAG"
+          echo "DOCKER_BACKEND_TAG=$NEXT_TAG" >> $GITHUB_ENV        
 
       - name: Build Docker image
-        run: docker build -t ngzhikai/staymate-app:backend-latest ./backend
-
-      - name: Publish image to DokcerHub
-        run: docker push ngzhikai/staymate-app:backend-latest
+        run: |
+          docker build -t ngzhikai/staymate-app:backend-latest \
+              -t ngzhikai/staymate-app:${{ env.DOCKER_BACKEND_TAG }} \
+              ./backend
+        
+      - name: Publish image to Docker Hub
+        run: |
+          docker push ngzhikai/staymate-app:backend-latest
+          docker push ngzhikai/staymate-app:${{ env.DOCKER_BACKEND_TAG }}
+        
 
   deploy_to_ec2:
     name: Deploy to EC2
@@ -175,31 +204,6 @@ jobs:
           echo "Checking if EC2 is reachable..."
           nc -zv ${{ env.APP_HOST_IP }} 22
         continue-on-error: true
-
-      # - name: Build and Install with Maven
-      #   run: |
-      #     cd ${WORKING_DIR}
-      #     mvn clean install --file pom.xml \
-      #       -Dspring.profiles.active=$SPRING_PROFILE \
-      #       -Ddb.url="${{ needs.prepare_build.outputs.db_url }}" \
-      #       -Ddb.username="${{ needs.prepare_build.outputs.db_username }}" \
-      #       -Ddb.password="${{ needs.prepare_build.outputs.db_password }}"
-
-      # - name: List files in target folder
-      #   run: |
-      #     echo "Listing files in target/"
-      #     ls -al ${WORKING_DIR}/target/
-
-      # - name: Upload JAR as an artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: staymate-backend
-      #     path: ${{ env.WORKING_DIR }}/target/*.jar
-
-      # - name: Copy files to EC2 using SCP
-      #   run: |
-      #     JAR_FILE=$(ls ${WORKING_DIR}/target/*.jar | grep -v "original" | head -n 1)
-      #     scp -i ~/.ssh/staymateApplication.pem "$JAR_FILE" ec2-user@${{ env.APP_HOST_IP }}:/home/ec2-user
 
       - name: SSH into EC2 and run the Docker container
         run: |
