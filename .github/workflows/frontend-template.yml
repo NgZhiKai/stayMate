@@ -62,7 +62,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm run install
+          npm install
           npm run build
 
       - name: Log in to Docker Hub
