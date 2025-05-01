@@ -1,4 +1,4 @@
-name: Java CI with Maven, and DAST
+name: Build, Push Docker & Deploy to EC2
 
 on:
   workflow_call:

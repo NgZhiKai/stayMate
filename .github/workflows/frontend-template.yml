@@ -1,35 +1,3 @@
-# name: Frontend Deploy
-
-# on:
-#   workflow_call:
-
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
-#     defaults:
-#       run:
-#         working-directory: frontend/hotel-booking-frontend
-
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-
-#       - name: Set up Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: 18
-
-#       - name: Install dependencies and build
-#         run: |
-#           npm install
-#           npm run build
-
-#       - name: Deploy to GitHub Pages
-#         uses: peaceiris/actions-gh-pages@v4
-#         with:
-#           github_token: ${{ secrets.GITHUB_TOKEN }}
-#           publish_dir: frontend/hotel-booking-frontend/dist
-
 name: Build, Push Docker & Deploy to GitHub Pages
 
 on:
@@ -39,9 +7,39 @@ env:
   WORKING_DIR: frontend/hotel-booking-frontend
 
 jobs:
+  lint:
+    name: Lint Frontend Code
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/hotel-booking-frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint and generate report
+        run: |
+          npx eslint . --ext .js,.jsx,.ts,.tsx --format json -o eslint-report.json
+
+      - name: Upload Lint Report as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: eslint-report
+          path: eslint-report.json
+
   build_and_push_docker:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
+    needs: lint
     defaults:
       run:
         working-directory: frontend/hotel-booking-frontend
