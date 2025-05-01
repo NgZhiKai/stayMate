@@ -30,8 +30,6 @@
 #           github_token: ${{ secrets.GITHUB_TOKEN }}
 #           publish_dir: frontend/hotel-booking-frontend/dist
 
-
-
 name: Build, Push Docker & Deploy to GitHub Pages
 
 on:
@@ -96,10 +94,9 @@ jobs:
       - name: Extract files from Docker container and deploy to GitHub Pages
         run: |
           container_id=$(docker create ngzhikai/staymate-app:frontend-latest)
-          docker cp $container_id:/app/frontend/dist ./frontend/dist
+          docker cp $container_id:/app/dist ./frontend/dist
           docker rm $container_id
-          
+
           # Deploy to GitHub Pages
           npm install -g gh-pages
           gh-pages -d frontend/dist -r https://github.com/${{ github.repository }} -b gh-pages
-
