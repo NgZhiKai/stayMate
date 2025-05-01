@@ -130,5 +130,15 @@ jobs:
 
       - name: Deploy to GitHub Pages
         run: |
+          # Install gh-pages package
           npm install -g gh-pages
-          gh-pages -d ./frontend-dist/dist -r https://github.com/${{ github.repository }} -b gh-pages
+        
+          # Check if the dist directory exists
+          if [ -d "./frontend-dist/dist" ]; then
+            echo "dist directory exists. Deploying to GitHub Pages..."
+            gh-pages -d ./frontend-dist/dist -r https://github.com/${{ github.repository }} -b gh-pages
+          else
+            echo "Error: dist directory does not exist. Deployment aborted."
+            exit 1
+          fi
+        
