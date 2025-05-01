@@ -1,14 +1,15 @@
-# Use an official Node.js runtime as a parent image
-FROM node:18-alpine
+FROM node:18-alpine AS BUILD_IMAGE
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the rest of the frontend code
+COPY package.json .
+
+RUN npm install
+
+RUN npm i -g serve
+
 COPY . .
 
-# Expose the port that the app runs on
-EXPOSE 5173
+RUN npm run build
 
-# Define the command to run the app
-CMD ["npm", "start"]
+CMD [ "npm", "run", "dev" ]
