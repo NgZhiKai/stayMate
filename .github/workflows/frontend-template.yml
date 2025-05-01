@@ -117,7 +117,10 @@ jobs:
 
             # Pull Docker image on EC2
             docker pull ngzhikai/staymate-app:frontend-latest
-            
+
+            # Create necessary directories if they don't exist
+            mkdir -p /home/ec2-user/frontend/dist
+
             # Create container and extract build files
             container_id=$(docker create ngzhikai/staymate-app:frontend-latest)
             docker cp $container_id:/app/dist /home/ec2-user/frontend/dist
