@@ -46,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: eslint-report
-          path: ./eslint-report.json
+          path: ./frontend/hotel-booking-frontend/eslint-report.json
 
   build_and_push_docker:
     name: Build & Push Docker Image
