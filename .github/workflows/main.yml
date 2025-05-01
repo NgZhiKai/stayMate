@@ -2,8 +2,8 @@ name: Smart Build Pipeline
 
 on:
   push:
-    branches:
-      - master
+    # branches:
+    #   - master
 
 jobs:
   detect-changes:
