@@ -91,11 +91,11 @@ jobs:
 
       - name: Pull Docker image
         run: |
-          docker pull ngzhikai/staymate-app:${{ needs.build_and_push_docker.outputs.DOCKER_TAG }}
+          docker pull ngzhikai/staymate-app:frontend-latest
 
       - name: Extract files from Docker container and deploy to GitHub Pages
         run: |
-          container_id=$(docker create ngzhikai/staymate-app:${{ needs.build_and_push_docker.outputs.DOCKER_TAG }})
+          container_id=$(docker create ngzhikai/staymate-app:frontend-latest)
           docker cp $container_id:/app/frontend/dist ./frontend/dist
           docker rm $container_id
           
