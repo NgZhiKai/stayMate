@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNotificationContext } from "../contexts/NotificationContext";
 import NotificationApi from "../services/notificationApi";
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 6;
 
 const NotificationsPage: React.FC = () => {
   const [userId, setUserId] = useState<number | null>(null);
@@ -93,52 +93,61 @@ const NotificationsPage: React.FC = () => {
   if (error) return <div>{error}</div>;
 
   return (
-    <div className="p-6 bg-gray-900 text-white min-h-full relative">
-      <h1 className="text-2xl mb-4">Notifications</h1>
-
-      {/* Mark All as Read Button (Positioned at top-right) */}
+    <div className="relative p-6 bg-gray-900 text-white min-h-full">
+      {/* Title & Action */}
+      <div className="mb-4">
+        <h1 className="text-2xl font-semibold">Notifications</h1>
+      </div>
+  
+      {/* Mark All as Read Button */}
       <button
         onClick={markAllAsRead}
-        className="absolute top-4 right-4 px-4 py-2 bg-blue-600 text-white rounded transition-all duration-300 transform hover:bg-blue-500 hover:scale-105 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
+        className="absolute top-6 right-6 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-500 hover:scale-105 active:scale-95 transition-all transform focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center"
+      >
+        <CheckCircle size={20} className="mr-2 text-white" />
         Mark All as Read
       </button>
 
+
+      {/* Notification List */}
       {currentNotifications.length === 0 ? (
-        <div>No notifications found.</div>
+        <div className="text-gray-400 text-center mt-20 text-sm">
+          You have no notifications.
+        </div>
       ) : (
-        <ul className="space-y-4">
+        <ul className="space-y-3">
           {currentNotifications.map((notification) => (
             <li
               key={notification.notificationId}
-              className={`flex items-center gap-2 p-3 rounded ${
-                notification.isread ? "bg-gray-700" : "bg-gray-800"
+              className={`flex items-start gap-2 p-3 rounded-lg shadow-sm transition ${
+                notification.isread ? "bg-gray-800" : "bg-gray-700"
               }`}
             >
-              <Bell size={18} />
+              <Bell size={18} className="mt-0.5 text-yellow-400" />
               <div className="flex-1">
-                <p>{notification.message}</p>
-                <p className="text-xs text-gray-400">
+                <p className="text-sm">{notification.message}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
                   {new Date(notification.createdAt).toLocaleString()}
                 </p>
               </div>
               {!notification.isread && (
                 <button
                   onClick={() => markAsRead(notification.notificationId)}
-                  className="text-green-500 hover:text-green-400 disabled:opacity-50"
                   disabled={markingId === notification.notificationId}
+                  className="text-green-500 hover:text-green-400 disabled:opacity-50 transition"
+                  aria-label="Mark as read"
                 >
-                  <CheckCircle size={18} />
+                  <CheckCircle size={16} />
                 </button>
               )}
             </li>
           ))}
         </ul>
       )}
-
+  
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex justify-center mt-6 space-x-2">
+        <div className="flex justify-center mt-6 space-x-1 text-sm">
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
@@ -169,7 +178,8 @@ const NotificationsPage: React.FC = () => {
         </div>
       )}
     </div>
-  );
+  );  
+  
 };
 
 export default NotificationsPage;

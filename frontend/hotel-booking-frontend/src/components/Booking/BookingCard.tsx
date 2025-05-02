@@ -39,17 +39,17 @@ const BookingCard: React.FC<BookingCardProps> = ({
 
   return (
     <div
-      className={`bg-gray-800 rounded-lg p-3 mb-3 w-full max-w-md mx-auto text-sm text-gray-300 shadow-sm hover:shadow-md transition ${
-        booking.status === "CANCELLED" ? "opacity-70" : ""
+      className={`bg-gray-800 rounded-xl p-4 w-full max-w-md mx-auto text-sm text-gray-300 shadow hover:shadow-lg transition-all duration-200 ${
+        booking.status === "CANCELLED" ? "opacity-60 cursor-not-allowed" : ""
       }`}
     >
-      {/* Top Row: Hotel name + status pill */}
-      <div className="flex justify-between items-center mb-1">
-        <h3 className="text-base font-semibold text-white">
+      {/* Header: Hotel Name + Status */}
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-lg font-semibold text-white truncate">
           {hotelName || "Loading..."}
         </h3>
         <span
-          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+          className={`text-xs font-semibold px-2 py-1 rounded-full ${
             booking.status === "CONFIRMED"
               ? "bg-green-200 text-green-800"
               : booking.status === "CANCELLED"
@@ -60,37 +60,38 @@ const BookingCard: React.FC<BookingCardProps> = ({
           {booking.status}
         </span>
       </div>
-
-      {/* Booking dates and room info */}
-      <div className="mb-2 space-y-1">
-        <div>
-          <span className="text-gray-400 font-medium">Check-in:</span>{" "}
-          {`${formatDate(booking.checkInDate)} ${hotelCheckIn || ""}`}
-        </div>
-        <div>
-          <span className="text-gray-400 font-medium">Check-out:</span>{" "}
-          {`${formatDate(booking.checkOutDate)} ${hotelCheckOut || ""}`}
-        </div>
-        <div>
-          <span className="text-gray-400 font-medium">Room:</span>{" "}
+  
+      {/* Booking Info */}
+      <div className="space-y-1.5 mb-2 text-sm">
+        <p>
+          <span className="font-medium text-gray-400">Check-in:</span>{" "}
+          {formatDate(booking.checkInDate)}{" "}
+          <span className="text-gray-500">{hotelCheckIn}</span>
+        </p>
+        <p>
+          <span className="font-medium text-gray-400">Check-out:</span>{" "}
+          {formatDate(booking.checkOutDate)}{" "}
+          <span className="text-gray-500">{hotelCheckOut}</span>
+        </p>
+        <p>
+          <span className="font-medium text-gray-400">Room:</span>{" "}
           {booking.roomType}
-        </div>
+        </p>
       </div>
-
-      {/* Action buttons - only if booking is PENDING */}
+  
+      {/* Actions */}
       {isPending && (
-        <div className="flex justify-end gap-2 mt-2">
+        <div className="flex justify-end gap-2 mt-4">
           <button
             onClick={handlePayment}
-            className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded-md"
+            className="flex items-center gap-1 bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-md transition"
           >
             <CreditCard size={14} />
             Pay
           </button>
-
           <button
             onClick={handleCancel}
-            className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded-md"
+            className="flex items-center gap-1 bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-md transition"
           >
             <XCircle size={14} />
             Cancel
@@ -99,6 +100,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
       )}
     </div>
   );
+  
 };
 
 export default BookingCard;
