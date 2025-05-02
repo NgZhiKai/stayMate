@@ -146,14 +146,14 @@ public class UserController {
             @Valid @RequestBody @Parameter(description = "Updated user details") UserRequestUpdateDto userRequestUpdateDto) {
 
         try {
-            // Map UserRequestUpdateDto to the existing User entity
             User user = userService.getUserById(id);
             user.setFirstName(userRequestUpdateDto.getFirstName());
             user.setLastName(userRequestUpdateDto.getLastName());
             user.setEmail(userRequestUpdateDto.getEmail());
             user.setPhoneNumber(userRequestUpdateDto.getPhoneNumber());
 
-            if (!userRequestUpdateDto.getPassword().equals(user.getPassword())) {
+            if (userRequestUpdateDto.getPassword() != null
+                    && !userRequestUpdateDto.getPassword().equals(user.getPassword())) {
                 user.setPassword(userRequestUpdateDto.getPassword());
             }
 

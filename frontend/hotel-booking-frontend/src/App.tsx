@@ -7,6 +7,7 @@ import { NotificationProvider } from "./contexts/NotificationContext";
 import AdminPaymentsPage from "./Pages/AdminPaymentsPage";
 import BookedHotelsPage from "./Pages/BookedHotelsPage";
 import BookingPage from './Pages/BookingPage';
+import BookmarkedHotelsPage from "./Pages/BookmarkedHotelsPage";
 import CreateBookingPage from './Pages/CreateBookingPage';
 import CreateUpdateHotelPage from "./Pages/CreateUpdateHotelPage";
 import HomePage from "./Pages/HomePage";
@@ -22,7 +23,6 @@ import PaymentPage from "./Pages/PaymentPage";
 import RegisterPage from "./Pages/RegisterPage";
 import UserAccountSettings from "./Pages/UserAccountSettings";
 import VerifyEmailPage from "./Pages/VerficationPage";
-import BookmarkedHotelsPage from "./Pages/BookmarkedHotelsPage";
 
 const App: React.FC = () => {
   const [isOpen, setIsOpen] = useState(() => {
@@ -45,23 +45,23 @@ const App: React.FC = () => {
               <div className={`flex-1 transition-all duration-300 p-4 ${isOpen ? "md:ml-64" : "ml-0"}`}>
                 <Routes>
                   <Route path="/" element={<HomePage />} />
+                  <Route path="/hotel/:id" element={<HotelDetailsPage />} />
+                  <Route path="/create-hotel/:id?" element={<CreateUpdateHotelPage />} />
+                  <Route path="/create-bookings/:hotelId" element={<CreateBookingPage />} />
                   <Route path="/nearme" element={<NearMePage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/user-account-settings" element={<UserAccountSettings />} />
-                  <Route path="/hotel/:id" element={<HotelDetailsPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/logout" element={<LogOutPage />} />
                   <Route path="/verify" element={<VerifyEmailPage />} />
                   <Route path="/admin/users" element={<ManageUsersPage />} />
                   <Route path="/admin/bookings" element={<ManageBookingsPage />} />
-                  <Route path="/create-hotel/:id?" element={<CreateUpdateHotelPage />} />
                   <Route path="/bookings" element={<BookingPage />} />
-                  <Route path="/create-bookings/:hotelId" element={<CreateBookingPage />} />
                   <Route path="/booked-hotels" element={<BookedHotelsPage />} />
-                  <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/notifications" element={<NotifcationsPage />} />
                   <Route path="/my-payments" element={<MyPaymentsPage />} />
                   <Route path="/admin/payments" element={<AdminPaymentsPage />} />
+                  <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/bookmarked-hotels" element={<BookmarkedHotelsPage />} />
                 </Routes>
               </div>

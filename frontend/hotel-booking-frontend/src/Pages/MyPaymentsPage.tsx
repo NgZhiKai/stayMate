@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getPaymentsByUserId } from "../services/paymentApi"; // Make sure this is the correct path
-import { Payment } from "../types/Payment"; // Assumes you have a Payment type defined
 import { CreditCard } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { getPaymentsByUserId } from "../services/paymentApi";
+import { Payment } from "../types/Payment";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -11,12 +10,9 @@ const MyPaymentsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  const navigate = useNavigate();
-
   useEffect(() => {
     const fetchPayments = async () => {
       const storedUserId = sessionStorage.getItem("userId");
-
       if (!storedUserId) {
         setLoading(false);
         return;
@@ -26,13 +22,7 @@ const MyPaymentsPage: React.FC = () => {
         const userId = Number(storedUserId);
         setLoading(true);
         const data = await getPaymentsByUserId(userId);
-
-        if (Array.isArray(data)) {
-          // No filtering, just use all payments
-          setPayments(data);
-        } else {
-          setPayments([]);
-        }
+        setPayments(Array.isArray(data) ? data : []);
       } catch (err: any) {
         console.error(err);
       } finally {
@@ -50,23 +40,8 @@ const MyPaymentsPage: React.FC = () => {
   );
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const nextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handleMakePayment = (paymentId: number) => {
-    // You can implement a specific page for payment if necessary
-    navigate(`/payment/${paymentId}`);
-  };
+  const prevPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
+  const nextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
 
   if (loading) return <div className="p-6 text-white">Loading payments...</div>;
 
@@ -79,85 +54,83 @@ const MyPaymentsPage: React.FC = () => {
           <p className="text-gray-500 text-center col-span-full">No payments found.</p>
         ) : (
           currentPayments.map((payment) => (
-            <div key={payment.id} className="flex items-center justify-between gap-4 p-4 rounded bg-gray-800 text-sm">
+            <div
+              key={payment.id}
+              className="p-6 rounded-xl bg-gradient-to-br from-gray-800 to-gray-700 shadow-lg text-gray-200 flex flex-col gap-4"
+            >
               <div className="flex items-center gap-3">
-                <CreditCard size={20} />
-                <span><strong>Booking:</strong> {payment.bookingId}</span>
-                <span><strong>Amount:</strong> ${payment.amount.toFixed(2)}</span>
-                <span className="flex items-center gap-1 text-sm">
-                  <strong>Status:</strong>
-                  <span
-                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      payment.status === "SUCCESS"
-                        ? "bg-green-200 text-green-800"
-                        : payment.status === "FAILURE"
-                        ? "bg-red-200 text-red-800"
-                        : "bg-yellow-200 text-yellow-800"
-                    }`}
-                  >
-                    {payment.status}
-                  </span>
+                <CreditCard size={28} className="text-blue-400" />
+                <div>
+                  <div className="text-lg font-semibold">Booking #{payment.bookingId}</div>
+                  <div className="text-sm text-gray-400">{new Date(payment.transactionDate).toLocaleString()}</div>
+                </div>
+              </div>
+
+              <div className="flex justify-between text-base font-medium">
+                <span>Amount</span>
+                <span className="text-blue-300">${payment.amount.toFixed(2)}</span>
+              </div>
+
+              <div className="flex justify-between text-base font-medium">
+                <span>Status</span>
+                <span
+                  className={`text-xs font-bold px-3 py-1 rounded-full ${
+                    payment.status === "SUCCESS"
+                      ? "bg-green-200 text-green-800"
+                      : payment.status === "FAILURE"
+                      ? "bg-red-200 text-red-800"
+                      : "bg-yellow-200 text-yellow-800"
+                  }`}
+                >
+                  {payment.status}
                 </span>
               </div>
-              <div className="text-xs text-gray-400">
-                {new Date(payment.transactionDate).toLocaleString()}
-              </div>
-              <button
-                onClick={() => handleMakePayment(payment.id)}
-                className="text-blue-500 hover:text-blue-300"
-              >
-                Make Payment
-              </button>
             </div>
           ))
         )}
       </div>
 
-      <div className="flex justify-center mt-4 items-center gap-2">
-        {payments.length > 0 && (
-          <>
+      {payments.length > 0 && (
+        <div className="flex justify-center mt-6 items-center gap-2">
+          <button
+            onClick={prevPage}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded-md ${
+              currentPage === 1
+                ? "bg-gray-300 text-gray-800 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-500 transition"
+            }`}
+          >
+            &lt;
+          </button>
+
+          {Array.from({ length: totalPages }, (_, index) => (
             <button
-              onClick={prevPage}
-              disabled={currentPage === 1}
+              key={index + 1}
+              onClick={() => paginate(index + 1)}
               className={`px-4 py-2 rounded-md ${
-                currentPage === 1
-                  ? "bg-gray-300 text-gray-800 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-500 transition-colors duration-200"
+                currentPage === index + 1
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-300 text-gray-800 hover:bg-gray-200 transition"
               }`}
             >
-              &lt;
+              {index + 1}
             </button>
+          ))}
 
-            <div className="flex gap-2">
-              {Array.from({ length: totalPages }, (_, index) => (
-                <button
-                  key={index + 1}
-                  onClick={() => paginate(index + 1)}
-                  className={`px-4 py-2 rounded-md ${
-                    currentPage === index + 1
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-300 text-gray-800 hover:bg-gray-200 transition-colors duration-200"
-                  }`}
-                >
-                  {index + 1}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={nextPage}
-              disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-md ${
-                currentPage === totalPages
-                  ? "bg-gray-300 text-gray-800 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-500 transition-colors duration-200"
-              }`}
-            >
-              &gt;
-            </button>
-          </>
-        )}
-      </div>
+          <button
+            onClick={nextPage}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 rounded-md ${
+              currentPage === totalPages
+                ? "bg-gray-300 text-gray-800 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-500 transition"
+            }`}
+          >
+            &gt;
+          </button>
+        </div>
+      )}
     </div>
   );
 };

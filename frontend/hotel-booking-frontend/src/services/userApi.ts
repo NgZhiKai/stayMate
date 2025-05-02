@@ -109,6 +109,7 @@ export const getUserByEmail = async (email: string) => {
 
 export const updateUser = async (id: string, userData: any) => {
   try {
+    console.log(userData);
     const response = await fetch(`${API_BASE_URL}/${id}`, {
       method: "PUT",
       headers: {

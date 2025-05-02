@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import MessageModal from "../components/MessageModal";
+import { useNotificationContext } from "../contexts/NotificationContext";
 import { getBookingById } from "../services/bookingApi";
 import { fetchHotelById } from "../services/hotelApi";
 import { createAndProcessPayment, getPaymentsByBookingId } from "../services/paymentApi";
-import { useNotificationContext } from "../contexts/NotificationContext"; // Import NotificationContext
 
 const PaymentPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { bookingId } = location.state || {};
 
-  const { refreshNotifications } = useNotificationContext(); // Access refreshNotifications from context
+  const { refreshNotifications } = useNotificationContext();
 
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
