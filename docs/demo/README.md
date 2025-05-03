@@ -1,4 +1,4 @@
 # StayMate Demo Videos
 
 ## User Register
-<video src="./stayMate_register.mp4" controls width="600"></video>
+[![Watch the video](https://raw.githubusercontent.com/NgZhiKai/stayMate/tree/feature/jk-develop/docs/stayMate.png)](https://raw.githubusercontent.com/NgZhiKai/stayMate/tree/feature/jk-develop/docs/stayMate_register.mp4)
