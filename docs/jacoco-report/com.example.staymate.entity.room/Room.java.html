@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Room.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.entity.room</a> &gt; <span class="el_source">Room.java</span></div><h1>Room.java</h1><pre class="source lang-java linenums">package com.example.staymate.entity.room;
+
+import com.example.staymate.entity.enums.RoomStatus;
+import com.example.staymate.entity.enums.RoomType;
+import com.example.staymate.entity.hotel.Hotel;
+import com.example.staymate.entity.state.roomstate.AvailableState;
+import com.example.staymate.entity.state.roomstate.BookedState;
+import com.example.staymate.entity.state.roomstate.RoomState;
+import com.example.staymate.entity.state.roomstate.UnderMaintenanceState;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
+@Entity
+@Inheritance(strategy= InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name=&quot;room_type&quot;, discriminatorType= DiscriminatorType.STRING)
+@Table(name=&quot;room&quot;)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = &quot;room_type&quot;)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = SingleRoom.class, name = &quot;SINGLE&quot;),
+    @JsonSubTypes.Type(value = DoubleRoom.class, name = &quot;DOUBLE&quot;),
+    @JsonSubTypes.Type(value = SuiteRoom.class, name = &quot;SUITE&quot;),
+    @JsonSubTypes.Type(value = DeluxeRoom.class, name = &quot;DELUXE&quot;)
+})
+public abstract class Room {
+
+    @EmbeddedId
+    @AttributeOverride(name = &quot;hotelId&quot;, column = @Column(name = &quot;hotel_id&quot;))
+    @AttributeOverride(name = &quot;roomId&quot;, column = @Column(name = &quot;room_id&quot;))
+    private RoomId id;  // Using composite key (hotel_id, room_id)
+
+    @Column(name = &quot;price_per_night&quot;)
+    private double pricePerNight;
+
+    @Column(name = &quot;max_occupancy&quot;)
+    private int maxOccupancy;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;status&quot;)
+    private RoomStatus status;
+
+    @Transient
+    private RoomState roomState;
+
+<span class="nc" id="L57">    public Room() {</span>
+<span class="nc" id="L58">        this.status = RoomStatus.AVAILABLE;</span>
+<span class="nc" id="L59">        updateState();</span>
+<span class="nc" id="L60">    }</span>
+
+<span class="fc" id="L62">    public Room(Hotel hotel, Long roomId, RoomType roomType, double pricePerNight, int maxOccupancy) {</span>
+        // Setting the composite key
+<span class="fc" id="L64">        this.id = new RoomId(hotel.getId(), roomId);</span>
+        // this.roomType = roomType;
+<span class="fc" id="L66">        this.pricePerNight = pricePerNight;</span>
+<span class="fc" id="L67">        this.maxOccupancy = maxOccupancy;</span>
+<span class="fc" id="L68">        this.status = RoomStatus.AVAILABLE;</span>
+<span class="fc" id="L69">        updateState();</span>
+<span class="fc" id="L70">    }</span>
+
+    private void updateState() {
+<span class="pc bpc" id="L73" title="2 of 4 branches missed.">        switch (this.status) {</span>
+<span class="fc" id="L74">            case AVAILABLE -&gt; this.roomState = new AvailableState();</span>
+<span class="fc" id="L75">            case BOOKED -&gt; this.roomState = new BookedState();</span>
+<span class="nc" id="L76">            case UNDER_MAINTENANCE -&gt; this.roomState = new UnderMaintenanceState();</span>
+        }
+<span class="fc" id="L78">    }</span>
+
+    public void book() {
+<span class="fc" id="L81">        roomState.book(this);</span>
+<span class="fc" id="L82">        updateState();</span>
+<span class="fc" id="L83">    }</span>
+
+    public void checkOut() {
+<span class="nc" id="L86">        roomState.checkOut(this);</span>
+<span class="nc" id="L87">        updateState();</span>
+<span class="nc" id="L88">    }</span>
+
+    public void markUnderMaintenance() {
+<span class="nc" id="L91">        roomState.markUnderMaintenance(this);</span>
+<span class="nc" id="L92">        updateState();</span>
+<span class="nc" id="L93">    }</span>
+
+    // Getters and setters
+    public RoomId getId() {
+<span class="fc" id="L97">        return id;</span>
+    }
+
+    public void setId(RoomId id) {
+<span class="fc" id="L101">        this.id = id;</span>
+<span class="fc" id="L102">    }</span>
+
+    public Long getHotelId() {
+<span class="nc" id="L105">        return this.getId().getHotelId();</span>
+    }
+
+    public Long getRoomId() {
+<span class="nc" id="L109">        return this.getId().getRoomId();</span>
+    }
+
+    public double getPricePerNight() {
+<span class="nc" id="L113">        return pricePerNight;</span>
+    }
+
+    public void setPricePerNight(double pricePerNight) {
+<span class="fc" id="L117">        this.pricePerNight = pricePerNight;</span>
+<span class="fc" id="L118">    }</span>
+
+    public int getMaxOccupancy() {
+<span class="nc" id="L121">        return maxOccupancy;</span>
+    }
+
+    public void setMaxOccupancy(int maxOccupancy) {
+<span class="fc" id="L125">        this.maxOccupancy = maxOccupancy;</span>
+<span class="fc" id="L126">    }</span>
+
+    public RoomStatus getStatus() {
+<span class="fc" id="L129">        return status;</span>
+    }
+
+    public void setStatus(RoomStatus status) {
+<span class="fc" id="L133">        this.status = status;</span>
+<span class="fc" id="L134">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

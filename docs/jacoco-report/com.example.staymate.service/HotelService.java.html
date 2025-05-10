@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HotelService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.service</a> &gt; <span class="el_source">HotelService.java</span></div><h1>HotelService.java</h1><pre class="source lang-java linenums">package com.example.staymate.service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.staymate.entity.hotel.Hotel;
+import com.example.staymate.entity.room.Room;
+import com.example.staymate.exception.ResourceNotFoundException;
+import com.example.staymate.repository.HotelRepository;
+
+@Service
+<span class="fc" id="L16">public class HotelService {</span>
+
+    @Autowired
+    private HotelRepository hotelRepository;
+
+    // Retrieve all hotels
+    public List&lt;Hotel&gt; getAllHotels() {
+<span class="fc" id="L23">        return hotelRepository.findAll();</span>
+    }
+
+    // Retrieve a hotel by ID
+    public Hotel getHotelById(Long id) {
+<span class="fc" id="L28">        return hotelRepository.findById(id)</span>
+<span class="pc" id="L29">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Hotel not found with ID &quot; + id));</span>
+    }
+
+    // Create or update a hotel
+    public Hotel saveHotel(Hotel hotel) {
+<span class="fc" id="L34">        return hotelRepository.save(hotel);</span>
+    }
+
+    // Delete a hotel by ID
+    public void deleteHotel(Long id) {
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if (hotelRepository.existsById(id)) {</span>
+<span class="fc" id="L40">            hotelRepository.deleteById(id);</span>
+        } else {
+<span class="nc" id="L42">            throw new RuntimeException(&quot;Hotel not found for deletion&quot;);</span>
+        }
+<span class="fc" id="L44">    }</span>
+
+    // Find hotels by name (Example of custom query method)
+    public List&lt;Hotel&gt; findHotelsByName(String name) {
+<span class="fc" id="L48">        return hotelRepository.findByNameContaining(name); // assuming findByNameContaining exists</span>
+    }
+
+    // Search hotels by name (alias for findHotelsByName)
+    public List&lt;Hotel&gt; searchHotelsByName(String name) {
+<span class="nc" id="L53">        return findHotelsByName(name);</span>
+    }
+
+    // Get the list of rooms for a specific hotel
+    public List&lt;Room&gt; getRoomsByHotel(Long hotelId) {
+<span class="fc" id="L58">        return hotelRepository.findById(hotelId)</span>
+<span class="fc" id="L59">                .map(Hotel::getRooms)</span>
+<span class="fc" id="L60">                .orElse(Collections.emptyList()); // If hotel exists, return rooms</span>
+    }
+
+    private static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+<span class="nc" id="L64">        final double R = 6371; // Radius of the Earth in km</span>
+<span class="nc" id="L65">        double latDistance = Math.toRadians(lat2 - lat1);</span>
+<span class="nc" id="L66">        double lonDistance = Math.toRadians(lon2 - lon1);</span>
+<span class="nc" id="L67">        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) +</span>
+<span class="nc" id="L68">                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *</span>
+<span class="nc" id="L69">                        Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);</span>
+<span class="nc" id="L70">        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));</span>
+<span class="nc" id="L71">        double distance = R * c; // Distance in km</span>
+<span class="nc" id="L72">        return distance;</span>
+    }
+
+    public List&lt;Hotel&gt; getNearbyHotels(double latitude, double longitude) {
+<span class="nc" id="L76">        List&lt;Hotel&gt; allHotels = hotelRepository.findAll();</span>
+<span class="nc" id="L77">        return allHotels.stream()</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                .filter(hotel -&gt; calculateDistance(latitude, longitude, hotel.getLatitude(),</span>
+<span class="nc" id="L79">                        hotel.getLongitude()) &lt;= 10)</span>
+<span class="nc" id="L80">                .collect(Collectors.toList());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NotificationController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.controller</a> &gt; <span class="el_source">NotificationController.java</span></div><h1>NotificationController.java</h1><pre class="source lang-java linenums">package com.example.staymate.controller;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.staymate.dto.custom.CustomResponse;
+import com.example.staymate.dto.notification.NotificationResponseDTO;
+import com.example.staymate.entity.enums.NotificationType;
+import com.example.staymate.entity.notification.Notification;
+import com.example.staymate.entity.user.User;
+import com.example.staymate.service.NotificationService;
+import com.example.staymate.service.UserService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+
+@RestController
+@RequestMapping(&quot;/notifications&quot;)
+<span class="fc" id="L29">public class NotificationController {</span>
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private UserService userService;
+
+    @Operation(summary = &quot;Get all notifications by user ID&quot;, description = &quot;Retrieve all notifications for a user by their user ID&quot;)
+    @GetMapping(&quot;/user/{userId}&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;List&lt;NotificationResponseDTO&gt;&gt;&gt; getNotificationsByUserId(
+            @Parameter(description = &quot;ID of the user to fetch notifications for&quot;) @PathVariable Long userId) {
+<span class="fc" id="L41">        List&lt;Notification&gt; notifications = notificationService.findByUserId(userId);</span>
+
+        // Convert notifications to DTO
+<span class="fc" id="L44">        List&lt;NotificationResponseDTO&gt; responseDTOs = notifications.stream()</span>
+<span class="fc" id="L45">                .map(NotificationResponseDTO::new)</span>
+<span class="fc" id="L46">                .toList();</span>
+
+        // If no notifications found, return a custom message with an empty list
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (responseDTOs.isEmpty()) {</span>
+<span class="fc" id="L50">            return ResponseEntity</span>
+<span class="fc" id="L51">                    .ok(new CustomResponse&lt;&gt;(&quot;No notifications found for user ID: &quot; + userId, responseDTOs));</span>
+        }
+
+        // Return notifications with a custom success message
+<span class="fc" id="L55">        return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Notifications retrieved successfully for user ID: &quot; + userId</span>
+<span class="fc" id="L56">                + &quot;, Total notifications: &quot; + responseDTOs.size(), responseDTOs));</span>
+    }
+
+    @Operation(summary = &quot;Get all read notifications by user ID&quot;, description = &quot;Retrieve all read notifications for a user by their user ID&quot;)
+    @GetMapping(&quot;/user/{userId}/read&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;List&lt;NotificationResponseDTO&gt;&gt;&gt; getReadNotificationsByUserId(
+            @Parameter(description = &quot;ID of the user to fetch read notifications for&quot;) @PathVariable Long userId) {
+<span class="fc" id="L63">        List&lt;Notification&gt; notifications = notificationService.findByUserIdAndIsRead(userId, true);</span>
+
+        // Convert notifications to DTO
+<span class="fc" id="L66">        List&lt;NotificationResponseDTO&gt; responseDTOs = notifications.stream()</span>
+<span class="fc" id="L67">                .map(NotificationResponseDTO::new)</span>
+<span class="fc" id="L68">                .toList();</span>
+
+        // If no read notifications found, return a custom message with an empty list
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (responseDTOs.isEmpty()) {</span>
+<span class="fc" id="L72">            return ResponseEntity</span>
+<span class="fc" id="L73">                    .ok(new CustomResponse&lt;&gt;(&quot;No read notifications found for user ID: &quot; + userId, responseDTOs));</span>
+        }
+
+        // Return read notifications with a custom success message
+<span class="fc" id="L77">        return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Read notifications retrieved successfully for user ID: &quot; + userId</span>
+<span class="fc" id="L78">                + &quot;, Total read notifications: &quot; + responseDTOs.size(), responseDTOs));</span>
+    }
+
+    @Operation(summary = &quot;Get all unread notifications by user ID&quot;, description = &quot;Retrieve all unread notifications for a user by their user ID&quot;)
+    @GetMapping(&quot;/user/{userId}/unread&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;List&lt;NotificationResponseDTO&gt;&gt;&gt; getUnreadNotificationsByUserId(
+            @Parameter(description = &quot;ID of the user to fetch unread notifications for&quot;) @PathVariable Long userId) {
+<span class="fc" id="L85">        List&lt;Notification&gt; notifications = notificationService.findByUserIdAndIsRead(userId, false);</span>
+
+        // Convert notifications to DTO
+<span class="fc" id="L88">        List&lt;NotificationResponseDTO&gt; responseDTOs = notifications.stream()</span>
+<span class="fc" id="L89">                .map(NotificationResponseDTO::new)</span>
+<span class="fc" id="L90">                .toList();</span>
+
+        // If no unread notifications found, return a custom message with an empty list
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (responseDTOs.isEmpty()) {</span>
+<span class="fc" id="L94">            return ResponseEntity</span>
+<span class="fc" id="L95">                    .ok(new CustomResponse&lt;&gt;(&quot;No unread notifications found for user ID: &quot; + userId, responseDTOs));</span>
+        }
+
+        // Return unread notifications with a custom success message
+<span class="fc" id="L99">        return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Unread notifications retrieved successfully for user ID: &quot;</span>
+<span class="fc" id="L100">                + userId + &quot;, Total unread notifications: &quot; + responseDTOs.size(), responseDTOs));</span>
+    }
+
+    @Operation(summary = &quot;Mark a notification as read&quot;, description = &quot;Mark a specific notification as read by its ID&quot;)
+    @PutMapping(&quot;/{notificationId}/read&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;String&gt;&gt; markNotificationAsRead(
+            @Parameter(description = &quot;ID of the notification to be marked as read&quot;) @PathVariable Long notificationId) {
+<span class="fc" id="L107">        boolean updated = notificationService.markAsRead(notificationId);</span>
+
+<span class="fc bfc" id="L109" title="All 2 branches covered.">        if (updated) {</span>
+<span class="fc" id="L110">            return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Notification marked as read successfully&quot;, null));</span>
+        } else {
+<span class="fc" id="L112">            return ResponseEntity.badRequest().body(new CustomResponse&lt;&gt;(&quot;Failed to mark notification as read&quot;, null));</span>
+        }
+    }
+
+    @Operation(summary = &quot;Get notifications by user ID and type&quot;, description = &quot;Retrieve notifications for a user filtered by type&quot;)
+    @GetMapping(&quot;/user/{userId}/type/{type}&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;List&lt;NotificationResponseDTO&gt;&gt;&gt; getNotificationsByUserIdAndType(
+            @Parameter(description = &quot;ID of the user to fetch notifications for&quot;) @PathVariable Long userId,
+            @Parameter(description = &quot;Type of notifications to fetch for the user&quot;) @PathVariable NotificationType type) {
+<span class="fc" id="L121">        List&lt;Notification&gt; notifications = notificationService.findByUserIdAndType(userId, type);</span>
+
+        // Convert notifications to DTO
+<span class="fc" id="L124">        List&lt;NotificationResponseDTO&gt; responseDTOs = notifications.stream()</span>
+<span class="fc" id="L125">                .map(NotificationResponseDTO::new)</span>
+<span class="fc" id="L126">                .toList();</span>
+
+        // Return response
+<span class="fc" id="L129">        return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Notifications of type &quot; + type + &quot; retrieved&quot;, responseDTOs));</span>
+    }
+
+    @Operation(summary = &quot;Send a promotion notification to all users&quot;, description = &quot;Send a promotion message to all users&quot;)
+    @PostMapping(&quot;/promotion&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;String&gt;&gt; sendPromotionNotificationToAllUsers(
+            @Parameter(description = &quot;Promotion message to be sent to all users&quot;) @RequestBody String promotionMessage) {
+        // Fetch all users (assuming UserService exists)
+<span class="fc" id="L137">        List&lt;User&gt; allUsers = userService.getAllUsers(); // This should return a list of all users</span>
+
+        // Create the promotion notification for each user
+<span class="fc bfc" id="L140" title="All 2 branches covered.">        for (User user : allUsers) {</span>
+<span class="fc" id="L141">            Notification notification = new Notification();</span>
+<span class="fc" id="L142">            notification.setMessage(promotionMessage);</span>
+<span class="fc" id="L143">            notification.setUser(user); // Set the full user object</span>
+<span class="fc" id="L144">            notification.setType(NotificationType.PROMOTION);</span>
+<span class="fc" id="L145">            notification.setRead(false); // New notification, not read</span>
+<span class="fc" id="L146">            notification.setCreatedAt(LocalDateTime.now());</span>
+<span class="fc" id="L147">            notificationService.createNotification(notification); // Save the notification to the database</span>
+<span class="fc" id="L148">        }</span>
+
+        // Return a success response with a custom message
+<span class="fc" id="L151">        return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Promotion notification sent to all users.&quot;, null));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

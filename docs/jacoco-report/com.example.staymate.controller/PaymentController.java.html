@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.controller</a> &gt; <span class="el_source">PaymentController.java</span></div><h1>PaymentController.java</h1><pre class="source lang-java linenums">package com.example.staymate.controller;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.staymate.dto.custom.CustomResponse;
+import com.example.staymate.dto.payment.PaymentIdResponseDTO;
+import com.example.staymate.dto.payment.PaymentRequestDTO;
+import com.example.staymate.entity.booking.Booking;
+import com.example.staymate.entity.enums.BookingStatus;
+import com.example.staymate.entity.enums.PaymentMethod;
+import com.example.staymate.entity.payment.Payment;
+import com.example.staymate.service.BookingService;
+import com.example.staymate.service.PaymentService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+
+@RestController
+@RequestMapping(&quot;/payments&quot;)
+<span class="fc" id="L32">public class PaymentController {</span>
+
+    @Autowired
+    private PaymentService paymentService;
+
+    @Autowired
+    private BookingService bookingService;
+
+    @Operation(summary = &quot;Create and process a new payment&quot;, description = &quot;Create a new payment entry and process it in one API call.&quot;)
+    @PostMapping
+    public ResponseEntity&lt;CustomResponse&lt;String&gt;&gt; createAndProcessPayment(
+            @Parameter(description = &quot;The payment details for creating a new payment&quot;) @RequestBody PaymentRequestDTO paymentRequestDTO,
+            @Parameter(description = &quot;The payment method to process the payment&quot;) @RequestParam PaymentMethod paymentMethod) {
+        try {
+
+<span class="fc" id="L47">            Long bookingId = paymentRequestDTO.getBookingId();</span>
+<span class="fc" id="L48">            Double paymentAmount = paymentRequestDTO.getAmount();</span>
+
+            // Retrieve the booking details
+<span class="fc" id="L51">            Booking booking = bookingService.getBookingById(bookingId);</span>
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">            if (booking == null) {</span>
+<span class="nc" id="L53">                return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L54">                        .body(new CustomResponse&lt;&gt;(&quot;Booking not found.&quot;, null));</span>
+            }
+
+            // Calculate total paid amount
+<span class="fc" id="L58">            Double totalPaid = paymentService.getTotalPaidAmount(bookingId);</span>
+<span class="fc" id="L59">            Double updatedTotalPaid = totalPaid + paymentAmount;</span>
+<span class="fc" id="L60">            Double remainingAmount = booking.getTotalAmount() - totalPaid;</span>
+
+<span class="fc" id="L62">            System.out.println(updatedTotalPaid);</span>
+<span class="fc" id="L63">            System.out.println(booking.getTotalAmount());</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">            System.out.println(updatedTotalPaid == booking.getTotalAmount());</span>
+
+<span class="fc bfc" id="L66" title="All 2 branches covered.">            if (paymentAmount &gt; remainingAmount) {</span>
+<span class="fc" id="L67">                return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="fc" id="L68">                        .body(new CustomResponse&lt;&gt;(</span>
+                                &quot;Payment exceeds remaining balance. Remaining amount: &quot; + remainingAmount, null));
+            }
+
+            // 1. Create the payment entry in the database (initially in PENDING state)
+<span class="fc" id="L73">            Payment newPayment = paymentService.createPayment(bookingId, paymentMethod,</span>
+<span class="fc" id="L74">                    paymentAmount);</span>
+
+            // 2. Process the payment (update status based on payment method)
+<span class="fc" id="L77">            paymentService.processPayment(newPayment.getId(), paymentMethod);</span>
+
+<span class="fc bfc" id="L79" title="All 2 branches covered.">            if (updatedTotalPaid == booking.getTotalAmount()) {</span>
+<span class="fc" id="L80">                booking.setStatus(BookingStatus.CONFIRMED);</span>
+<span class="fc" id="L81">                bookingService.updateBooking(booking); // Ensure this method saves the change in DB</span>
+            }
+
+            // 3. Return a successful response with the processed payment status
+<span class="fc" id="L85">            Payment processedPayment = paymentService.getPaymentById(newPayment.getId());</span>
+<span class="fc" id="L86">            return ResponseEntity.status(HttpStatus.CREATED)</span>
+<span class="fc" id="L87">                    .body(new CustomResponse&lt;&gt;(&quot;Payment created and processed successfully. Current status: &quot;</span>
+<span class="fc" id="L88">                            + processedPayment.getStatus(), null));</span>
+<span class="nc" id="L89">        } catch (Exception e) {</span>
+            // Return an error response if something goes wrong
+<span class="nc" id="L91">            return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="nc" id="L92">                    .body(new CustomResponse&lt;&gt;(&quot;Error creating and processing payment: &quot; + e.getMessage(), null));</span>
+        }
+    }
+
+    @Operation(summary = &quot;Get payment by ID&quot;, description = &quot;Retrieve a specific payment by its ID.&quot;)
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;PaymentIdResponseDTO&gt;&gt; getPaymentById(
+            @Parameter(description = &quot;ID of the payment to retrieve&quot;) @PathVariable Long id) {
+        try {
+<span class="fc" id="L101">            Payment payment = paymentService.getPaymentById(id);</span>
+<span class="fc" id="L102">            PaymentIdResponseDTO paymentIdResponseDTO = new PaymentIdResponseDTO(payment);</span>
+<span class="fc" id="L103">            return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Payment retrieved successfully&quot;, paymentIdResponseDTO));</span>
+<span class="fc" id="L104">        } catch (Exception e) {</span>
+<span class="fc" id="L105">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L106">                    .body(new CustomResponse&lt;&gt;(&quot;Payment not found&quot;, null));</span>
+        }
+    }
+
+    @Operation(summary = &quot;Get payments by booking ID&quot;, description = &quot;Retrieve all payments associated with a specific booking ID.&quot;)
+    @GetMapping(&quot;/booking/{bookingId}&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;List&lt;PaymentIdResponseDTO&gt;&gt;&gt; getPaymentsByBookingId(
+            @Parameter(description = &quot;ID of the booking to retrieve payments for&quot;) @PathVariable Long bookingId) {
+        try {
+<span class="fc" id="L115">            List&lt;Payment&gt; payments = paymentService.getPaymentsByBookingId(bookingId);</span>
+
+            // Convert the list of Payment entities to PaymentIdResponseDTO objects
+<span class="fc" id="L118">            List&lt;PaymentIdResponseDTO&gt; paymentIdResponseDTOs = payments.stream()</span>
+<span class="fc" id="L119">                    .map(PaymentIdResponseDTO::new)</span>
+<span class="fc" id="L120">                    .collect(Collectors.toList());</span>
+
+<span class="fc" id="L122">            return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Payments retrieved successfully&quot;, paymentIdResponseDTOs));</span>
+<span class="fc" id="L123">        } catch (Exception e) {</span>
+<span class="fc" id="L124">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L125">                    .body(new CustomResponse&lt;&gt;(&quot;Payments not found&quot;, null));</span>
+        }
+    }
+
+    @Operation(summary = &quot;Get payments by user ID&quot;, description = &quot;Retrieve all payments associated with a specific user ID.&quot;)
+    @GetMapping(&quot;/user/{userId}&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;List&lt;PaymentIdResponseDTO&gt;&gt;&gt; getPaymentsByUserId(
+            @Parameter(description = &quot;ID of the user to retrieve payments for&quot;) @PathVariable Long userId) {
+        try {
+<span class="nc" id="L134">            List&lt;Payment&gt; payments = paymentService.getPaymentsByUserId(userId);</span>
+
+            // Convert the list of Payment entities to PaymentIdResponseDTO objects
+<span class="nc" id="L137">            List&lt;PaymentIdResponseDTO&gt; paymentIdResponseDTOs = payments.stream()</span>
+<span class="nc" id="L138">                    .map(PaymentIdResponseDTO::new)</span>
+<span class="nc" id="L139">                    .collect(Collectors.toList());</span>
+
+<span class="nc" id="L141">            return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Payments retrieved successfully&quot;, paymentIdResponseDTOs));</span>
+<span class="nc" id="L142">        } catch (Exception e) {</span>
+<span class="nc" id="L143">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L144">                    .body(new CustomResponse&lt;&gt;(&quot;Payments not found&quot;, null));</span>
+        }
+    }
+
+    @Operation(summary = &quot;Get all payments&quot;, description = &quot;Retrieve all payments in the system.&quot;)
+    @GetMapping()
+    public ResponseEntity&lt;CustomResponse&lt;List&lt;PaymentIdResponseDTO&gt;&gt;&gt; getAllPayments() {
+        try {
+<span class="nc" id="L152">            List&lt;Payment&gt; payments = paymentService.getAllPayments(); // Assuming this method exists in your service</span>
+                                                                      // layer
+
+            // Convert the list of Payment entities to PaymentIdResponseDTO objects
+<span class="nc" id="L156">            List&lt;PaymentIdResponseDTO&gt; paymentIdResponseDTOs = payments.stream()</span>
+<span class="nc" id="L157">                    .map(PaymentIdResponseDTO::new)</span>
+<span class="nc" id="L158">                    .collect(Collectors.toList());</span>
+
+<span class="nc" id="L160">            return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Payments retrieved successfully&quot;, paymentIdResponseDTOs));</span>
+<span class="nc" id="L161">        } catch (Exception e) {</span>
+<span class="nc" id="L162">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L163">                    .body(new CustomResponse&lt;&gt;(&quot;Payments not found&quot;, null));</span>
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

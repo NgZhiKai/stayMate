@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReviewController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.controller</a> &gt; <span class="el_source">ReviewController.java</span></div><h1>ReviewController.java</h1><pre class="source lang-java linenums">package com.example.staymate.controller;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.staymate.dto.custom.CustomResponse;
+import com.example.staymate.dto.review.ReviewDTO;
+import com.example.staymate.entity.Review.Review;
+import com.example.staymate.entity.hotel.Hotel;
+import com.example.staymate.entity.user.User;
+import com.example.staymate.exception.ResourceNotFoundException;
+import com.example.staymate.service.HotelService;
+import com.example.staymate.service.ReviewService;
+import com.example.staymate.service.UserService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+
+@RestController
+@RequestMapping(&quot;/reviews&quot;)
+public class ReviewController {
+
+    private final ReviewService reviewService;
+    private final HotelService hotelService;
+    private final UserService userService;
+
+    @Autowired
+<span class="fc" id="L40">    public ReviewController(ReviewService reviewService, HotelService hotelService, UserService userService) {</span>
+<span class="fc" id="L41">        this.reviewService = reviewService;</span>
+<span class="fc" id="L42">        this.hotelService = hotelService;</span>
+<span class="fc" id="L43">        this.userService = userService;</span>
+<span class="fc" id="L44">    }</span>
+
+    @Operation(summary = &quot;Get all reviews&quot;, description = &quot;Retrieve all reviews from the system.&quot;)
+    @GetMapping
+    public ResponseEntity&lt;CustomResponse&lt;List&lt;ReviewDTO&gt;&gt;&gt; getAllReviews() {
+        try {
+<span class="fc" id="L50">            List&lt;Review&gt; reviews = reviewService.getAllReviews();</span>
+
+<span class="fc" id="L52">            List&lt;ReviewDTO&gt; reviewDTOs = reviews.stream()</span>
+<span class="pc" id="L53">                    .map(review -&gt; new ReviewDTO(</span>
+<span class="nc" id="L54">                            review.getHotel().getId(),</span>
+<span class="nc" id="L55">                            review.getUser().getId(),</span>
+<span class="nc" id="L56">                            review.getComment(),</span>
+<span class="nc" id="L57">                            review.getCreatedAt(),</span>
+<span class="nc" id="L58">                            review.getRating()))</span>
+<span class="fc" id="L59">                    .collect(Collectors.toList());</span>
+
+<span class="fc" id="L61">            return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Reviews retrieved successfully&quot;, reviewDTOs));</span>
+<span class="nc" id="L62">        } catch (Exception e) {</span>
+<span class="nc" id="L63">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="nc" id="L64">                    .body(new CustomResponse&lt;&gt;(&quot;An error occurred while fetching reviews&quot;, null));</span>
+        }
+    }
+
+    @Operation(summary = &quot;Get review by ID&quot;, description = &quot;Retrieve a review by its ID.&quot;)
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;ReviewDTO&gt;&gt; getReviewById(
+            @Parameter(description = &quot;ID of the review to retrieve&quot;) @PathVariable Long id) {
+        try {
+<span class="nc" id="L73">            Review review = reviewService.getReviewById(id);</span>
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            if (review == null) {</span>
+<span class="nc" id="L76">                throw new ResourceNotFoundException(&quot;Review not found for this id: &quot; + id);</span>
+            }
+
+<span class="nc" id="L79">            ReviewDTO reviewDTO = new ReviewDTO(</span>
+<span class="nc" id="L80">                    review.getHotel().getId(),</span>
+<span class="nc" id="L81">                    review.getUser().getId(),</span>
+<span class="nc" id="L82">                    review.getComment(),</span>
+<span class="nc" id="L83">                    review.getCreatedAt(),</span>
+<span class="nc" id="L84">                    review.getRating());</span>
+
+<span class="nc" id="L86">            return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Review retrieved successfully&quot;, reviewDTO));</span>
+<span class="nc" id="L87">        } catch (ResourceNotFoundException e) {</span>
+<span class="nc" id="L88">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L89">                    .body(new CustomResponse&lt;&gt;(e.getMessage(), null));</span>
+<span class="nc" id="L90">        } catch (Exception e) {</span>
+<span class="nc" id="L91">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="nc" id="L92">                    .body(new CustomResponse&lt;&gt;(&quot;An error occurred while fetching the review&quot;, null));</span>
+        }
+    }
+
+    @Operation(summary = &quot;Create a new review&quot;, description = &quot;Create and save a new review for a hotel by a user.&quot;)
+    @PostMapping
+    public ResponseEntity&lt;CustomResponse&lt;ReviewDTO&gt;&gt; createReview(
+            @Parameter(description = &quot;The review details to be created&quot;) @RequestBody ReviewDTO reviewDTO) {
+        try {
+<span class="nc" id="L101">            Hotel hotel = hotelService.getHotelById(reviewDTO.getHotelId());</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            if (hotel == null) {</span>
+<span class="nc" id="L103">                throw new ResourceNotFoundException(&quot;Hotel not found for this id: &quot; + reviewDTO.getHotelId());</span>
+            }
+
+<span class="nc" id="L106">            User user = userService.getUserById(reviewDTO.getUserId());</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">            if (user == null) {</span>
+<span class="nc" id="L108">                throw new ResourceNotFoundException(&quot;User not found for this id: &quot; + reviewDTO.getUserId());</span>
+            }
+
+<span class="nc" id="L111">            Review review = new Review();</span>
+<span class="nc" id="L112">            review.setHotel(hotel);</span>
+<span class="nc" id="L113">            review.setUser(user);</span>
+<span class="nc" id="L114">            review.setComment(reviewDTO.getComment());</span>
+<span class="nc" id="L115">            review.setCreatedAt(reviewDTO.getCreated());</span>
+<span class="nc" id="L116">            review.setRating(reviewDTO.getRating());</span>
+
+<span class="nc" id="L118">            Review savedReview = reviewService.saveReview(review);</span>
+
+<span class="nc" id="L120">            ReviewDTO savedReviewDTO = new ReviewDTO(</span>
+<span class="nc" id="L121">                    savedReview.getHotel().getId(),</span>
+<span class="nc" id="L122">                    savedReview.getUser().getId(),</span>
+<span class="nc" id="L123">                    savedReview.getComment(),</span>
+<span class="nc" id="L124">                    savedReview.getCreatedAt(),</span>
+<span class="nc" id="L125">                    savedReview.getRating());</span>
+
+<span class="nc" id="L127">            return ResponseEntity.status(HttpStatus.CREATED)</span>
+<span class="nc" id="L128">                    .body(new CustomResponse&lt;&gt;(&quot;Review created successfully&quot;, savedReviewDTO));</span>
+<span class="nc" id="L129">        } catch (ResourceNotFoundException e) {</span>
+<span class="nc" id="L130">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L131">                    .body(new CustomResponse&lt;&gt;(e.getMessage(), null));</span>
+<span class="nc" id="L132">        } catch (Exception e) {</span>
+<span class="nc" id="L133">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="nc" id="L134">                    .body(new CustomResponse&lt;&gt;(&quot;An error occurred while creating the review&quot;, null));</span>
+        }
+    }
+
+    @Operation(summary = &quot;Update an existing review&quot;, description = &quot;Update the details of an existing review by its ID.&quot;)
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;ReviewDTO&gt;&gt; updateReview(
+            @Parameter(description = &quot;ID of the review to update&quot;) @PathVariable Long id,
+            @Parameter(description = &quot;The updated review details&quot;) @RequestBody ReviewDTO reviewDTO) {
+        try {
+<span class="nc" id="L144">            Review existingReview = reviewService.getReviewById(id);</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">            if (existingReview == null) {</span>
+<span class="nc" id="L146">                throw new ResourceNotFoundException(&quot;Review not found for this id: &quot; + id);</span>
+            }
+
+<span class="nc" id="L149">            Hotel hotel = hotelService.getHotelById(reviewDTO.getHotelId());</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            if (hotel == null) {</span>
+<span class="nc" id="L151">                throw new ResourceNotFoundException(&quot;Hotel not found for this id: &quot; + reviewDTO.getHotelId());</span>
+            }
+
+<span class="nc" id="L154">            User user = userService.getUserById(reviewDTO.getUserId());</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">            if (user == null) {</span>
+<span class="nc" id="L156">                throw new ResourceNotFoundException(&quot;User not found for this id: &quot; + reviewDTO.getUserId());</span>
+            }
+
+<span class="nc" id="L159">            existingReview.setHotel(hotel);</span>
+<span class="nc" id="L160">            existingReview.setUser(user);</span>
+<span class="nc" id="L161">            existingReview.setComment(reviewDTO.getComment());</span>
+<span class="nc" id="L162">            existingReview.setCreatedAt(reviewDTO.getCreated());</span>
+<span class="nc" id="L163">            existingReview.setRating(reviewDTO.getRating());</span>
+
+<span class="nc" id="L165">            Review updatedReview = reviewService.saveReview(existingReview);</span>
+
+<span class="nc" id="L167">            ReviewDTO updatedReviewDTO = new ReviewDTO(</span>
+<span class="nc" id="L168">                    updatedReview.getHotel().getId(),</span>
+<span class="nc" id="L169">                    updatedReview.getUser().getId(),</span>
+<span class="nc" id="L170">                    updatedReview.getComment(),</span>
+<span class="nc" id="L171">                    updatedReview.getCreatedAt(),</span>
+<span class="nc" id="L172">                    updatedReview.getRating());</span>
+
+<span class="nc" id="L174">            return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Review updated successfully&quot;, updatedReviewDTO));</span>
+<span class="nc" id="L175">        } catch (ResourceNotFoundException e) {</span>
+<span class="nc" id="L176">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L177">                    .body(new CustomResponse&lt;&gt;(e.getMessage(), null));</span>
+<span class="nc" id="L178">        } catch (Exception e) {</span>
+<span class="nc" id="L179">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="nc" id="L180">                    .body(new CustomResponse&lt;&gt;(&quot;An error occurred while updating the review&quot;, null));</span>
+        }
+    }
+
+    @Operation(summary = &quot;Delete a review by ID&quot;, description = &quot;Delete a review by its ID.&quot;)
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;String&gt;&gt; deleteReview(
+            @Parameter(description = &quot;ID of the review to delete&quot;) @PathVariable Long id) {
+        try {
+<span class="nc" id="L189">            Review review = reviewService.getReviewById(id);</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">            if (review == null) {</span>
+<span class="nc" id="L191">                throw new ResourceNotFoundException(&quot;Review not found for this id: &quot; + id);</span>
+            }
+<span class="nc" id="L193">            reviewService.deleteReview(id);</span>
+<span class="nc" id="L194">            return ResponseEntity</span>
+<span class="nc" id="L195">                    .ok(new CustomResponse&lt;&gt;(&quot;Review deleted successfully&quot;, &quot;Review with id &quot; + id + &quot; was deleted&quot;));</span>
+<span class="nc" id="L196">        } catch (ResourceNotFoundException e) {</span>
+<span class="nc" id="L197">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L198">                    .body(new CustomResponse&lt;&gt;(e.getMessage(), null));</span>
+<span class="nc" id="L199">        } catch (Exception e) {</span>
+<span class="nc" id="L200">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="nc" id="L201">                    .body(new CustomResponse&lt;&gt;(&quot;An error occurred while deleting the review&quot;, null));</span>
+        }
+    }
+
+    @Operation(summary = &quot;Get reviews by hotel ID&quot;, description = &quot;Retrieve all reviews for a specific hotel by its ID.&quot;)
+    @GetMapping(&quot;/hotel/{hotelId}&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;List&lt;ReviewDTO&gt;&gt;&gt; getReviewsByHotelId(
+            @Parameter(description = &quot;ID of the hotel to retrieve reviews for&quot;) @PathVariable Long hotelId) {
+        try {
+            // Fetch hotel by ID to validate if the hotel exists
+<span class="nc" id="L211">            Hotel hotel = hotelService.getHotelById(hotelId);</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">            if (hotel == null) {</span>
+<span class="nc" id="L213">                throw new ResourceNotFoundException(&quot;Hotel not found for this id: &quot; + hotelId);</span>
+            }
+
+            // Fetch reviews for the hotel
+<span class="nc" id="L217">            List&lt;Review&gt; reviews = reviewService.findReviewsByHotel(hotel);</span>
+
+            // Map reviews to ReviewDTO
+<span class="nc" id="L220">            List&lt;ReviewDTO&gt; reviewDTOs = reviews.stream()</span>
+<span class="nc" id="L221">                    .map(review -&gt; new ReviewDTO(</span>
+<span class="nc" id="L222">                            review.getHotel().getId(),</span>
+<span class="nc" id="L223">                            review.getUser().getId(),</span>
+<span class="nc" id="L224">                            review.getComment(),</span>
+<span class="nc" id="L225">                            review.getCreatedAt(),</span>
+<span class="nc" id="L226">                            review.getRating()))</span>
+<span class="nc" id="L227">                    .collect(Collectors.toList());</span>
+
+<span class="nc" id="L229">            return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Reviews retrieved successfully&quot;, reviewDTOs));</span>
+<span class="nc" id="L230">        } catch (ResourceNotFoundException e) {</span>
+<span class="nc" id="L231">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L232">                    .body(new CustomResponse&lt;&gt;(e.getMessage(), null));</span>
+<span class="nc" id="L233">        } catch (Exception e) {</span>
+<span class="nc" id="L234">            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="nc" id="L235">                    .body(new CustomResponse&lt;&gt;(&quot;An error occurred while fetching reviews&quot;, null));</span>
+        }
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

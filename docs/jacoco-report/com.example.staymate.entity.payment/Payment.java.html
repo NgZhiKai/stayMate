@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Payment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.entity.payment</a> &gt; <span class="el_source">Payment.java</span></div><h1>Payment.java</h1><pre class="source lang-java linenums">package com.example.staymate.entity.payment;
+
+import java.time.LocalDateTime;
+
+import com.example.staymate.entity.booking.Booking;
+import com.example.staymate.entity.enums.PaymentMethod;
+import com.example.staymate.entity.enums.PaymentStatus;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
+@Entity
+<span class="fc" id="L19">public class Payment {</span>
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = &quot;booking_id&quot;)
+    private Booking booking;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod; // CREDIT_CARD, PAYPAL, STRIPE
+
+    private double amount;
+    private LocalDateTime transactionDate;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus status; // PENDING, SUCCESS, FAILED
+
+    public Long getId() {
+<span class="fc" id="L38">        return id;</span>
+    }
+
+    public void setId(Long id) {
+<span class="fc" id="L42">        this.id = id;</span>
+<span class="fc" id="L43">    }</span>
+
+    public Booking getBooking() {
+<span class="fc" id="L46">        return booking;</span>
+    }
+
+    public void setBooking(Booking booking) {
+<span class="fc" id="L50">        this.booking = booking;</span>
+<span class="fc" id="L51">    }</span>
+
+    public PaymentMethod getPaymentMethod() {
+<span class="fc" id="L54">        return paymentMethod;</span>
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+<span class="fc" id="L58">        this.paymentMethod = paymentMethod;</span>
+<span class="fc" id="L59">    }</span>
+
+    public double getAmount() {
+<span class="fc" id="L62">        return amount;</span>
+    }
+
+    public void setAmount(double amount) {
+<span class="fc" id="L66">        this.amount = amount;</span>
+<span class="fc" id="L67">    }</span>
+
+    public LocalDateTime getTransactionDate() {
+<span class="fc" id="L70">        return transactionDate;</span>
+    }
+
+    public void setTransactionDate(LocalDateTime transactionDate) {
+<span class="fc" id="L74">        this.transactionDate = transactionDate;</span>
+<span class="fc" id="L75">    }</span>
+
+    public PaymentStatus getStatus() {
+<span class="fc" id="L78">        return status;</span>
+    }
+
+    public void setStatus(PaymentStatus status) {
+<span class="fc" id="L82">        this.status = status;</span>
+<span class="fc" id="L83">    }</span>
+
+    // Method to mark payment as successful
+    public void markAsPaid() {
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        if (this.status == PaymentStatus.FAILED) {</span>
+<span class="nc" id="L88">            throw new IllegalStateException(&quot;Cannot mark as paid after a failure&quot;);</span>
+        }
+<span class="nc" id="L90">        this.status = PaymentStatus.SUCCESS;</span>
+<span class="nc" id="L91">        this.transactionDate = LocalDateTime.now();</span>
+<span class="nc" id="L92">    }</span>
+
+    // Method to mark payment as failed
+    public void markAsFailed() {
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (this.status == PaymentStatus.SUCCESS) {</span>
+<span class="nc" id="L97">            throw new IllegalStateException(&quot;Cannot mark as failed after success&quot;);</span>
+        }
+<span class="nc" id="L99">        this.status = PaymentStatus.FAILED;</span>
+<span class="nc" id="L100">        this.transactionDate = LocalDateTime.now();</span>
+<span class="nc" id="L101">    }</span>
+
+    // Method to mark payment as pending
+    public void markAsPending() {
+<span class="nc bnc" id="L105" title="All 4 branches missed.">        if (this.status == PaymentStatus.SUCCESS || this.status == PaymentStatus.FAILED) {</span>
+<span class="nc" id="L106">            throw new IllegalStateException(&quot;Cannot mark as pending after success or failure&quot;);</span>
+        }
+<span class="nc" id="L108">        this.status = PaymentStatus.PENDING;</span>
+<span class="nc" id="L109">        this.transactionDate = LocalDateTime.now();</span>
+<span class="nc" id="L110">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

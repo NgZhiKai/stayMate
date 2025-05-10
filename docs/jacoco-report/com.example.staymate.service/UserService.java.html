@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.service</a> &gt; <span class="el_source">UserService.java</span></div><h1>UserService.java</h1><pre class="source lang-java linenums">package com.example.staymate.service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.staymate.entity.enums.UserRole;
+import com.example.staymate.entity.user.User;
+import com.example.staymate.exception.InvalidUserException;
+import com.example.staymate.exception.ResourceNotFoundException;
+import com.example.staymate.observer.EmailObserver;
+import com.example.staymate.observer.Observer;
+import com.example.staymate.observer.Subject;
+import com.example.staymate.repository.UserRepository;
+
+@Service
+<span class="fc" id="L25">public class UserService implements Subject {</span>
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Value(&quot;${frontend.host_url}&quot;)
+    private String baseUrl;
+
+<span class="fc" id="L33">    private final List&lt;Observer&gt; observers = new ArrayList&lt;&gt;();</span>
+
+    public User registerUser(User user) {
+<span class="pc bpc" id="L36" title="1 of 2 branches missed.">        if (user == null) {</span>
+<span class="nc" id="L37">            throw new InvalidUserException(&quot;User cannot be null.&quot;);</span>
+        }
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (userRepository.findByEmail(user.getEmail()).isPresent()) {</span>
+<span class="fc" id="L40">            throw new IllegalArgumentException(&quot;Email is already registered.&quot;);</span>
+        }
+
+<span class="fc" id="L43">        user.setVerified(false);</span>
+<span class="fc" id="L44">        user.setDeleted(false);</span>
+<span class="fc" id="L45">        User savedUser = userRepository.save(user);</span>
+
+<span class="fc" id="L47">        String token = generateVerificationToken(savedUser);</span>
+<span class="fc" id="L48">        String verificationLink = baseUrl + &quot;/stayMate/verify&quot;;</span>
+
+<span class="fc" id="L50">        notifyObservers(savedUser, verificationLink, token);</span>
+
+<span class="fc" id="L52">        return savedUser;</span>
+    }
+
+    public List&lt;User&gt; getAllUsers() {
+<span class="fc" id="L56">        return userRepository.findAllActiveUsers();</span>
+    }
+
+    public User getUserById(Long id) {
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        if (id == null) {</span>
+<span class="nc" id="L61">            throw new InvalidUserException(&quot;User ID cannot be null.&quot;);</span>
+        }
+<span class="fc" id="L63">        return userRepository.findById(id)</span>
+<span class="fc" id="L64">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;User not found with ID &quot; + id));</span>
+    }
+
+    public User getUserByEmail(String email) {
+<span class="pc bpc" id="L68" title="2 of 4 branches missed.">        if (email == null || email.isBlank()) {</span>
+<span class="nc" id="L69">            throw new InvalidUserException(&quot;Email cannot be null or empty.&quot;);</span>
+        }
+<span class="fc" id="L71">        return userRepository.findByEmail(email)</span>
+<span class="fc" id="L72">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;User not found with email &quot; + email));</span>
+    }
+
+    public List&lt;User&gt; getUsersByRole(UserRole role) {
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (role == null) {</span>
+<span class="nc" id="L77">            throw new InvalidUserException(&quot;Role cannot be null.&quot;);</span>
+        }
+<span class="nc" id="L79">        return userRepository.findByRole(role);</span>
+    }
+
+    @Transactional
+    public User updateUser(Long id, User updatedUser) {
+<span class="pc bpc" id="L84" title="2 of 4 branches missed.">        if (id == null || updatedUser == null) {</span>
+<span class="nc" id="L85">            throw new InvalidUserException(&quot;User ID and updated user data cannot be null.&quot;);</span>
+        }
+
+        // Fetch the existing user by ID
+<span class="fc" id="L89">        User existingUser = getUserById(id);</span>
+
+        // If user is not found, throw an exception
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (existingUser == null) {</span>
+<span class="nc" id="L93">            throw new InvalidUserException(&quot;User not found for ID: &quot; + id);</span>
+        }
+<span class="fc" id="L95">        updatedUser.setVerified(true);</span>
+        // Save the updated user
+<span class="fc" id="L97">        return userRepository.save(updatedUser);</span>
+    }
+
+    public void deleteUser(Long id) {
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">        if (id == null) {</span>
+<span class="nc" id="L102">            throw new InvalidUserException(&quot;User ID cannot be null.&quot;);</span>
+        }
+
+        try {
+<span class="fc" id="L106">            userRepository.deleteById(id); // Try hard delete first</span>
+<span class="fc" id="L107">        } catch (DataIntegrityViolationException e) {</span>
+<span class="fc" id="L108">            User user = userRepository.findById(id)</span>
+<span class="pc" id="L109">                    .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;User not found with ID: &quot; + id));</span>
+<span class="fc" id="L110">            user.setDeleted(true);</span>
+<span class="fc" id="L111">            user.setEmail(null);</span>
+<span class="fc" id="L112">            userRepository.save(user);</span>
+<span class="fc" id="L113">        }</span>
+<span class="fc" id="L114">    }</span>
+
+    public String generateVerificationToken(User user) {
+<span class="fc bfc" id="L117" title="All 2 branches covered.">        if (user == null) {</span>
+<span class="fc" id="L118">            throw new InvalidUserException(&quot;User cannot be null when generating a verification token.&quot;);</span>
+        }
+<span class="fc" id="L120">        String token = UUID.randomUUID().toString();</span>
+<span class="fc" id="L121">        user.setVerificationToken(token);</span>
+<span class="fc" id="L122">        userRepository.save(user);</span>
+<span class="fc" id="L123">        return token;</span>
+    }
+
+    public boolean verifyUser(String token) {
+<span class="nc bnc" id="L127" title="All 4 branches missed.">        if (token == null || token.isBlank()) {</span>
+<span class="nc" id="L128">            throw new InvalidUserException(&quot;Verification token cannot be null or empty.&quot;);</span>
+        }
+<span class="nc" id="L130">        User user = userRepository.findByVerificationToken(token);</span>
+<span class="nc bnc" id="L131" title="All 4 branches missed.">        if (user == null || user.isVerified()) {</span>
+<span class="nc" id="L132">            return false;</span>
+        }
+<span class="nc" id="L134">        user.setVerified(true);</span>
+<span class="nc" id="L135">        userRepository.save(user);</span>
+<span class="nc" id="L136">        return true;</span>
+    }
+
+    @Override
+    public void addObserver(Observer observer) {
+<span class="fc" id="L141">        observers.add(observer);</span>
+<span class="fc" id="L142">    }</span>
+
+    @Override
+    public void removeObserver(Observer observer) {
+<span class="nc" id="L146">        observers.remove(observer);</span>
+<span class="nc" id="L147">    }</span>
+
+    @Override
+    public void notifyObservers(Map&lt;String, Object&gt; data) {
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">        for (Observer observer : observers) {</span>
+<span class="nc" id="L152">            observer.update(data);</span>
+<span class="nc" id="L153">        }</span>
+<span class="fc" id="L154">    }</span>
+
+    public void notifyObservers(User user, String verificationLink, String token) {
+<span class="pc bpc" id="L157" title="4 of 8 branches missed.">        if (user == null || verificationLink == null || verificationLink.isBlank() || token == null) {</span>
+<span class="nc" id="L158">            throw new InvalidUserException(&quot;User and verification link cannot be null or empty.&quot;);</span>
+        }
+<span class="fc" id="L160">        Map&lt;String, Object&gt; data = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L161">        data.put(&quot;verificationLink&quot;, verificationLink);</span>
+<span class="fc" id="L162">        data.put(&quot;user&quot;, user);</span>
+<span class="fc" id="L163">        data.put(&quot;token&quot;, token);</span>
+<span class="fc" id="L164">        notifyObservers(data);</span>
+<span class="fc" id="L165">    }</span>
+
+    @Autowired
+    public void setEmailObserver(EmailObserver emailObserver) {
+<span class="fc" id="L169">        addObserver(emailObserver);</span>
+<span class="fc" id="L170">    }</span>
+
+    public String loginUser(String email, String password, String role) {
+<span class="fc bfc" id="L173" title="All 4 branches covered.">        if (email == null || password == null) {</span>
+<span class="fc" id="L174">            throw new InvalidUserException(&quot;Email and password cannot be null.&quot;);</span>
+        }
+
+        // Fetch the user by email
+<span class="fc" id="L178">        User user = userRepository.findByEmail(email)</span>
+<span class="fc" id="L179">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;User not found with email &quot; + email));</span>
+
+        // Check if the password matches
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        if (!user.checkPassword(password)) {</span>
+<span class="fc" id="L183">            throw new InvalidUserException(&quot;Invalid email or password.&quot;);</span>
+        }
+
+        // Check if the user's email is verified
+<span class="fc bfc" id="L187" title="All 2 branches covered.">        if (!user.isVerified()) {</span>
+<span class="fc" id="L188">            throw new InvalidUserException(&quot;User email is not verified.&quot;);</span>
+        }
+
+<span class="fc" id="L191">        UserRole requestedRole = UserRole.valueOf(role.toUpperCase());</span>
+
+        // Optional: Check if the role matches. You can customize this as needed.
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">        if (!requestedRole.equals(user.getRole())) {</span>
+<span class="nc" id="L195">            throw new InvalidUserException(&quot;Role mismatch: The provided role does not match the user's role.&quot;);</span>
+        }
+
+        // Generate JWT token for the user
+<span class="fc" id="L199">        String token = generateVerificationToken(user);</span>
+
+<span class="fc" id="L201">        return token;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookingController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.controller</a> &gt; <span class="el_source">BookingController.java</span></div><h1>BookingController.java</h1><pre class="source lang-java linenums">package com.example.staymate.controller;
+
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.staymate.dto.booking.BookingRequestDTO;
+import com.example.staymate.dto.booking.BookingResponseDTO;
+import com.example.staymate.dto.custom.CustomResponse;
+import com.example.staymate.dto.user.UserBookingResponseDTO;
+import com.example.staymate.entity.booking.Booking;
+import com.example.staymate.entity.enums.BookingStatus;
+import com.example.staymate.entity.room.Room;
+import com.example.staymate.entity.user.User;
+import com.example.staymate.service.BookingService;
+import com.example.staymate.service.RoomService;
+import com.example.staymate.service.UserService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping(&quot;/bookings&quot;)
+<span class="fc" id="L43">public class BookingController {</span>
+
+        @Autowired
+        private BookingService bookingService;
+
+        @Autowired
+        private RoomService roomService;
+
+        @Autowired
+        private UserService userService;
+
+        @Operation(summary = &quot;Create a new booking&quot;, description = &quot;Creates a booking for a given user and room if available.&quot;)
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = &quot;201&quot;, description = &quot;Booking created successfully&quot;, content = @Content(mediaType = &quot;application/json&quot;, schema = @Schema(implementation = CustomResponse.class))),
+                        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Invalid request data or room unavailable&quot;, content = @Content(mediaType = &quot;application/json&quot;))
+        })
+        @PostMapping
+        public ResponseEntity&lt;CustomResponse&lt;Map&lt;String, Object&gt;&gt;&gt; createBooking(
+                        @Valid @RequestBody BookingRequestDTO bookingRequestDTO) {
+
+<span class="fc" id="L63">                User user = userService.getUserById(bookingRequestDTO.getUserId());</span>
+
+<span class="fc bfc" id="L65" title="All 2 branches covered.">                if (bookingRequestDTO.getCheckOutDate().isBefore(bookingRequestDTO.getCheckInDate())) {</span>
+<span class="fc" id="L66">                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="fc" id="L67">                                        .body(new CustomResponse&lt;&gt;(&quot;Check-out date must be after check-in date&quot;, null));</span>
+                }
+
+<span class="fc bfc" id="L70" title="All 2 branches covered.">                if (!roomService.isRoomAvailable(bookingRequestDTO.getHotelId(), bookingRequestDTO.getRoomId(),</span>
+<span class="fc" id="L71">                                bookingRequestDTO.getCheckInDate(), bookingRequestDTO.getCheckOutDate())) {</span>
+<span class="fc" id="L72">                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="fc" id="L73">                                        .body(new CustomResponse&lt;&gt;(&quot;Room is not available for the selected dates&quot;,</span>
+                                                        null));
+                }
+
+                Room room;
+                try {
+<span class="fc" id="L79">                        room = roomService.bookRoom(bookingRequestDTO.getHotelId(), bookingRequestDTO.getRoomId(),</span>
+<span class="fc" id="L80">                                        bookingRequestDTO.getCheckInDate(), bookingRequestDTO.getCheckOutDate());</span>
+<span class="nc" id="L81">                } catch (RuntimeException e) {</span>
+<span class="nc" id="L82">                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="nc" id="L83">                                        .body(new CustomResponse&lt;&gt;(</span>
+                                                        &quot;Room booking failed. The room might not be available.&quot;, null));
+<span class="fc" id="L85">                }</span>
+
+<span class="fc" id="L87">                Booking booking = new Booking();</span>
+<span class="fc" id="L88">                booking.setUser(user);</span>
+<span class="fc" id="L89">                booking.setRoom(room);</span>
+<span class="fc" id="L90">                booking.setCheckInDate(bookingRequestDTO.getCheckInDate());</span>
+<span class="fc" id="L91">                booking.setCheckOutDate(bookingRequestDTO.getCheckOutDate());</span>
+<span class="fc" id="L92">                booking.setTotalAmount(bookingRequestDTO.getTotalAmount());</span>
+<span class="fc" id="L93">                booking.setBookingDate(LocalDate.now());</span>
+<span class="fc" id="L94">                booking.setStatus(BookingStatus.PENDING);</span>
+
+<span class="fc" id="L96">                Booking savedBooking = bookingService.createBooking(booking);</span>
+
+<span class="fc" id="L98">                Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L99">                response.put(&quot;message&quot;, &quot;Booking created successfully&quot;);</span>
+<span class="fc" id="L100">                response.put(&quot;bookingId&quot;, savedBooking.getId());</span>
+
+<span class="fc" id="L102">                return ResponseEntity.status(HttpStatus.CREATED)</span>
+<span class="fc" id="L103">                                .body(new CustomResponse&lt;&gt;(&quot;Booking created successfully&quot;, response));</span>
+        }
+
+        @Operation(summary = &quot;Get booking by ID&quot;, description = &quot;Retrieve a booking's details using its ID.&quot;)
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Booking found&quot;, content = @Content(mediaType = &quot;application/json&quot;, schema = @Schema(implementation = BookingResponseDTO.class))),
+                        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Booking not found&quot;, content = @Content(mediaType = &quot;application/json&quot;))
+        })
+        @GetMapping(&quot;/{id}&quot;)
+        public ResponseEntity&lt;CustomResponse&lt;BookingResponseDTO&gt;&gt; getBookingById(
+                        @Parameter(description = &quot;ID of the booking&quot;, required = true) @PathVariable Long id) {
+<span class="fc" id="L114">                Booking booking = bookingService.getBookingById(id);</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">                if (booking == null) {</span>
+<span class="fc" id="L116">                        return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L117">                                        .body(new CustomResponse&lt;&gt;(&quot;Booking not found&quot;, null));</span>
+                }
+<span class="fc" id="L119">                BookingResponseDTO bookingResponseDTO = new BookingResponseDTO(booking);</span>
+<span class="fc" id="L120">                return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Booking retrieved successfully&quot;, bookingResponseDTO));</span>
+        }
+
+        @Operation(summary = &quot;Cancel a booking&quot;, description = &quot;Cancels an existing booking by ID.&quot;)
+        @DeleteMapping(&quot;/{id}&quot;)
+        public ResponseEntity&lt;CustomResponse&lt;Map&lt;String, Object&gt;&gt;&gt; cancelBooking(
+                        @Parameter(description = &quot;ID of the booking to cancel&quot;, required = true) @PathVariable Long id) {
+<span class="fc" id="L127">                Booking booking = bookingService.cancelBooking(id);</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">                if (booking == null) {</span>
+<span class="fc" id="L129">                        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L130">                        response.put(&quot;message&quot;, &quot;Booking not found&quot;);</span>
+<span class="fc" id="L131">                        return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L132">                                        .body(new CustomResponse&lt;&gt;(&quot;Booking not found&quot;, response));</span>
+                }
+
+<span class="fc" id="L135">                Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L136">                response.put(&quot;message&quot;, &quot;Booking cancelled successfully&quot;);</span>
+<span class="fc" id="L137">                response.put(&quot;bookingId&quot;, booking.getId());</span>
+<span class="fc" id="L138">                response.put(&quot;status&quot;, booking.getStatus());</span>
+
+<span class="fc" id="L140">                return ResponseEntity.status(HttpStatus.OK)</span>
+<span class="fc" id="L141">                                .body(new CustomResponse&lt;&gt;(&quot;Booking cancelled successfully&quot;, response));</span>
+        }
+
+        @Operation(summary = &quot;Get all bookings for a hotel&quot;, description = &quot;Retrieves all bookings associated with a specific hotel.&quot;)
+        @GetMapping(&quot;/hotel/{hotelId}&quot;)
+        public ResponseEntity&lt;CustomResponse&lt;List&lt;BookingResponseDTO&gt;&gt;&gt; getBookingsForHotel(
+                        @Parameter(description = &quot;ID of the hotel&quot;, required = true) @PathVariable Long hotelId) {
+
+<span class="fc" id="L149">                List&lt;BookingResponseDTO&gt; bookings = bookingService.getBookingsByHotel(hotelId).stream()</span>
+<span class="fc" id="L150">                                .map(BookingResponseDTO::new)</span>
+<span class="fc" id="L151">                                .collect(Collectors.toList());</span>
+
+<span class="fc bfc" id="L153" title="All 2 branches covered.">                if (bookings.isEmpty()) {</span>
+<span class="fc" id="L154">                        return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L155">                                        .body(new CustomResponse&lt;&gt;(&quot;No bookings found for the hotel&quot;,</span>
+<span class="fc" id="L156">                                                        Collections.emptyList()));</span>
+                }
+<span class="fc" id="L158">                return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Bookings retrieved successfully&quot;, bookings));</span>
+        }
+
+        @Operation(summary = &quot;Get all bookings for a user&quot;, description = &quot;Retrieves all bookings associated with a specific user.&quot;)
+        @GetMapping(&quot;/user/{userId}&quot;)
+        public ResponseEntity&lt;CustomResponse&lt;List&lt;UserBookingResponseDTO&gt;&gt;&gt; getBookingsForUser(
+                        @Parameter(description = &quot;ID of the user&quot;, required = true) @PathVariable Long userId) {
+<span class="fc" id="L165">                List&lt;UserBookingResponseDTO&gt; bookings = bookingService.getBookingsByUser(userId).stream()</span>
+<span class="fc" id="L166">                                .map(UserBookingResponseDTO::new)</span>
+<span class="fc" id="L167">                                .collect(Collectors.toList());</span>
+
+<span class="fc bfc" id="L169" title="All 2 branches covered.">                if (bookings.isEmpty()) {</span>
+<span class="fc" id="L170">                        return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L171">                                        .body(new CustomResponse&lt;&gt;(&quot;No bookings found for user&quot;,</span>
+<span class="fc" id="L172">                                                        Collections.emptyList()));</span>
+                }
+<span class="fc" id="L174">                return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Bookings retrieved successfully&quot;, bookings));</span>
+        }
+
+        @Operation(summary = &quot;Get all bookings&quot;, description = &quot;Retrieves all bookings in the system.&quot;)
+        @GetMapping
+        public ResponseEntity&lt;CustomResponse&lt;List&lt;Booking&gt;&gt;&gt; getAllBookings() {
+<span class="nc" id="L180">                List&lt;Booking&gt; bookings = bookingService.getAllBookings();</span>
+
+<span class="nc bnc" id="L182" title="All 2 branches missed.">                if (bookings.isEmpty()) {</span>
+<span class="nc" id="L183">                        return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="nc" id="L184">                                        .body(new CustomResponse&lt;&gt;(&quot;No bookings found&quot;, Collections.emptyList()));</span>
+                }
+<span class="nc" id="L186">                return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Bookings retrieved successfully&quot;, bookings));</span>
+        }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

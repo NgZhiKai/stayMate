@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Booking.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.entity.booking</a> &gt; <span class="el_source">Booking.java</span></div><h1>Booking.java</h1><pre class="source lang-java linenums">package com.example.staymate.entity.booking;
+
+import java.time.LocalDate;
+
+import com.example.staymate.entity.enums.BookingStatus;
+import com.example.staymate.entity.room.Room;
+import com.example.staymate.entity.user.User;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
+import jakarta.persistence.ManyToOne;
+
+@Entity
+<span class="fc" id="L21">public class Booking {</span>
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = &quot;user_id&quot;)
+    private User user;
+
+    @ManyToOne
+    @JoinColumns({
+        @JoinColumn(name = &quot;hotel_id&quot;, referencedColumnName = &quot;hotel_id&quot;), 
+        @JoinColumn(name = &quot;room_id&quot;, referencedColumnName = &quot;room_id&quot;)
+    })
+    private Room room;
+
+    @Column(name = &quot;check_in_date&quot;)
+    private LocalDate checkInDate;
+
+    @Column(name = &quot;check_out_date&quot;)
+    private LocalDate checkOutDate;
+
+    @Column(name = &quot;total_amount&quot;)
+    private double totalAmount;
+
+    @Enumerated(EnumType.STRING)
+    private BookingStatus status;
+
+    @Column(name = &quot;booking_date&quot;)
+    private LocalDate bookingDate;
+
+    // Getters and setters
+    public Long getId() {
+<span class="fc" id="L54">        return id;</span>
+    }
+
+    public void setId(Long id) {
+<span class="fc" id="L58">        this.id = id;</span>
+<span class="fc" id="L59">    }</span>
+
+    public User getUser() {
+<span class="fc" id="L62">        return user;</span>
+    }
+
+    public void setUser(User user) {
+<span class="fc" id="L66">        this.user = user;</span>
+<span class="fc" id="L67">    }</span>
+
+    public Room getRoom() {
+<span class="fc" id="L70">        return room;</span>
+    }
+
+    public void setRoom(Room room) {
+<span class="fc" id="L74">        this.room = room;</span>
+<span class="fc" id="L75">    }</span>
+
+    public LocalDate getCheckInDate() {
+<span class="fc" id="L78">        return checkInDate;</span>
+    }
+
+    public void setCheckInDate(LocalDate checkInDate) {
+<span class="fc" id="L82">        this.checkInDate = checkInDate;</span>
+<span class="fc" id="L83">    }</span>
+
+    public LocalDate getCheckOutDate() {
+<span class="fc" id="L86">        return checkOutDate;</span>
+    }
+
+    public void setCheckOutDate(LocalDate checkOutDate) {
+<span class="fc" id="L90">        this.checkOutDate = checkOutDate;</span>
+<span class="fc" id="L91">    }</span>
+
+    public double getTotalAmount() {
+<span class="fc" id="L94">        return totalAmount;</span>
+    }
+
+    public void setTotalAmount(double totalAmount) {
+<span class="fc" id="L98">        this.totalAmount = totalAmount;</span>
+<span class="fc" id="L99">    }</span>
+
+    public BookingStatus getStatus() {
+<span class="fc" id="L102">        return status;</span>
+    }
+
+    public void setStatus(BookingStatus status) {
+<span class="fc" id="L106">        this.status = status;</span>
+<span class="fc" id="L107">    }</span>
+
+    public LocalDate getBookingDate() {
+<span class="nc" id="L110">        return bookingDate;</span>
+    }
+
+    public void setBookingDate(LocalDate bookingDate) {
+<span class="fc" id="L114">        this.bookingDate = bookingDate;</span>
+<span class="fc" id="L115">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

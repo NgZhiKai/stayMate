@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmailService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.service</a> &gt; <span class="el_source">EmailService.java</span></div><h1>EmailService.java</h1><pre class="source lang-java linenums">package com.example.staymate.service;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+
+import jakarta.mail.internet.MimeMessage;
+
+@Service
+<span class="fc" id="L15">public class EmailService {</span>
+
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @Value(&quot;${spring.mail.username}&quot;)
+    private String fromEmail;
+
+    // Send email with verification link
+    public void sendVerificationEmail(String to, String verificationLink, String token) {
+<span class="nc" id="L25">        String subject = &quot;Email Verification&quot;;</span>
+
+        // Read the HTML content from the template
+<span class="nc" id="L28">        String body = getEmailContentWithVerificationLink(verificationLink, token);</span>
+
+<span class="nc" id="L30">        sendSimpleEmail(to, subject, body);</span>
+<span class="nc" id="L31">    }</span>
+
+    private String getEmailContentWithVerificationLink(String verificationLink, String token) {
+        try {
+            // Read the HTML content from the template
+<span class="nc" id="L36">            var inputStream = Objects</span>
+<span class="nc" id="L37">                    .requireNonNull(EmailService.class.getResourceAsStream(&quot;/templates/email-content.html&quot;));</span>
+<span class="nc" id="L38">            String emailContent = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);</span>
+
+            // Replace the placeholder with the actual verification link
+            // emailContent = emailContent.replace(&quot;{{verificationLink}}&quot;,
+            // verificationLink);
+<span class="nc" id="L43">            emailContent = emailContent.replace(&quot;{{token}}&quot;, token);</span>
+
+<span class="nc" id="L45">            return emailContent;</span>
+<span class="nc" id="L46">        } catch (Exception e) {</span>
+            // Handle exception
+<span class="nc" id="L48">            throw new RuntimeException(&quot;Error reading email template&quot;, e);</span>
+        }
+    }
+
+    // Send email with dynamic body content
+    public void sendSimpleEmail(String to, String subject, String body) {
+        try {
+<span class="nc" id="L55">            MimeMessage message = mailSender.createMimeMessage();</span>
+<span class="nc" id="L56">            MimeMessageHelper helper = new MimeMessageHelper(message, true);</span>
+
+<span class="nc" id="L58">            helper.setFrom(fromEmail);</span>
+<span class="nc" id="L59">            helper.setTo(to);</span>
+<span class="nc" id="L60">            helper.setSubject(subject);</span>
+<span class="nc" id="L61">            helper.setText(body, true);</span>
+
+<span class="nc" id="L63">            mailSender.send(message);</span>
+
+<span class="nc" id="L65">        } catch (Exception e) {</span>
+            // Handle email related exceptions
+<span class="nc" id="L67">            throw new RuntimeException(&quot;Error sending email&quot;, e);</span>
+<span class="nc" id="L68">        }</span>
+<span class="nc" id="L69">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
