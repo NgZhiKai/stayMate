@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookmarkController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.controller</a> &gt; <span class="el_source">BookmarkController.java</span></div><h1>BookmarkController.java</h1><pre class="source lang-java linenums">package com.example.staymate.controller;
+
+import com.example.staymate.dto.bookmark.BookmarkRequestDTO;
+import com.example.staymate.service.BookmarkService;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/bookmarks&quot;)
+public class BookmarkController {
+
+    private final BookmarkService bookmarkService;
+
+    @Autowired
+<span class="fc" id="L19">    public BookmarkController(BookmarkService bookmarkService) {</span>
+<span class="fc" id="L20">        this.bookmarkService = bookmarkService;</span>
+<span class="fc" id="L21">    }</span>
+
+    // Add bookmarks for a user
+    @PostMapping(&quot;/add&quot;)
+    public ResponseEntity&lt;String&gt; addBookmark(@RequestBody BookmarkRequestDTO dto) {
+<span class="fc bfc" id="L26" title="All 2 branches covered.">        for (Long hotelId : dto.getHotelIds()) {</span>
+<span class="fc" id="L27">            bookmarkService.addBookmark(dto.getUserId(), hotelId);</span>
+<span class="fc" id="L28">        }</span>
+<span class="fc" id="L29">        return ResponseEntity.ok(&quot;Bookmarks added successfully.&quot;);</span>
+    }
+
+    // Get all hotel ids for a user
+    @GetMapping(&quot;/{userId}&quot;)
+    public ResponseEntity&lt;List&lt;Long&gt;&gt; getBookmarks(@PathVariable Long userId) {
+<span class="fc" id="L35">        return ResponseEntity.ok(bookmarkService.getHotelIdsByUserId(userId));</span>
+    }
+
+    // Remove a bookmark for a user and hotel
+    @DeleteMapping(&quot;/remove&quot;)
+    @Transactional
+    public ResponseEntity&lt;String&gt; removeBookmark(@RequestParam Long userId, @RequestParam Long hotelId) {
+<span class="fc" id="L42">        bookmarkService.removeBookmark(userId, hotelId);</span>
+<span class="fc" id="L43">        return ResponseEntity.ok(&quot;Bookmark removed.&quot;);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

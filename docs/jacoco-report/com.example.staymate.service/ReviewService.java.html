@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReviewService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.service</a> &gt; <span class="el_source">ReviewService.java</span></div><h1>ReviewService.java</h1><pre class="source lang-java linenums">package com.example.staymate.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.staymate.entity.Review.Review;
+import com.example.staymate.entity.hotel.Hotel;
+import com.example.staymate.entity.user.User;
+import com.example.staymate.exception.ResourceNotFoundException; // Import the custom exception
+import com.example.staymate.repository.ReviewRepository;
+
+@Service
+public class ReviewService {
+
+    private final ReviewRepository reviewRepository;
+
+    @Autowired
+<span class="fc" id="L20">    public ReviewService(ReviewRepository reviewRepository) {</span>
+<span class="fc" id="L21">        this.reviewRepository = reviewRepository;</span>
+<span class="fc" id="L22">    }</span>
+
+    // Save or update a review
+    public Review saveReview(Review review) {
+<span class="pc bpc" id="L26" title="2 of 4 branches missed.">        if (review.getHotel() == null || review.getUser() == null) {</span>
+<span class="nc" id="L27">            throw new ResourceNotFoundException(&quot;Hotel or User must be provided.&quot;);</span>
+        }
+<span class="fc" id="L29">        return reviewRepository.save(review);</span>
+    }
+
+    // Get all reviews
+    public List&lt;Review&gt; getAllReviews() {
+<span class="fc" id="L34">        return reviewRepository.findAll();</span>
+    }
+
+    // Get review by ID
+    public Review getReviewById(Long id) {
+<span class="fc" id="L39">        return reviewRepository.findById(id)</span>
+<span class="pc" id="L40">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Review not found for this id: &quot; + id));</span>
+    }
+
+    // Delete a review by ID
+    public void deleteReview(Long id) {
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">        if (!reviewRepository.existsById(id)) {</span>
+<span class="nc" id="L46">            throw new ResourceNotFoundException(&quot;Review not found for this id: &quot; + id);</span>
+        }
+<span class="fc" id="L48">        reviewRepository.deleteById(id);</span>
+
+<span class="fc" id="L50">    }</span>
+
+    // Find reviews by hotel
+    public List&lt;Review&gt; findReviewsByHotel(Hotel hotel) {
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if (hotel == null) {</span>
+<span class="nc" id="L55">            throw new ResourceNotFoundException(&quot;Hotel must be provided.&quot;);</span>
+        }
+<span class="fc" id="L57">        return reviewRepository.findByHotel(hotel);</span>
+    }
+
+    // Find reviews by user
+    public List&lt;Review&gt; findReviewsByUser(User user) {
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (user == null) {</span>
+<span class="nc" id="L63">            throw new ResourceNotFoundException(&quot;User must be provided.&quot;);</span>
+        }
+<span class="fc" id="L65">        return reviewRepository.findByUser(user);</span>
+    }
+
+    // Find reviews by both hotel and user
+    public List&lt;Review&gt; findReviewsByHotelAndUser(Hotel hotel, User user) {
+<span class="pc bpc" id="L70" title="2 of 4 branches missed.">        if (hotel == null || user == null) {</span>
+<span class="nc" id="L71">            throw new ResourceNotFoundException(&quot;Hotel and User must be provided.&quot;);</span>
+        }
+<span class="fc" id="L73">        return reviewRepository.findByHotelAndUser(hotel, user);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

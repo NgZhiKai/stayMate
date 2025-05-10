@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Hotel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.entity.hotel</a> &gt; <span class="el_source">Hotel.java</span></div><h1>Hotel.java</h1><pre class="source lang-java linenums">package com.example.staymate.entity.hotel;
+
+import java.time.LocalTime;
+import java.util.List;
+
+import com.example.staymate.entity.room.Room;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.OneToMany;
+
+@Entity
+<span class="fc" id="L18">public class Hotel {</span>
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String address;
+    private double latitude;
+    private double longitude;
+
+    @OneToMany(mappedBy = &quot;id.hotelId&quot;, cascade = CascadeType.ALL)
+    private List&lt;Room&gt; rooms;
+
+    @Lob
+    @Column(columnDefinition = &quot;LONGBLOB&quot;)
+    private byte[] image;
+
+    private String description; // Description field
+    private String contact; // New contact field
+
+    // Add checkIn and checkOut fields
+    private LocalTime checkIn; // Check-in date and time
+    private LocalTime checkOut; // Check-out date and time
+
+    // Getters and setters
+    public Long getId() {
+<span class="fc" id="L44">        return id;</span>
+    }
+
+    public void setId(Long id) {
+<span class="fc" id="L48">        this.id = id;</span>
+<span class="fc" id="L49">    }</span>
+
+    public String getName() {
+<span class="fc" id="L52">        return name;</span>
+    }
+
+    public void setName(String name) {
+<span class="fc" id="L56">        this.name = name;</span>
+<span class="fc" id="L57">    }</span>
+
+    public String getAddress() {
+<span class="fc" id="L60">        return address;</span>
+    }
+
+    public void setAddress(String address) {
+<span class="fc" id="L64">        this.address = address;</span>
+<span class="fc" id="L65">    }</span>
+
+    public double getLatitude() {
+<span class="fc" id="L68">        return latitude;</span>
+    }
+
+    public void setLatitude(double latitude) {
+<span class="fc" id="L72">        this.latitude = latitude;</span>
+<span class="fc" id="L73">    }</span>
+
+    public double getLongitude() {
+<span class="fc" id="L76">        return longitude;</span>
+    }
+
+    public void setLongitude(double longitude) {
+<span class="fc" id="L80">        this.longitude = longitude;</span>
+<span class="fc" id="L81">    }</span>
+
+    public List&lt;Room&gt; getRooms() {
+<span class="fc" id="L84">        return rooms;</span>
+    }
+
+    public void setRooms(List&lt;Room&gt; rooms) {
+<span class="fc" id="L88">        this.rooms = rooms;</span>
+<span class="fc" id="L89">    }</span>
+
+    public byte[] getImage() {
+<span class="fc" id="L92">        return image;</span>
+    }
+
+    public void setImage(byte[] image) {
+<span class="fc" id="L96">        this.image = image;</span>
+<span class="fc" id="L97">    }</span>
+
+    public String getDescription() {
+<span class="fc" id="L100">        return description;</span>
+    }
+
+    public void setDescription(String description) {
+<span class="fc" id="L104">        this.description = description;</span>
+<span class="fc" id="L105">    }</span>
+
+    // Getter and Setter for contact
+    public String getContact() {
+<span class="fc" id="L109">        return contact;</span>
+    }
+
+    public void setContact(String contact) {
+<span class="fc" id="L113">        this.contact = contact;</span>
+<span class="fc" id="L114">    }</span>
+
+    // Getter and Setter for checkIn
+    public LocalTime getCheckIn() {
+<span class="fc" id="L118">        return checkIn;</span>
+    }
+
+    public void setCheckIn(LocalTime checkIn) {
+<span class="fc" id="L122">        this.checkIn = checkIn;</span>
+<span class="fc" id="L123">    }</span>
+
+    // Getter and Setter for checkOut
+    public LocalTime getCheckOut() {
+<span class="fc" id="L127">        return checkOut;</span>
+    }
+
+    public void setCheckOut(LocalTime checkOut) {
+<span class="fc" id="L131">        this.checkOut = checkOut;</span>
+<span class="fc" id="L132">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

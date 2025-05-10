@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HotelController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.controller</a> &gt; <span class="el_source">HotelController.java</span></div><h1>HotelController.java</h1><pre class="source lang-java linenums">package com.example.staymate.controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.example.staymate.dto.custom.CustomResponse;
+import com.example.staymate.dto.hotel.HotelRequestDTO;
+import com.example.staymate.dto.room.RoomRequestDTO;
+import com.example.staymate.entity.hotel.Hotel;
+import com.example.staymate.entity.room.Room;
+import com.example.staymate.service.HotelService;
+import com.example.staymate.service.RoomService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+
+@RequestMapping(&quot;/hotels&quot;)
+@RestController
+<span class="fc" id="L39">public class HotelController {</span>
+
+    @Autowired
+    private HotelService hotelService;
+
+    @Autowired
+    private RoomService roomService;
+
+    @Operation(summary = &quot;Create a new hotel&quot;, description = &quot;This operation creates a new hotel and its rooms&quot;)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity&lt;CustomResponse&lt;Map&lt;String, Object&gt;&gt;&gt; createHotel(
+            @RequestPart(&quot;hotelDetails&quot;) String hotelDetailsJson,
+            @RequestPart(value = &quot;image&quot;, required = false) MultipartFile image) {
+
+<span class="fc" id="L53">        HotelRequestDTO hotelRequestDTO = null;</span>
+        try {
+            // Attempt to parse the hotelDetailsJson into HotelRequestDTO
+<span class="fc" id="L56">            hotelRequestDTO = new ObjectMapper().readValue(hotelDetailsJson, HotelRequestDTO.class);</span>
+<span class="fc" id="L57">        } catch (JsonProcessingException e) {</span>
+            // Handle JSON parsing error
+<span class="fc" id="L59">            return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="fc" id="L60">                    .body(new CustomResponse&lt;&gt;(&quot;Invalid JSON format for hotel details&quot;, null));</span>
+<span class="fc" id="L61">        }</span>
+
+        // Validate hotel name
+<span class="pc bpc" id="L64" title="1 of 4 branches missed.">        if (hotelRequestDTO.getName() == null || hotelRequestDTO.getName().isEmpty()) {</span>
+<span class="fc" id="L65">            return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="fc" id="L66">                    .body(new CustomResponse&lt;&gt;(&quot;Hotel name is required&quot;, null)); // 400 Bad Request</span>
+        }
+
+        // Create Hotel object and populate fields
+<span class="fc" id="L70">        Hotel hotel = new Hotel();</span>
+<span class="fc" id="L71">        hotel.setName(hotelRequestDTO.getName());</span>
+<span class="fc" id="L72">        hotel.setAddress(hotelRequestDTO.getAddress());</span>
+<span class="fc" id="L73">        hotel.setDescription(hotelRequestDTO.getDescription());</span>
+<span class="fc" id="L74">        hotel.setLatitude(hotelRequestDTO.getLatitude());</span>
+<span class="fc" id="L75">        hotel.setLongitude(hotelRequestDTO.getLongitude());</span>
+<span class="fc" id="L76">        hotel.setContact(hotelRequestDTO.getContact());</span>
+<span class="fc" id="L77">        hotel.setCheckIn(hotelRequestDTO.getCheckIn());</span>
+<span class="fc" id="L78">        hotel.setCheckOut(hotelRequestDTO.getCheckOut());</span>
+
+<span class="pc bpc" id="L80" title="2 of 4 branches missed.">        if (image != null &amp;&amp; !image.isEmpty()) {</span>
+            try {
+<span class="fc" id="L82">                byte[] imageBytes = image.getResource().getInputStream().readAllBytes();</span>
+<span class="fc" id="L83">                hotel.setImage(imageBytes); // Store image as byte array</span>
+<span class="nc" id="L84">            } catch (IOException e) {</span>
+<span class="nc" id="L85">                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="nc" id="L86">                        .body(new CustomResponse&lt;&gt;(&quot;Error processing image&quot;, null));</span>
+<span class="fc" id="L87">            }</span>
+        }
+
+        // Save hotel to the database
+<span class="fc" id="L91">        Hotel savedHotel = hotelService.saveHotel(hotel);</span>
+
+        // Process rooms
+<span class="fc" id="L94">        List&lt;Room&gt; rooms = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L95">        long roomId = 100;</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        for (RoomRequestDTO roomRequest : hotelRequestDTO.getRooms()) {</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            if (roomRequest.getQuantity() &lt;= 0) {</span>
+<span class="nc" id="L98">                return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="nc" id="L99">                        .body(new CustomResponse&lt;&gt;(&quot;Room quantity must be greater than zero&quot;, null)); // 400 Bad Request</span>
+            }
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            for (int i = 0; i &lt; roomRequest.getQuantity(); i++) {</span>
+<span class="nc" id="L102">                Room room = roomService.createRoom(savedHotel, roomId++, roomRequest.getRoomType(),</span>
+<span class="nc" id="L103">                        roomRequest.getPricePerNight(), roomRequest.getMaxOccupancy());</span>
+<span class="nc" id="L104">                rooms.add(room);</span>
+            }
+<span class="nc" id="L106">        }</span>
+
+<span class="fc" id="L108">        savedHotel.setRooms(rooms);</span>
+
+<span class="fc" id="L110">        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L111">        response.put(&quot;message&quot;, &quot;Hotel created successfully&quot;);</span>
+<span class="fc" id="L112">        response.put(&quot;hotelId&quot;, savedHotel.getId());</span>
+
+<span class="fc" id="L114">        return ResponseEntity.status(HttpStatus.CREATED)</span>
+<span class="fc" id="L115">                .body(new CustomResponse&lt;&gt;(&quot;Hotel created successfully&quot;, response));</span>
+    }
+
+    @Operation(summary = &quot;Get all hotels&quot;, description = &quot;Retrieve a list of all hotels&quot;)
+    @GetMapping
+    public ResponseEntity&lt;CustomResponse&lt;List&lt;Hotel&gt;&gt;&gt; getAllHotels() {
+<span class="fc" id="L121">        List&lt;Hotel&gt; hotels = hotelService.getAllHotels();</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">        if (hotels.isEmpty()) {</span>
+<span class="fc" id="L123">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L124">                    .body(new CustomResponse&lt;&gt;(&quot;No hotels found&quot;, null)); // 404 Not Found</span>
+        }
+<span class="fc" id="L126">        return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Hotels retrieved successfully&quot;, hotels)); // 200 OK</span>
+    }
+
+    @Operation(summary = &quot;Get hotel by ID&quot;, description = &quot;Retrieve a hotel by its ID&quot;)
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;Hotel&gt;&gt; getHotelById(
+            @Parameter(description = &quot;ID of the hotel to retrieve&quot;) @PathVariable Long id) {
+        try {
+<span class="fc" id="L134">            Hotel hotel = hotelService.getHotelById(id); // Directly getting the hotel, no Optional</span>
+<span class="fc" id="L135">            return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Hotel retrieved successfully&quot;, hotel)); // 200 OK</span>
+<span class="fc" id="L136">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L137">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L138">                    .body(new CustomResponse&lt;&gt;(e.getMessage(), null)); // 404 Not Found</span>
+        }
+    }
+
+    @Operation(summary = &quot;Update hotel details&quot;, description = &quot;Update the information of an existing hotel&quot;)
+    @PutMapping(value = &quot;/{id}&quot;, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity&lt;CustomResponse&lt;Map&lt;String, Object&gt;&gt;&gt; updateHotel(
+            @Parameter(description = &quot;ID of the hotel to update&quot;) @PathVariable Long id,
+            @Parameter(description = &quot;Updated hotel information&quot;) @RequestPart(&quot;hotelDetails&quot;) String hotelDetailsJson,
+            @RequestPart(value = &quot;image&quot;, required = false) MultipartFile image) {
+        try {
+            // Ensure the hotel exists
+<span class="fc" id="L150">            Hotel existingHotel = hotelService.getHotelById(id);</span>
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">            if (existingHotel == null) {</span>
+<span class="nc" id="L152">                throw new RuntimeException(&quot;Hotel not found with id: &quot; + id);</span>
+            }
+<span class="fc" id="L154">            HotelRequestDTO hotelRequestDTO = null;</span>
+            try {
+                // Attempt to parse the hotelDetailsJson into HotelRequestDTO
+<span class="fc" id="L157">                hotelRequestDTO = new ObjectMapper().readValue(hotelDetailsJson, HotelRequestDTO.class);</span>
+<span class="nc" id="L158">            } catch (JsonProcessingException e) {</span>
+                // Handle JSON parsing error
+<span class="nc" id="L160">                return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="nc" id="L161">                        .body(new CustomResponse&lt;&gt;(&quot;Invalid JSON format for hotel details&quot;, null));</span>
+<span class="fc" id="L162">            }</span>
+
+<span class="fc" id="L164">            existingHotel.setName(hotelRequestDTO.getName());</span>
+<span class="fc" id="L165">            existingHotel.setAddress(hotelRequestDTO.getAddress());</span>
+<span class="fc" id="L166">            existingHotel.setDescription(hotelRequestDTO.getDescription());</span>
+<span class="fc" id="L167">            existingHotel.setLatitude(hotelRequestDTO.getLatitude());</span>
+<span class="fc" id="L168">            existingHotel.setLongitude(hotelRequestDTO.getLongitude());</span>
+<span class="fc" id="L169">            existingHotel.setContact(hotelRequestDTO.getContact());</span>
+<span class="fc" id="L170">            existingHotel.setCheckIn(hotelRequestDTO.getCheckIn());</span>
+<span class="fc" id="L171">            existingHotel.setCheckOut(hotelRequestDTO.getCheckOut());</span>
+
+<span class="pc bpc" id="L173" title="3 of 4 branches missed.">            if (image != null &amp;&amp; !image.isEmpty()) {</span>
+                try {
+<span class="nc" id="L175">                    byte[] imageBytes = image.getResource().getInputStream().readAllBytes();</span>
+<span class="nc" id="L176">                    existingHotel.setImage(imageBytes); // Store image as byte array</span>
+<span class="nc" id="L177">                } catch (IOException e) {</span>
+<span class="nc" id="L178">                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)</span>
+<span class="nc" id="L179">                            .body(new CustomResponse&lt;&gt;(&quot;Error processing image&quot;, null));</span>
+<span class="nc" id="L180">                }</span>
+            }
+
+            // Save the hotel with or without an image (if provided)
+<span class="fc" id="L184">            Hotel updatedHotel = hotelService.saveHotel(existingHotel);</span>
+
+            // Build response
+<span class="fc" id="L187">            Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L188">            response.put(&quot;message&quot;, &quot;Hotel updated successfully&quot;);</span>
+<span class="fc" id="L189">            response.put(&quot;hotelId&quot;, updatedHotel.getId());</span>
+
+<span class="fc" id="L191">            return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Hotel updated successfully&quot;, response));</span>
+<span class="fc" id="L192">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L193">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L194">                    .body(new CustomResponse&lt;&gt;(e.getMessage(), null));</span>
+<span class="nc" id="L195">        } catch (Exception e) {</span>
+<span class="nc" id="L196">            return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="nc" id="L197">                    .body(new CustomResponse&lt;&gt;(e.getMessage(), null));</span>
+        }
+    }
+
+    @Operation(summary = &quot;Delete hotel by ID&quot;, description = &quot;Delete a hotel by its ID&quot;)
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;Map&lt;String, Object&gt;&gt;&gt; deleteHotel(
+            @Parameter(description = &quot;ID of the hotel to delete&quot;) @PathVariable Long id) {
+        try {
+<span class="fc" id="L206">            hotelService.getHotelById(id); // Ensure hotel exists</span>
+
+<span class="fc" id="L208">            hotelService.deleteHotel(id);</span>
+
+<span class="fc" id="L210">            Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L211">            response.put(&quot;message&quot;, &quot;Hotel deleted successfully&quot;);</span>
+<span class="fc" id="L212">            response.put(&quot;hotelId&quot;, id);</span>
+<span class="fc" id="L213">            return ResponseEntity.status(HttpStatus.OK)</span>
+<span class="fc" id="L214">                    .body(new CustomResponse&lt;&gt;(&quot;Hotel deleted successfully&quot;, response)); // 200 OK</span>
+<span class="fc" id="L215">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L216">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L217">                    .body(new CustomResponse&lt;&gt;(e.getMessage(), null)); // 404 Not Found</span>
+        }
+    }
+
+    @Operation(summary = &quot;Search hotels by name&quot;, description = &quot;Search for hotels by their name&quot;)
+    @GetMapping(&quot;/search&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;Map&lt;String, Object&gt;&gt;&gt; searchHotelsByName(
+            @Parameter(description = &quot;Name of the hotel to search&quot;) @RequestParam String name) {
+<span class="pc bpc" id="L225" title="1 of 4 branches missed.">        if (name == null || name.isEmpty()) {</span>
+<span class="fc" id="L226">            return ResponseEntity.status(HttpStatus.BAD_REQUEST)</span>
+<span class="fc" id="L227">                    .body(new CustomResponse&lt;&gt;(&quot;Search query cannot be empty&quot;, null)); // 400 Bad Request</span>
+        }
+
+<span class="fc" id="L230">        List&lt;Hotel&gt; hotels = hotelService.findHotelsByName(name);</span>
+
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">        if (hotels.isEmpty()) {</span>
+<span class="fc" id="L233">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L234">                    .body(new CustomResponse&lt;&gt;(&quot;No hotels found matching the name: &quot; + name, null)); // 404 Not Found</span>
+        }
+
+<span class="nc" id="L237">        Map&lt;String, Object&gt; response = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L238">        response.put(&quot;message&quot;, &quot;Hotels found matching the name: &quot; + name);</span>
+<span class="nc" id="L239">        response.put(&quot;hotels&quot;, hotels);</span>
+<span class="nc" id="L240">        return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Hotels found successfully&quot;, response)); // 200 OK</span>
+    }
+
+    @Operation(summary = &quot;Get hotel rooms&quot;, description = &quot;Get all rooms for a specific hotel&quot;)
+    @GetMapping(&quot;/{id}/rooms&quot;)
+    public ResponseEntity&lt;CustomResponse&lt;List&lt;Room&gt;&gt;&gt; getHotelRooms(
+            @Parameter(description = &quot;ID of the hotel&quot;) @PathVariable Long id) {
+        try {
+<span class="nc" id="L248">            hotelService.getHotelById(id);</span>
+<span class="nc" id="L249">            List&lt;Room&gt; rooms = roomService.getRoomsByHotelId(id);</span>
+<span class="nc" id="L250">            return ResponseEntity.ok(new CustomResponse&lt;&gt;(&quot;Rooms retrieved successfully&quot;, rooms));</span>
+<span class="fc" id="L251">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L252">            return ResponseEntity.status(HttpStatus.NOT_FOUND)</span>
+<span class="fc" id="L253">                    .body(new CustomResponse&lt;&gt;(e.getMessage(), null));</span>
+        }
+    }
+
+    @Operation(summary = &quot;Get hotels within 10 km&quot;, description = &quot;Returns hotels within a 10 km radius of the current location&quot;)
+    @GetMapping(&quot;/hotels/nearby&quot;)
+    public ResponseEntity&lt;List&lt;Hotel&gt;&gt; getHotelsNearby(@RequestParam double latitude, @RequestParam double longitude) {
+<span class="nc" id="L260">        List&lt;Hotel&gt; nearbyHotels = hotelService.getNearbyHotels(latitude, longitude);</span>
+<span class="nc" id="L261">        return ResponseEntity.ok(nearbyHotels);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

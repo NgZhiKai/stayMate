@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmailObserver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.observer</a> &gt; <span class="el_source">EmailObserver.java</span></div><h1>EmailObserver.java</h1><pre class="source lang-java linenums">package com.example.staymate.observer;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.example.staymate.entity.user.User;
+import com.example.staymate.service.EmailService;
+
+@Component
+public class EmailObserver implements Observer {
+
+    @Autowired
+    private EmailService emailService;
+
+    // Constructor
+<span class="fc" id="L18">    public EmailObserver(EmailService emailService) {</span>
+<span class="fc" id="L19">        this.emailService = emailService;</span>
+<span class="fc" id="L20">    }</span>
+
+    @Override
+    public void update(Map&lt;String, Object&gt; data) {
+        // Retrieve the user and verification link from the data map
+<span class="nc" id="L25">        User user = (User) data.get(&quot;user&quot;);</span>
+<span class="nc" id="L26">        String verificationLink = (String) data.get(&quot;verificationLink&quot;);</span>
+<span class="nc" id="L27">        String token = (String) data.get(&quot;token&quot;);</span>
+
+        // Make sure that both user and verificationLink are not null
+<span class="nc bnc" id="L30" title="All 4 branches missed.">        if (user != null &amp;&amp; verificationLink != null) {</span>
+            // Send the verification email
+<span class="nc" id="L32">            emailService.sendVerificationEmail(user.getEmail(), verificationLink, token);</span>
+        }
+<span class="nc" id="L34">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

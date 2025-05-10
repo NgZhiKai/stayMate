@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RoomId.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">staymate</a> &gt; <a href="index.source.html" class="el_package">com.example.staymate.entity.room</a> &gt; <span class="el_source">RoomId.java</span></div><h1>RoomId.java</h1><pre class="source lang-java linenums">package com.example.staymate.entity.room;
+
+import java.io.Serializable;
+import java.util.Objects;
+
+import jakarta.persistence.Embeddable;
+
+@Embeddable
+public class RoomId implements Serializable {
+
+    private Long hotelId;
+    private Long roomId;
+
+<span class="nc" id="L14">    public RoomId() {}</span>
+
+<span class="fc" id="L16">    public RoomId(Long hotelId, Long roomId) {</span>
+<span class="fc" id="L17">        this.hotelId = hotelId;</span>
+<span class="fc" id="L18">        this.roomId = roomId;</span>
+<span class="fc" id="L19">    }</span>
+
+<span class="nc" id="L21">    public Long getHotelId() { return hotelId; }</span>
+<span class="nc" id="L22">    public void setHotelId(Long hotelId) { this.hotelId = hotelId; }</span>
+
+<span class="fc" id="L24">    public Long getRoomId() { return roomId; }</span>
+<span class="nc" id="L25">    public void setRoomId(Long roomId) { this.roomId = roomId; }</span>
+
+    @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L29" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L30" title="2 of 4 branches missed.">        if (o == null || getClass() != o.getClass()) return false;</span>
+<span class="fc" id="L31">        RoomId roomId1 = (RoomId) o;</span>
+<span class="pc bpc" id="L32" title="2 of 4 branches missed.">        return Objects.equals(hotelId, roomId1.hotelId) &amp;&amp; Objects.equals(roomId, roomId1.roomId);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L37">        return Objects.hash(hotelId, roomId);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
